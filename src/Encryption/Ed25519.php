@@ -4,11 +4,11 @@ namespace Siruis\Encryption;
 
 include '../../Salt/autoload.php';
 
+use Chacha20Poly1305;
 use Exception;
-use http\Exception\UnexpectedValueException;
+use phpDocumentor\Reflection\Types\Array_;
 use SaltException;
 use Siruis\Errors\Exceptions\SiriusCryptoError;
-use Siruis\Encryption\Encryption;
 use Salt;
 
 class Ed25519
@@ -104,6 +104,7 @@ class Ed25519
      * @param $recipients
      * @param $my_verKey
      * @param $my_sigKey
+     * @return array
      * @throws Exception
      */
     public static function locate_pack_recipient_key($recipients, $my_verKey, $my_sigKey)
@@ -149,5 +150,142 @@ class Ed25519
         }
 
         throw new Exception("No corresponding recipient key found in $not_found");
+    }
+
+    /**
+     * Encrypt the payload of a packed message.
+     *
+     * @param string $message Message to encrypt
+     * @param mixed $add_data additional data
+     * @param mixed $key Key used for encryption
+     *
+     * @return array
+     * @throws Exception
+     */
+    public static function encrypt_plaintext(string $message, $add_data, $key)
+    {
+        $nonce = Salt::randombytes(Salt::poly1305_KEY);
+        $message_bin = mb_convert_encoding($message, 'ASCII');
+        $cacha20poly1305 = new Chacha20Poly1305($key);
+        $output = $cacha20poly1305->encrypt($nonce, $message_bin, $add_data);
+        $message_len = strlen($message);
+        $cipher_text = substr($output, 0, $message_len);
+        $tag = substr($output, $message_len);
+        return [
+            $cipher_text,
+            $nonce,
+            $tag
+        ];
+    }
+
+    /**
+     * Decrypt the payload of a packed message.
+     *
+     * @param $cipher_text
+     * @param $recipes_bin
+     * @param $nonce
+     * @param $key
+     *
+     * @return string
+     */
+    public static function decrypt_plaintext($cipher_text, $recipes_bin, $nonce, $key)
+    {
+        $cacha20poly1305 = new Chacha20Poly1305($key);
+        $output = $cacha20poly1305->decrypt($nonce, $cipher_text, $recipes_bin);
+        return mb_convert_encoding($output, 'ASCII');
+    }
+
+    /**
+     * Assemble a packed message for a set of recipients, optionally including the sender.
+     *
+     * @param $message
+     * @param array $to_ver_keys
+     * @param $from_ver_key
+     * @param $from_sig_key
+     *
+     * @return string
+     * @throws SaltException
+     * @throws SiriusCryptoError
+     */
+    public static function pack_message($message, array $to_ver_keys, $from_ver_key, $from_sig_key)
+    {
+        $tvk = [];
+        foreach ($to_ver_keys as $vk) {
+            $tvk = array_push($to_ver_keys, self::ensure_is_bytes($vk));
+        }
+        $from_ver_key = self::ensure_is_bytes($from_ver_key);
+        $from_sig_key = self::ensure_is_bytes($from_sig_key);
+
+        $prepared = self::prepare_pack_recipient_keys($tvk, $from_ver_key, $from_sig_key);
+        $cek = $prepared[0];
+        $recips_json = $prepared[2];
+        $recips_b64 = Encryption::bytes_to_b64(mb_convert_encoding($recips_json, 'ASCII'), true);
+        $encrypted = self::encrypt_plaintext($message, mb_convert_encoding($recips_b64, 'ASCII'), $cek);
+        $cipher_text = $encrypted[0];
+        $nonce = $encrypted[1];
+        $tag = $encrypted[2];
+        $data =  [
+            'protected' => $recips_b64,
+            'iv' => Encryption::bytes_to_b64($nonce, true),
+            'ciphertext' => Encryption::bytes_to_b64($cipher_text, true),
+            'tag' => Encryption::bytes_to_b64($tag, true)
+        ];
+        return mb_convert_encoding(json_encode($data), 'ASCII');
+    }
+
+    /**
+     *
+     * Decode a packed message.
+     *
+     * Disassemble and unencrypt a packed message, returning the message content,
+     * verification key of the sender (if available), and verification key of the
+     * recipient.
+     *
+     * @param $enc_message
+     * @param $my_verkey
+     * @param $my_sigkey
+     *
+     * @return array
+     * @throws Exception
+     */
+    public static function unpack_message($enc_message, $my_verkey, $my_sigkey)
+    {
+        $my_verkey = self::ensure_is_bytes($my_verkey);
+        $my_sigkey = self::ensure_is_bytes($my_sigkey);
+
+        if (!($enc_message instanceof Array_)) {
+            throw new \TypeError('Expected bytes or dict, got ' . gettype($enc_message));
+        }
+
+        $protected_bin = mb_convert_encoding($enc_message['protected'], 'ASCII');
+        $recips_json = mb_convert_encoding(Encryption::b64_to_bytes($enc_message['protected'], true), 'ASCII');
+        $recips_outer = $recips_json;
+        try {
+            $recips_outer = json_decode($recips_json);
+        } catch (Exception $exception) {
+            throw new Exception('Invalid packed message recipients' . $exception->getMessage());
+        }
+
+        $alg = $recips_outer['alg'];
+        $is_authcrypt = $alg == 'Authcrypt';
+        if (!$is_authcrypt && $alg != 'Anoncrypt') {
+            throw new Exception('Unsupported pack algorithm: ' . $alg);
+        }
+        $located = self::locate_pack_recipient_key($recips_outer['recipients'], $my_verkey, $my_sigkey);
+        $cek = $located[0];
+        $sender_vk = $located[1];
+        $recip_vk = $located[2];
+        if (!$sender_vk && $is_authcrypt) {
+            throw new Exception('Sender public key not provided for Authcrypt message');
+        }
+
+        $ciphertext = Encryption::b64_to_bytes($enc_message['ciphertext'], true);
+        $nonce = Encryption::b64_to_bytes($enc_message['iv'], true);
+        $tag = Encryption::b64_to_bytes($enc_message['tag'], true);
+
+        $payload_bin = $ciphertext + $tag;
+        $message = self::decrypt_plaintext($payload_bin, $protected_bin, $nonce, $cek);
+
+        return [$message, $sender_vk, $recip_vk];
     }
 }
