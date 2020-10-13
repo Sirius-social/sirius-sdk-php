@@ -1,0 +1,19 @@
+language: php
+
+services:
+  - docker
+  
+before_install:
+  # Run TestSuite
+  - cd ./test_suite
+  - docker-compose up -d
+  - cd ..
+  - sleep 60  # Wait for TestSuite is ready
+  
+php:
+  - "5.4"     
+  - "5.6"
+  - "7.0"
+#  - "nightly"  # nightly build
+
+script: phpunit ./tests
