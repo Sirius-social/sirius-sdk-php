@@ -5,6 +5,7 @@ namespace Siruis\Encryption;
 include '../../Salt/autoload.php';
 
 use Salt;
+use SaltException;
 use Siruis\Errors\Exceptions\SiriusCryptoError;
 use Tuupola\Base58;
 
@@ -47,6 +48,12 @@ class Encryption
         return $base58->encode($value);
     }
 
+    /**
+     * @param bool $seed
+     * @return array
+     * @throws SiriusCryptoError
+     * @throws SaltException
+     */
     public static function create_keypair($seed = false)
     {
         if ($seed) {
