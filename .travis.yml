@@ -10,6 +10,7 @@ before_install:
   - cd ..
   - sleep 60  # Wait for TestSuite is ready
   - composer install
+  - composer dump-autoload
   
 php:   
 #  - "5.6"
