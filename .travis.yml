@@ -9,6 +9,7 @@ before_install:
   - docker-compose up -d
   - cd ..
   - sleep 60  # Wait for TestSuite is ready
+  - composer install
   
 php:   
 #  - "5.6"
