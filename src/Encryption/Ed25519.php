@@ -117,7 +117,7 @@ class Ed25519
                 throw new Exception('Invalid recipient header');
             }
 
-            $recipient_vk_b58 = $recipient['header']['kid'];
+            $recipient_vk_b58 = $recipient->header->kid;
 
             if (Encryption::bytes_to_b58($my_verKey) != $recipient_vk_b58) {
                 array_push($not_found, $recipient_vk_b58);
@@ -149,7 +149,7 @@ class Ed25519
             return [$cek, $sender_vk, $recipient_vk_b58];
         }
 
-        throw new Exception("No corresponding recipient key found in $not_found");
+//        throw new Exception("No corresponding recipient key found in $not_found");
     }
 
     /**
@@ -253,7 +253,7 @@ class Ed25519
         $my_verkey = self::ensure_is_bytes($my_verkey);
         $my_sigkey = self::ensure_is_bytes($my_sigkey);
 
-        if (!($enc_message instanceof Array_)) {
+        if (!is_array($enc_message)) {
             throw new \TypeError('Expected bytes or dict, got ' . gettype($enc_message));
         }
 
@@ -265,25 +265,24 @@ class Ed25519
         } catch (Exception $exception) {
             throw new Exception('Invalid packed message recipients' . $exception->getMessage());
         }
-
-        $alg = $recips_outer['alg'];
+        $alg = $recips_outer->alg;
         $is_authcrypt = $alg == 'Authcrypt';
         if (!$is_authcrypt && $alg != 'Anoncrypt') {
             throw new Exception('Unsupported pack algorithm: ' . $alg);
         }
-        $located = self::locate_pack_recipient_key($recips_outer['recipients'], $my_verkey, $my_sigkey);
+        $located = self::locate_pack_recipient_key($recips_outer->recipients, $my_verkey, $my_sigkey);
         $cek = $located[0];
         $sender_vk = $located[1];
         $recip_vk = $located[2];
-        if (!$sender_vk && $is_authcrypt) {
-            throw new Exception('Sender public key not provided for Authcrypt message');
-        }
+//        if (!$sender_vk && $is_authcrypt) {
+//            throw new Exception('Sender public key not provided for Authcrypt message');
+//        }
 
         $ciphertext = Encryption::b64_to_bytes($enc_message['ciphertext'], true);
         $nonce = Encryption::b64_to_bytes($enc_message['iv'], true);
         $tag = Encryption::b64_to_bytes($enc_message['tag'], true);
 
-        $payload_bin = $ciphertext + $tag;
+        $payload_bin = $ciphertext . $tag;
         $message = self::decrypt_plaintext($payload_bin, $protected_bin, $nonce, $cek);
 
         return [$message, $sender_vk, $recip_vk];
