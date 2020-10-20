@@ -4,16 +4,25 @@ namespace Siruis\Encryption;
 
 include '../../Salt/autoload.php';
 
+use ParagonIE_Sodium_Compat;
+use phpDocumentor\Reflection\Types\String_;
 use Salt;
 use SaltException;
 use Siruis\Errors\Exceptions\SiriusCryptoError;
+use SodiumException;
 use Tuupola\Base58;
 
 class Encryption
 {
+    /**
+     * @param $value
+     * @param bool $urlsafe
+     * @return string
+     * @throws SodiumException
+     */
     public static function b64_to_bytes($value, $urlsafe = false)
     {
-        if ($value instanceof string) {
+        if (is_string($value)) {
             $value = mb_convert_encoding($value, 'ASCII');
         }
         if ($urlsafe) {
@@ -21,27 +30,41 @@ class Encryption
             // if ($missing_padding) {
             //     $value += b '='
             // }
-            return static::urlsafe_b64decode($value);
+            return ParagonIE_Sodium_Compat::base642bin($value, ParagonIE_Sodium_Compat::BASE64_VARIANT_URLSAFE);
         }
-        return base64_decode($value);
+        return ParagonIE_Sodium_Compat::base642bin($value, ParagonIE_Sodium_Compat::BASE64_VARIANT_ORIGINAL);
     }
 
+    /**
+     * @param $value
+     * @param bool $urlsafe
+     * @return string
+     * @throws SodiumException
+     */
     public static function bytes_to_b64($value, $urlsafe = false)
     {
         if ($urlsafe) {
-            $value = static::urlsafe_b64encode($value);
+            $value = ParagonIE_Sodium_Compat::bin2base64($value, ParagonIE_Sodium_Compat::BASE64_VARIANT_URLSAFE);
             return mb_convert_encoding($value, 'ASCII');
         }
-        $value = base64_encode($value);
+        $value = ParagonIE_Sodium_Compat::bin2base64($value, ParagonIE_Sodium_Compat::BASE64_VARIANT_ORIGINAL);
         return mb_convert_encoding($value, 'ASCII');
     }
 
+    /**
+     * @param $value
+     * @return string
+     */
     public static function b58_to_bytes($value)
     {
         $base58 = new Base58();
         return $base58->decode($value);
     }
 
+    /**
+     * @param $value
+     * @return string
+     */
     public static function bytes_to_b58($value)
     {
         $base58 = new Base58();
@@ -52,7 +75,7 @@ class Encryption
      * @param bool $seed
      * @return array
      * @throws SiriusCryptoError
-     * @throws SaltException
+     * @throws SodiumException
      */
     public static function create_keypair($seed = false)
     {
@@ -61,8 +84,12 @@ class Encryption
         } else {
             $seed = static::random_seed();
         }
-        $salt = new Salt();
-        return $salt->crypto_sign_keypair($seed);
+        $keys = ParagonIE_Sodium_Compat::crypto_sign_seed_keypair($seed);
+
+        return [
+            'verkey' => ParagonIE_Sodium_Compat::crypto_sign_publickey($keys),
+            'sigkey' => ParagonIE_Sodium_Compat::crypto_sign_secretkey($keys)
+        ];
     }
 
     private static function random_seed()
@@ -75,7 +102,7 @@ class Encryption
     /**
      * @param $seed
      * @return bool|false|string
-     * @throws SiriusCryptoError
+     * @throws SiriusCryptoError|SodiumException
      */
     private static function validate_seed($seed)
     {
@@ -94,22 +121,5 @@ class Encryption
         }
 
         return $seed;
-    }
-
-    private static function urlsafe_b64encode($string)
-    {
-        $data = base64_encode($string);
-        $data = str_replace(['+', '/', '='], ['-', '_', ''], $data);
-        return $data;
-    }
-
-    private static function urlsafe_b64decode($string)
-    {
-        $data = str_replace(['-', '_'], ['+', '/'], $string);
-        $mod4 = mb_strlen($data) % 4;
-        if ($mod4) {
-            $data .= substr('====', $mod4);
-        }
-        return base64_decode($data);
     }
 }

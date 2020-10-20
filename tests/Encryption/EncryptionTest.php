@@ -9,6 +9,16 @@ use Siruis\Encryption\Encryption;
 
 class EncryptionTest extends TestCase
 {
+    /** @test */
+    public function test_create_keypair_from_seed()
+    {
+        $keys = Encryption::create_keypair(b'0000000000000000000000000000SEED');
+        $verkey = Encryption::bytes_to_b58($keys['verkey']);
+        $sigkey = Encryption::bytes_to_b58($keys['sigkey']);
+        self::assertEquals($verkey, 'GXhjv2jGf2oT1sqMyvJtgJxNYPMHmTsdZ3c2ZYQLJExj');
+        self::assertEquals($sigkey, 'xt19s1sp2UZCGhy9rNyb1FtxdKiDGZZPNFnc1KyoHNK9SDgzvPrapQPJVL9sh3e87ESLpJdwvFdxwHXagYjcaA7');
+    }
+
     /**
      * @test
      * @throws Exception

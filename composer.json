@@ -1,5 +1,5 @@
 {
-    "name": "Sirius-social/sirius-sdk-php",
+    "name": "sirius-social/sirius-sdk-php",
     "description": "SDK to develop Smart-Contracts in Self-sovereign-identity environment",
     "type": "library",
     "license": "Apache-2.0",
@@ -12,10 +12,9 @@
     "require": {
         "php": "^7.3",
         "tuupola/base58": "^2.0",
+        "paragonie/sodium_compat": "^1.13",
         "ext-mbstring": "*",
-        "ext-json": "*",
-        "ext-sodium": "*",
-        "ext-libsodium": "*"
+        "ext-json": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.3"
