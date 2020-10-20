@@ -26,16 +26,17 @@ class EncryptionTest extends TestCase
     public function test_sane()
     {
         $recipient_keys = Encryption::create_keypair(b'000000000000000000000000000SEED1');
-        $verkey_recipient = Encryption::bytes_to_b58($recipient_keys[0]->toString());
-        $sigkey_recipient = Encryption::bytes_to_b58($recipient_keys[1]->toString());
+        $verkey_recipient = Encryption::bytes_to_b58($recipient_keys['verkey']);
+        $sigkey_recipient = Encryption::bytes_to_b58($recipient_keys['sigkey']);
         $sender_keys = Encryption::create_keypair(b'000000000000000000000000000SEED2');
-        $verkey_sender = Encryption::bytes_to_b58($sender_keys[0]->toString());
-        $sigkey_sender = Encryption::bytes_to_b58($sender_keys[1]->toString());
+        $verkey_sender = Encryption::bytes_to_b58($sender_keys['verkey']);
+        $sigkey_sender = Encryption::bytes_to_b58($sender_keys['sigkey']);
         $message = [
             'content' => 'Test encryption строка'
         ];
         $message = json_encode($message);
-        $to_verkeys = [$verkey_recipient];
+        $to_verkeys = [];
+        array_push($to_verkeys, $verkey_recipient);
         $packed = Ed25519::pack_message($message, $to_verkeys, $verkey_sender, $sigkey_sender);
         $unpacked = Ed25519::unpack_message($packed, $verkey_recipient, $sigkey_recipient);
         $unpacked_message = $unpacked[0];

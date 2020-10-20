@@ -4,13 +4,14 @@ namespace Siruis\Encryption;
 
 include '../../Salt/autoload.php';
 
+use Exception;
 use ParagonIE_Sodium_Compat;
 use phpDocumentor\Reflection\Types\String_;
 use Salt;
 use SaltException;
 use Siruis\Errors\Exceptions\SiriusCryptoError;
 use SodiumException;
-use Tuupola\Base58;
+use StephenHill\Base58;
 
 class Encryption
 {
@@ -26,10 +27,10 @@ class Encryption
             $value = mb_convert_encoding($value, 'ASCII');
         }
         if ($urlsafe) {
-            // $missing_padding = strlen($value) % 4;
-            // if ($missing_padding) {
-            //     $value += b '='
-            // }
+             $missing_padding = strlen($value) % 4;
+             if ($missing_padding) {
+                 $value .= str_repeat(b'=', (4 - $missing_padding));
+             }
             return ParagonIE_Sodium_Compat::base642bin($value, ParagonIE_Sodium_Compat::BASE64_VARIANT_URLSAFE);
         }
         return ParagonIE_Sodium_Compat::base642bin($value, ParagonIE_Sodium_Compat::BASE64_VARIANT_ORIGINAL);
@@ -68,7 +69,7 @@ class Encryption
     public static function bytes_to_b58($value)
     {
         $base58 = new Base58();
-        return $base58->encode($value);
+        return mb_convert_encoding($base58->encode($value), 'ascii');
     }
 
     /**
@@ -92,13 +93,14 @@ class Encryption
         ];
     }
 
+    /**
+     * @return string
+     * @throws Exception
+     */
     private static function random_seed()
     {
-        $key_size = Salt::secretbox_KEY;
-        $salt = new Salt();
-        return Salt::randombytes($key_size);
+        return Salt::randombytes(ParagonIE_Sodium_Compat::CRYPTO_SECRETBOX_KEYBYTES);
     }
-
     /**
      * @param $seed
      * @return bool|false|string
