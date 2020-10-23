@@ -137,7 +137,7 @@ class Ed25519
                 $sender_vk = ParagonIE_Sodium_Compat::crypto_box_seal_open($enc_sender, $sender_keys);
                 $sender_pk = ParagonIE_Sodium_Compat::crypto_sign_ed25519_pk_to_curve25519(Encryption::b58_to_bytes($sender_vk));
                 $cek_keys = ParagonIE_Sodium_Compat::crypto_box_keypair_from_secretkey_and_publickey($sk, $sender_pk);
-                $cek = ParagonIE_Sodium_Compat::crypto_box_open($encrypted_key, $nonce, $cek_keys);
+                $cek = ParagonIE_Sodium_Compat::crypto_box($encrypted_key, $nonce, $cek_keys);
             } else {
                 $sender_vk = null;
                 $cek_else_keys = ParagonIE_Sodium_Compat::crypto_box_keypair_from_secretkey_and_publickey($sk, $pk);
