@@ -17,4 +17,4 @@ php:
   - "7.3"
 #  - "nightly"  # nightly build
 
-script: phpunit ./tests
+script: php vendor/phpunit/phpunit/phpunit ./tests

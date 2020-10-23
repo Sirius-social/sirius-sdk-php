@@ -1,11 +1,10 @@
 <?php
 
-
 namespace Siruis\Encryption;
 
 
-use SaltException;
 use Siruis\Errors\Exceptions\SiriusCryptoError;
+use SodiumException;
 
 class P2PConnection
 {
@@ -37,8 +36,7 @@ class P2PConnection
      * @param array $message
      *
      * @return string
-     * @throws SaltException
-     * @throws SiriusCryptoError
+     * @throws SiriusCryptoError|SodiumException
      */
     public function pack(array $message)
     {

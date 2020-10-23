@@ -2,13 +2,8 @@
 
 namespace Siruis\Encryption;
 
-include '../../Salt/autoload.php';
-
 use Exception;
 use ParagonIE_Sodium_Compat;
-use phpDocumentor\Reflection\Types\String_;
-use Salt;
-use SaltException;
 use Siruis\Errors\Exceptions\SiriusCryptoError;
 use SodiumException;
 use StephenHill\Base58;
@@ -99,7 +94,7 @@ class Encryption
      */
     private static function random_seed()
     {
-        return Salt::randombytes(ParagonIE_Sodium_Compat::CRYPTO_SECRETBOX_KEYBYTES);
+        return random_bytes(ParagonIE_Sodium_Compat::CRYPTO_SECRETBOX_KEYBYTES);
     }
     /**
      * @param $seed

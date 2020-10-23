@@ -2,16 +2,11 @@
 
 namespace Siruis\Encryption;
 
-include '../../Salt/autoload.php';
 
-use Chacha20Poly1305;
 use Exception;
 use ParagonIE_Sodium_Compat;
-use phpDocumentor\Reflection\Types\Array_;
-use SaltException;
 use Siruis\Errors\Exceptions\SiriusCryptoError;
-use Salt;
-use function Sodium\crypto_aead_chacha20poly1305_decrypt;
+use SodiumException;
 
 class Ed25519
 {
@@ -35,7 +30,7 @@ class Ed25519
      * @param null $from_verkey
      * @param null $from_sigkey
      * @return array
-     * @throws SiriusCryptoError|SaltException
+     * @throws SiriusCryptoError
      * @throws Exception
      */
     public static function prepare_pack_recipient_keys($to_verkeys, $from_verkey = null, $from_sigkey = null)
@@ -55,8 +50,8 @@ class Ed25519
                 $b58_from_verkey = Encryption::bytes_to_b58($from_verkey);
                 $sender_vk = mb_convert_encoding($b58_from_verkey, 'ASCII');
                 $enc_sender = ParagonIE_Sodium_Compat::crypto_box_seal($sender_vk, $target_pk);
-                $sk = ParagonIE_Sodium_Compat::crypto_sign_ed25519_pk_to_curve25519($from_sigkey);
-                $nonce = Salt::randombytes(ParagonIE_Sodium_Compat::CRYPTO_BOX_NONCEBYTES);
+                $sk = ParagonIE_Sodium_Compat::crypto_sign_ed25519_sk_to_curve25519($from_sigkey);
+                $nonce = random_bytes(ParagonIE_Sodium_Compat::CRYPTO_BOX_NONCEBYTES);
                 $keypair = ParagonIE_Sodium_Compat::crypto_box_keypair_from_secretkey_and_publickey($target_pk, $sk);
                 $enc_cek = ParagonIE_Sodium_Compat::crypto_box($cek, $nonce, $keypair);
             } else {
@@ -125,26 +120,28 @@ class Ed25519
             }
 
             $pk = ParagonIE_Sodium_Compat::crypto_sign_ed25519_pk_to_curve25519($my_verKey);
-            $sk = ParagonIE_Sodium_Compat::crypto_sign_ed25519_pk_to_curve25519($my_sigKey);
-
-            $encrypted_key = Encryption::b64_to_bytes($recipient['encrypted_key'], true);
-            if (key_exists('iv', $recipient['header']) && $recipient['header']['iv']
-                && key_exists('sender', $recipient['header']) && $recipient['header']['sender'])
+            $sk = ParagonIE_Sodium_Compat::crypto_sign_ed25519_sk_to_curve25519($my_sigKey);
+            $encrypted_key = Encryption::b64_to_bytes($recipient->encrypted_key, true);
+            if (key_exists('iv', $recipient->header) && $recipient->header->iv
+                && key_exists('sender', $recipient->header) && $recipient->header->sender)
             {
-                $nonce = Encryption::b64_to_bytes($recipient['header']['iv'], true);
-                $enc_sender = Encryption::b64_to_bytes($recipient['header']['sender'], true);
+                $nonce = Encryption::b64_to_bytes($recipient->header->iv, true);
+                $enc_sender = Encryption::b64_to_bytes($recipient->header->sender, true);
             } else {
                 $nonce = null;
                 $enc_sender = null;
             }
 
             if ($nonce && $enc_sender) {
-                $sender_vk = mb_convert_encoding(ParagonIE_Sodium_Compat::crypto_box_seal_open($enc_sender, $pk . $sk), 'ASCII');
-                $sender_pk = sodium_crypto_sign_ed25519_pk_to_curve25519(Encryption::b58_to_bytes($sender_vk));
-                $cek = sodium_crypto_box_open($encrypted_key, $nonce, $sender_pk . $sk);
+                $sender_keys = ParagonIE_Sodium_Compat::crypto_box_keypair_from_secretkey_and_publickey($sk, $pk);
+                $sender_vk = ParagonIE_Sodium_Compat::crypto_box_seal_open($enc_sender, $sender_keys);
+                $sender_pk = ParagonIE_Sodium_Compat::crypto_sign_ed25519_pk_to_curve25519(Encryption::b58_to_bytes($sender_vk));
+                $cek_keys = ParagonIE_Sodium_Compat::crypto_box_keypair_from_secretkey_and_publickey($sk, $sender_pk);
+                $cek = ParagonIE_Sodium_Compat::crypto_box_open($encrypted_key, $nonce, $cek_keys);
             } else {
                 $sender_vk = null;
-                $cek = sodium_crypto_box_seal_open($encrypted_key, $pk . $sk);
+                $cek_else_keys = ParagonIE_Sodium_Compat::crypto_box_keypair_from_secretkey_and_publickey($sk, $pk);
+                $cek = ParagonIE_Sodium_Compat::crypto_box_seal_open($encrypted_key, $cek_else_keys);
             }
             return [$cek, $sender_vk, $recipient_vk_b58];
         }
@@ -164,10 +161,9 @@ class Ed25519
      */
     public static function encrypt_plaintext(string $message, $add_data, $key)
     {
-        $nonce = Salt::randombytes(Salt::poly1305_KEY);
+        $nonce = random_bytes(ParagonIE_Sodium_Compat::CRYPTO_AEAD_CHACHA20POLY1305_IETF_NPUBBYTES);
         $message_bin = mb_convert_encoding($message, 'ASCII');
-        $cacha20poly1305 = new Chacha20Poly1305($key);
-        $output = $cacha20poly1305->encrypt($nonce, $message_bin, $add_data);
+        $output = ParagonIE_Sodium_Compat::crypto_aead_chacha20poly1305_ietf_encrypt($message_bin, $add_data, $nonce, $key);
         $message_len = strlen($message);
         $cipher_text = substr($output, 0, $message_len);
         $tag = substr($output, $message_len);
@@ -187,12 +183,11 @@ class Ed25519
      * @param $key
      *
      * @return string
+     * @throws SodiumException
      */
     public static function decrypt_plaintext($cipher_text, $recipes_bin, $nonce, $key)
     {
-        $cacha20poly1305 = new Chacha20Poly1305($key);
-        $output = $cacha20poly1305->decrypt($nonce, $cipher_text, $recipes_bin);
-        ParagonIE_Sodium_Compat::crypto_aead_chacha20poly1305_ietf_decrypt($cipher_text, $recipes_bin, $nonce, $key);
+        $output = ParagonIE_Sodium_Compat::crypto_aead_chacha20poly1305_ietf_decrypt($cipher_text, $recipes_bin, $nonce, $key);
         return mb_convert_encoding($output, 'ASCII');
     }
 
@@ -205,8 +200,7 @@ class Ed25519
      * @param $from_sig_key
      *
      * @return string
-     * @throws SaltException
-     * @throws SiriusCryptoError
+     * @throws SiriusCryptoError|SodiumException
      */
     public static function pack_message($message, array $to_ver_keys, $from_ver_key, $from_sig_key)
     {
@@ -217,8 +211,8 @@ class Ed25519
         $from_ver_key = self::ensure_is_bytes($from_ver_key);
         $from_sig_key = self::ensure_is_bytes($from_sig_key);
         $prepared = self::prepare_pack_recipient_keys($tvk, $from_ver_key, $from_sig_key);
-        $cek = $prepared[0];
-        $recips_json = $prepared[2];
+        $cek = $prepared[1];
+        $recips_json = $prepared[0];
         $recips_b64 = Encryption::bytes_to_b64(mb_convert_encoding($recips_json, 'ASCII'), true);
         $encrypted = self::encrypt_plaintext($message, mb_convert_encoding($recips_b64, 'ASCII'), $cek);
         $cipher_text = $encrypted[0];
@@ -230,7 +224,7 @@ class Ed25519
             'ciphertext' => Encryption::bytes_to_b64($cipher_text, true),
             'tag' => Encryption::bytes_to_b64($tag, true)
         ];
-        return mb_convert_encoding(json_encode($data), 'ASCII');
+        return json_encode($data);
     }
 
     /**
@@ -253,19 +247,21 @@ class Ed25519
         $my_verkey = self::ensure_is_bytes($my_verkey);
         $my_sigkey = self::ensure_is_bytes($my_sigkey);
 
-        if (!is_array($enc_message)) {
+        if (!((is_string($enc_message) &&
+            (is_object(json_decode($enc_message)) ||
+                is_array(json_decode($enc_message)))))) {
             throw new \TypeError('Expected bytes or dict, got ' . gettype($enc_message));
         }
 
-        $protected_bin = mb_convert_encoding($enc_message['protected'], 'ASCII');
-        $recips_json = Encryption::b64_to_bytes($enc_message['protected'], true);
+        $enc_message = json_decode($enc_message);
+        $protected_bin = mb_convert_encoding($enc_message->protected, 'ASCII');
+        $recips_json = Encryption::b64_to_bytes($enc_message->protected, true);
         $recips_outer = $recips_json;
         try {
             $recips_outer = json_decode($recips_json);
         } catch (Exception $exception) {
             throw new Exception('Invalid packed message recipients ' . $exception->getMessage());
         }
-        var_dump($recips_outer);
         $alg = $recips_outer->alg;
         $is_authcrypt = $alg == 'Authcrypt';
         if (!$is_authcrypt && $alg != 'Anoncrypt') {
@@ -275,13 +271,13 @@ class Ed25519
         $cek = $located[0];
         $sender_vk = $located[1];
         $recip_vk = $located[2];
-//        if (!$sender_vk && $is_authcrypt) {
-//            throw new Exception('Sender public key not provided for Authcrypt message');
-//        }
+        if (!$sender_vk && $is_authcrypt) {
+            throw new Exception('Sender public key not provided for Authcrypt message');
+        }
 
-        $ciphertext = Encryption::b64_to_bytes($enc_message['ciphertext'], true);
-        $nonce = Encryption::b64_to_bytes($enc_message['iv'], true);
-        $tag = Encryption::b64_to_bytes($enc_message['tag'], true);
+        $ciphertext = Encryption::b64_to_bytes($enc_message->ciphertext, true);
+        $nonce = Encryption::b64_to_bytes($enc_message->iv, true);
+        $tag = Encryption::b64_to_bytes($enc_message->tag, true);
 
         $payload_bin = $ciphertext . $tag;
         $message = self::decrypt_plaintext($payload_bin, $protected_bin, $nonce, $cek);
