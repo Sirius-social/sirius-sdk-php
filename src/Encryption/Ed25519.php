@@ -134,15 +134,16 @@ class Ed25519
 
             if ($nonce && $enc_sender) {
                 $sender_keys = ParagonIE_Sodium_Compat::crypto_box_keypair_from_secretkey_and_publickey($sk, $pk);
-                $sender_vk = ParagonIE_Sodium_Compat::crypto_box_seal_open($enc_sender, $sender_keys);
+                $sender_vk = mb_convert_encoding(ParagonIE_Sodium_Compat::crypto_box_seal_open($enc_sender, $sender_keys), 'ascii');
                 $sender_pk = ParagonIE_Sodium_Compat::crypto_sign_ed25519_pk_to_curve25519(Encryption::b58_to_bytes($sender_vk));
                 $cek_keys = ParagonIE_Sodium_Compat::crypto_box_keypair_from_secretkey_and_publickey($sk, $sender_pk);
-                $cek = ParagonIE_Sodium_Compat::crypto_box($encrypted_key, $nonce, $cek_keys);
+                $cek = ParagonIE_Sodium_Compat::crypto_box_open($encrypted_key, $nonce, $cek_keys);
             } else {
                 $sender_vk = null;
                 $cek_else_keys = ParagonIE_Sodium_Compat::crypto_box_keypair_from_secretkey_and_publickey($sk, $pk);
                 $cek = ParagonIE_Sodium_Compat::crypto_box_seal_open($encrypted_key, $cek_else_keys);
             }
+            var_dump($cek);
             return [$cek, $sender_vk, $recipient_vk_b58];
         }
 
@@ -162,6 +163,7 @@ class Ed25519
     public static function encrypt_plaintext(string $message, $add_data, $key)
     {
         $nonce = random_bytes(ParagonIE_Sodium_Compat::CRYPTO_AEAD_CHACHA20POLY1305_IETF_NPUBBYTES);
+        $nonce = Encryption::b58_to_bytes('5dWwo74hKEsknTbHv');
         $message_bin = mb_convert_encoding($message, 'ASCII');
         $output = ParagonIE_Sodium_Compat::crypto_aead_chacha20poly1305_ietf_encrypt($message_bin, $add_data, $nonce, $key);
         $message_len = strlen($message);
@@ -201,6 +203,7 @@ class Ed25519
      *
      * @return string
      * @throws SiriusCryptoError|SodiumException
+     * @throws Exception
      */
     public static function pack_message($message, array $to_ver_keys, $from_ver_key, $from_sig_key)
     {
@@ -214,6 +217,8 @@ class Ed25519
         $cek = $prepared[1];
         $recips_json = $prepared[0];
         $recips_b64 = Encryption::bytes_to_b64(mb_convert_encoding($recips_json, 'ASCII'), true);
+        $recips_b64 = 'eyJlbmMiOiAieGNoYWNoYTIwcG9seTEzMDVfaWV0ZiIsICJ0eXAiOiAiSldNLzEuMCIsICJhbGciOiAiQXV0aGNyeXB0IiwgInJlY2lwaWVudHMiOiBbeyJlbmNyeXB0ZWRfa2V5IjogInh5S0VKa1lHMEJaa3FiaGM2YlRpMU5OR2ZuZWFNY1k5d2tVeW1KanM5aFBKcTNwR3MwWF9CQ3pLNVlmX1h0V04iLCAiaGVhZGVyIjogeyJraWQiOiAiM1ZxZ2ZUcDZRNFZlRjhLWTdlVHVXRFZBWmFmRDJrVmNpb0R2NzZLR0xtZ0QiLCAic2VuZGVyIjogIms4TTdYUFNNQmN3d2VLQ1JsRW52QjdkZkRsUWZkcGsxMGRGVHVYN3lORDNzX2U5S19xVkRsUXN5aFRzLUc3LXJSTDVOTGJLeGFZcFZYbWxCdjk0RVNyR29XT2ZXMU95LUc1R01zcjFwVXB3SUFYWld1UnZjZ0tJWmx6VT0iLCAiaXYiOiAiSGdxakYwMVZMVmZxVGpYOEgxWkdMUkpfMXo4cUFhSk0ifX1dfQ==';
+        $cek = Encryption::b58_to_bytes('47drSfy9nGMNreLZitrgMs2EmCJ7fjCxNt4DX4njVay3');
         $encrypted = self::encrypt_plaintext($message, mb_convert_encoding($recips_b64, 'ASCII'), $cek);
         $cipher_text = $encrypted[0];
         $nonce = $encrypted[1];
@@ -224,7 +229,7 @@ class Ed25519
             'ciphertext' => Encryption::bytes_to_b64($cipher_text, true),
             'tag' => Encryption::bytes_to_b64($tag, true)
         ];
-        return json_encode($data);
+        return mb_convert_encoding(json_encode($data), 'ASCII');
     }
 
     /**
