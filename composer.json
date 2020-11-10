@@ -14,7 +14,8 @@
         "paragonie/sodium_compat": "^1.13",
         "ext-mbstring": "*",
         "ext-json": "*",
-        "stephenhill/base58": "^1.1"
+        "stephenhill/base58": "^1.1",
+        "guzzlehttp/guzzle": "^7.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.3"
@@ -25,7 +26,10 @@
         },
         "psr-4": {
             "Siruis\\": "src"
-        }
+        },
+        "files": [
+            "src/urljoin.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

@@ -134,10 +134,10 @@ class Ed25519
 
             if ($nonce && $enc_sender) {
                 $sender_keys = ParagonIE_Sodium_Compat::crypto_box_keypair_from_secretkey_and_publickey($sk, $pk);
-                $sender_vk = ParagonIE_Sodium_Compat::crypto_box_seal_open($enc_sender, $sender_keys);
+                $sender_vk = mb_convert_encoding(ParagonIE_Sodium_Compat::crypto_box_seal_open($enc_sender, $sender_keys), 'ascii');
                 $sender_pk = ParagonIE_Sodium_Compat::crypto_sign_ed25519_pk_to_curve25519(Encryption::b58_to_bytes($sender_vk));
                 $cek_keys = ParagonIE_Sodium_Compat::crypto_box_keypair_from_secretkey_and_publickey($sk, $sender_pk);
-                $cek = ParagonIE_Sodium_Compat::crypto_box($encrypted_key, $nonce, $cek_keys);
+                $cek = ParagonIE_Sodium_Compat::crypto_box_open($encrypted_key, $nonce, $cek_keys);
             } else {
                 $sender_vk = null;
                 $cek_else_keys = ParagonIE_Sodium_Compat::crypto_box_keypair_from_secretkey_and_publickey($sk, $pk);
@@ -146,7 +146,7 @@ class Ed25519
             return [$cek, $sender_vk, $recipient_vk_b58];
         }
 
-//        throw new Exception("No corresponding recipient key found in $not_found");
+        echo new Exception("No corresponding recipient key found in $not_found");
     }
 
     /**
