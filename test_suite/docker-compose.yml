@@ -133,6 +133,18 @@ services:
       - kafkarest
       - old_agent
 
+  dev:
+    build:
+      context: .
+    image: "dev"
+    volumes:
+      - ../:/sirius-sdk
+    networks:
+      test_network:
+        ipv4_address: 10.0.0.91
+    depends_on:
+      - test_suite
+
 networks:
   test_network:
     driver: bridge
