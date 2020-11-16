@@ -147,7 +147,7 @@ class Ed25519
             return [$cek, $sender_vk, $recipient_vk_b58];
         }
 
-//        throw new Exception("No corresponding recipient key found in $not_found");
+        echo new Exception("No corresponding recipient key found in $not_found");
     }
 
     /**
