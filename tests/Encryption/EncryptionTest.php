@@ -32,13 +32,12 @@ class EncryptionTest extends TestCase
         $verkey_sender = Encryption::bytes_to_b58($sender_keys['verkey']);
         $sigkey_sender = Encryption::bytes_to_b58($sender_keys['sigkey']);
         $message = [
-            'content' => 'Test encryption строка'
+            'content' => 'TestMessages encryption строка'
         ];
         $message = json_encode($message);
         $to_verkeys = [];
         array_push($to_verkeys, $verkey_recipient);
         $packed = Ed25519::pack_message($message, $to_verkeys, $verkey_sender, $sigkey_sender);
-        var_dump($packed);
         $unpacked = Ed25519::unpack_message($packed, $verkey_recipient, $sigkey_recipient);
         $unpacked_message = $unpacked[0];
         $sender_vk = $unpacked[1];

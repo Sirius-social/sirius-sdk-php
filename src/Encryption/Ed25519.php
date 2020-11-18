@@ -143,7 +143,6 @@ class Ed25519
                 $cek_else_keys = ParagonIE_Sodium_Compat::crypto_box_keypair_from_secretkey_and_publickey($sk, $pk);
                 $cek = ParagonIE_Sodium_Compat::crypto_box_seal_open($encrypted_key, $cek_else_keys);
             }
-            var_dump($cek);
             return [$cek, $sender_vk, $recipient_vk_b58];
         }
 
