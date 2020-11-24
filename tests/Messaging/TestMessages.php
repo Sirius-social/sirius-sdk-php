@@ -3,8 +3,18 @@
 namespace Siruis\Tests\Messaging;
 
 use PHPUnit\Framework\TestCase;
+use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
 use Siruis\Errors\Exceptions\SiriusInvalidType;
+use Siruis\Messaging\Message;
 use Siruis\Messaging\Type\Type;
+
+class Test1Message extends Message {
+
+}
+
+class Test2Message extends Message {
+
+}
 
 class TestMessages extends TestCase
 {
@@ -32,5 +42,84 @@ class TestMessages extends TestCase
         self::assertEquals(1, $type->version_info->major);
         self::assertEquals(2, $type->version_info->minor);
         self::assertEquals(0, $type->version_info->patch);
+    }
+
+    /** @test
+     * @throws SiriusInvalidMessageClass
+     * @throws SiriusInvalidType
+     */
+    public function test_register_protocol_message_success()
+    {
+        Message::registerMessageClass(Test1Message::class, 'test-protocol');
+        $array = Message::restoreMessageInstance([
+            '@type' => 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/test-protocol/1.0/name'
+        ]);
+
+        self::assertTrue($array[0]);
+        self::assertInstanceOf(Test1Message::class, $array[1]);
+    }
+
+    /**
+     * @test
+     * @throws SiriusInvalidMessageClass
+     * @throws SiriusInvalidType
+     */
+    public function test_agnostic_doc_uri()
+    {
+        Message::registerMessageClass(Test1Message::class, 'test-protocol');
+        $array = Message::restoreMessageInstance([
+            '@type' => 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/test-protocol/1.0/name'
+        ]);
+
+        self::assertTrue($array[0]);
+        self::assertInstanceOf(Test1Message::class, $array[1]);
+
+        $arrayTwo = Message::restoreMessageInstance([
+            '@type' => 'https://didcomm.org/test-protocol/1.0/name'
+        ]);
+
+        self::assertTrue($arrayTwo[0]);
+        self::assertInstanceOf(Test1Message::class, $arrayTwo[1]);
+    }
+
+    /**
+     * @test
+     * @throws SiriusInvalidMessageClass
+     * @throws SiriusInvalidType
+     */
+    public function test_register_protocol_message_fail()
+    {
+        Message::registerMessageClass(Test1Message::class, 'test-protocol');
+        $array = Message::restoreMessageInstance([
+            '@type' => 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/fake-protocol/1.0/name'
+        ]);
+
+        self::assertFalse($array[0]);
+        self::assertNull($array[1]);
+    }
+
+    /**
+     * @test
+     * @throws SiriusInvalidMessageClass
+     * @throws SiriusInvalidType
+     */
+    public function test_register_protocol_message_multiple_name()
+    {
+        Message::registerMessageClass(Test1Message::class, 'test-protocol');
+        Message::registerMessageClass(Test2Message::class, 'test-protocol', 'test-name');
+
+        $arrayOne = Message::restoreMessageInstance([
+            '@type' => 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/test-protocol/1.0/name'
+        ]);
+
+        self::assertTrue($arrayOne[0]);
+        self::assertInstanceOf(Test1Message::class, $arrayOne[1]);
+
+        $arrayTwo = Message::restoreMessageInstance([
+            '@type' => 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/test-protocol/1.0/test-name'
+        ]);
+
+        self::assertTrue($arrayTwo[0]);
+        self::assertInstanceOf(Test2Message::class, $arrayTwo[1]);
     }
 }
