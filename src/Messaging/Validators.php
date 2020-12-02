@@ -40,15 +40,15 @@ class Validators
     {
         foreach ($expected_attributes as $attribute) {
             if (is_array($attribute)) {
-                if (!in_array($attribute[0], $partial)) {
+                if (!key_exists($attribute[0], $partial)) {
                    throw new SiriusValidationError("Attribute $attribute[0] is missing from message: $partial");
                 }
                 if ($partial[$attribute[0]] != $attribute[1]) {
                     throw new SiriusValidationError('Message.' . $attribute[0] . ': ' . $partial[$attribute[0]] .' != '. $attribute[1]);
                 }
             }
-            if (!in_array($attribute, $partial)) {
-                throw new SiriusValidationError("Attribute $attribute is missing from message: $partial");
+            if (!key_exists($attribute, $partial)) {
+                throw new SiriusValidationError("Attribute $attribute is missing from message: ".var_dump($partial));
             }
         }
     }

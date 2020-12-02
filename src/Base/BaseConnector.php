@@ -38,7 +38,7 @@ abstract class BaseConnector implements WriteOnlyChannel, ReadOnlyChannel
      * @param string $data
      * @return mixed
      */
-    public function write($data)
+    public function write(string $data)
     {
         // TODO: Implement write() method.
     }

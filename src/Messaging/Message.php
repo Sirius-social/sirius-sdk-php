@@ -4,12 +4,15 @@
 namespace Siruis\Messaging;
 
 
+use ArrayObject;
+use Exception;
+use JsonException;
 use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
 use Siruis\Errors\Exceptions\SiriusInvalidType;
 use Siruis\Messaging\Type\Semver;
 use Siruis\Messaging\Type\Type;
 
-class Message
+class Message extends ArrayObject
 {
     /**
      * @var string
@@ -44,13 +47,14 @@ class Message
      */
     public function __construct(array $payload)
     {
+        parent::__construct();
         if (!key_exists('@type', $payload)) {
             throw new SiriusInvalidMessageClass('No @type in message');
         }
 
         if (!key_exists('@id', $payload)) {
             $payload['@id'] = self::generate_id();
-        } elseif (!is_string($this->id)) {
+        } elseif (!is_string($payload['@id'])) {
             throw new SiriusInvalidMessageClass('Message @id is invalid; must be str');
         }
 
@@ -61,6 +65,34 @@ class Message
             $this->_type = Type::fromString($payload['@type']);
         }
         $this->payload = $payload;
+    }
+
+    /**
+     * Serialize a message into a json string.
+     *
+     * @return false|string
+     */
+    public function serialize()
+    {
+        return json_encode($this->payload);
+    }
+
+    /**
+     * Deserialize a message from a json string.
+     *
+     * @param string $serialized
+     *
+     * @return Message|void
+     *
+     * @throws SiriusInvalidMessageClass
+     */
+    public function unserialize($serialized)
+    {
+        try {
+            return new Message(json_decode($serialized));
+        } catch (Exception $exception) {
+            throw new SiriusInvalidMessageClass('Could not serialize message'. $exception);
+        }
     }
 
     /**

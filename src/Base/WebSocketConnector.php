@@ -4,7 +4,7 @@ namespace Siruis\Base;
 
 
 
-use GuzzleHttp\Client;
+use Bloatless\WebSocket\Client;
 
 class WebSocketConnector extends BaseConnector
 {
@@ -15,9 +15,9 @@ class WebSocketConnector extends BaseConnector
     public $path;
     public $credentials;
     private $session;
-    private $webSocket;
+    private $port;
 
-    public function __construct($server_address, $path, $credentials, $enc = null, $defTimeout = null)
+    public function __construct($server_address, $path, $credentials, $defTimeout = null, $port = null, $enc = null)
     {
         $this->server_address = $server_address;
         $this->path = $path;
@@ -28,18 +28,12 @@ class WebSocketConnector extends BaseConnector
         if ($enc) {
             $this->enc = $enc;
         }
-        $this->session = new Client([
-            'base_uri' => $server_address,
-            'timeout' => $this->defTimeout
-        ]);
+        $this->session = new Client();
     }
 
     public function isOpen(): bool
     {
-        if ($this->webSocket) {
-            return true;
-        }
-        return false;
+        return $this->session->checkConnection();
     }
 
     /**
@@ -48,7 +42,7 @@ class WebSocketConnector extends BaseConnector
     public function open()
     {
         if (!$this->isOpen()) {
-            $this->webSocket = $this->session->requestAsync('GET', $this->path, $this->credentials);
+            $this->session->connect($this->server_address, $this->port, $this->path, $this->credentials);
         }
     }
 
@@ -57,6 +51,28 @@ class WebSocketConnector extends BaseConnector
      */
     public function close()
     {
+        if ($this->isOpen()) {
+            $this->session->disconnect();
+        }
+    }
 
+    /**
+     * Reconnect communication
+     */
+    public function reconnect()
+    {
+        $this->session->reconnect();
+    }
+
+    /**
+     * Send data to the communication
+     *
+     * @param string $data
+     *
+     * @return bool|mixed
+     */
+    public function write(string $data)
+    {
+        return $this->session->sendData($data);
     }
 }

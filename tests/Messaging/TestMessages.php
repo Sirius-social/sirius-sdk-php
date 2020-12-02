@@ -3,8 +3,12 @@
 namespace Siruis\Tests\Messaging;
 
 use PHPUnit\Framework\TestCase;
+use Siruis\Agent\AriesRFC\feature_0015_acks\Ack;
+use Siruis\Agent\AriesRFC\feature_0015_acks\Status;
+use Siruis\Agent\AriesRFC\feature_0048_trust_ping\Ping;
 use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
 use Siruis\Errors\Exceptions\SiriusInvalidType;
+use Siruis\Errors\Exceptions\SiriusValidationError;
 use Siruis\Messaging\Message;
 use Siruis\Messaging\Type\Type;
 
@@ -121,5 +125,62 @@ class TestMessages extends TestCase
 
         self::assertTrue($arrayTwo[0]);
         self::assertInstanceOf(Test2Message::class, $arrayTwo[1]);
+    }
+
+    /**
+     * @test
+     * @throws SiriusInvalidType
+     * @throws SiriusInvalidMessageClass
+     */
+    public function test_aries_ping_pong()
+    {
+        $pingPayload = [
+            '@id' => 'trust-ping-message-id',
+            '@type' => 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping',
+            "comment" => "Hi. Are you OK?",
+            "response_requested" => True
+        ];
+        Message::registerMessageClass(Ping::class, 'trust_ping');
+        $pingArray = Message::restoreMessageInstance($pingPayload);
+        $ping = $pingArray[1];
+        self::assertTrue($pingArray[0]);
+        self::assertInstanceOf(Ping::class, $ping);
+        self::assertEquals('Hi. Are you OK?', $ping->getComment());
+        self::assertTrue($ping->getResponseRequested());
+    }
+
+    /**
+     * @test
+     * @throws SiriusInvalidMessageClass
+     * @throws SiriusInvalidType
+     * @throws SiriusValidationError
+     */
+    public function test_aries_ack()
+    {
+        $payload = [
+            '@id' => 'ack-message-id',
+            '@type' => 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/notification/1.0/ack',
+            'status' => 'PENDING',
+            '~thread' => [
+                'thid' => 'thread-id'
+            ]
+        ];
+        $message = new Ack($payload,null, null, null, 'ack-thread-id', new Status(Status::PENDING));
+
+        self::assertEquals('notification', $message->getProtocol());
+        self::assertEquals('ack', $message->getName());
+        self::assertEquals('1.0', $message->getVersion());
+        self::assertEquals('1.0.0', (string)$message->getVersionInfo());
+        self::assertEquals(Status::PENDING, $message->getStatus());
+        $message->validate();
+
+        Message::registerMessageClass(Ack::class, 'notification');
+        $restored = Message::restoreMessageInstance($payload);
+        $ack = $restored[1];
+        self::assertTrue($restored[0]);
+        self::assertInstanceOf(Ack::class, $ack);
+        self::assertEquals('thread-id', $ack->getThreadId());
+        $ack->validate();
+        self::assertEquals(Status::PENDING, $ack->getStatus());
     }
 }
