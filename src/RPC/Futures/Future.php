@@ -5,6 +5,7 @@ namespace Siruis\RPC\Futures;
 
 
 use DateTime;
+use Exception;
 use Siruis\Encryption\Encryption;
 use Siruis\Errors\Exceptions\SiriusCryptoError;
 use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
@@ -82,6 +83,7 @@ class Future
      * @throws SiriusInvalidPayloadStructure
      * @throws SiriusInvalidType
      * @throws SodiumException
+     * @throws Exception
      */
     public function wait(int $timeout = null)
     {
@@ -89,23 +91,22 @@ class Future
             return true;
         }
         try {
-            $now = DateTime::createFromFormat('Y-m-d', time());
+            $now = new DateTime();
             if ($timeout == 0) {
                 return false;
             }
-            if ($this->expiration_time) {
+            if ($this->expiration_time != null) {
                 $expires_time = $this->expiration_time;
-            } elseif ($timeout) {
-                $now->add(date_interval_create_from_date_string($timeout . ' seconds'));
-                $expires_time = $now;
+            } elseif ($timeout != null) {
+                $expires_time = date("Y-m-d h:i:s", time() + $timeout);
             } else {
-                $now->add(date_interval_create_from_date_string('365 days'));
-                $expires_time = $now;
+                $now->modify('+1 year');
+                $expires_time = $now->format('Y-m-d h:i:s');
             }
-            while (time() < $expires_time) {
-                $timedelta = $expires_time->diff(new DateTime);
+            while (date('Y-m-d h:i:s') < $expires_time) {
+                $timedelta = (new DateTime($expires_time))->diff(new DateTime());
                 $timeout = max($timedelta->s, 0);
-                $payload = $this->tunnel->receive($timeout);
+                $payload = (array)$this->tunnel->receive($timeout);
                 if (
                     key_exists('@type', $payload) &&
                     $payload['@type'] == self::MSG_TYPE &&

@@ -75,18 +75,18 @@ class AddressedTunnel
     public function receive(int $timeout = null) : Message
     {
         $payload = $this->input->read($timeout);
-        if (!is_array($payload) || !is_string($payload)) {
-            throw new TypeError('Expected bytes or dict, got ' . gettype($payload));
-        }
-        if (is_string($payload)) {
+//        if (!is_string($payload[0]) || !is_array($payload[0])) {
+//            throw new TypeError('Expected bytes or dict, got ' . gettype($payload));
+//        }
+        if (is_string($payload[0])) {
             try {
-                $payload = json_decode($payload);
+                $payload = json_decode($payload[0]);
             } catch (Exception $e) {
                 throw new SiriusInvalidPayloadStructure('Invalid packed message ' . $e);
             }
         }
         if (key_exists('protected', $payload)) {
-            $unpacked = $this->p2p->unpack($payload);
+            $unpacked = $this->p2p->unpack(json_encode($payload));
             $this->context->encrypted = true;
             return new Message($unpacked);
         } else {
