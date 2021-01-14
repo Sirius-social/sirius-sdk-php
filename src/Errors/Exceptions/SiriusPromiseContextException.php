@@ -7,9 +7,9 @@ use Throwable;
 
 class SiriusPromiseContextException extends Exception
 {
-    protected $class_name;
+    public $class_name;
 
-    protected $printable;
+    public $printable;
 
     public function __construct($class_name, $printable, $message = "", $code = 0, Throwable $previous = null)
     {

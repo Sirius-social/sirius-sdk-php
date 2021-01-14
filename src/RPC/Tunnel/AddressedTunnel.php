@@ -80,15 +80,15 @@ class AddressedTunnel
 //        }
         if (is_string($payload[0])) {
             try {
-                $payload = json_decode($payload[0]);
+                $payload = (array)json_decode($payload[0]);
             } catch (Exception $e) {
                 throw new SiriusInvalidPayloadStructure('Invalid packed message ' . $e);
             }
         }
         if (key_exists('protected', $payload)) {
-            $unpacked = $this->p2p->unpack(json_encode($payload));
+            $unpacked = $this->p2p->unpack($payload);
             $this->context->encrypted = true;
-            return new Message($unpacked);
+            return new Message(json_decode($unpacked, true));
         } else {
             $this->context->encrypted = false;
             return new Message($payload);
@@ -109,7 +109,7 @@ class AddressedTunnel
     public function post(Message $message, bool $encrypt = true) : bool
     {
         if ($encrypt) {
-            $payload = $this->p2p->pack((array)$message);
+            $payload = $this->p2p->pack(json_decode($message->serialize(), true));
         } else {
             $payload = mb_convert_encoding($message->serialize(), self::ENC);
         }

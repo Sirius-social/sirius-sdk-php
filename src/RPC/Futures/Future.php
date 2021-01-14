@@ -15,6 +15,7 @@ use Siruis\Errors\Exceptions\SiriusPendingOperation;
 use Siruis\Errors\Exceptions\SiriusPromiseContextException;
 use Siruis\Errors\Exceptions\SiriusTimeoutIO;
 use Siruis\Errors\Exceptions\SiriusValueEmpty;
+use Siruis\Errors\IndyExceptions\ErrorCodeToException;
 use Siruis\RPC\Tunnel\AddressedTunnel;
 use SodiumException;
 use function Siruis\Errors\IndyExceptions\errorcode_to_exception;
@@ -106,14 +107,15 @@ class Future
             while (date('Y-m-d h:i:s') < $expires_time) {
                 $timedelta = (new DateTime($expires_time))->diff(new DateTime());
                 $timeout = max($timedelta->s, 0);
-                $payload = (array)$this->tunnel->receive($timeout);
+                $payload = $this->tunnel->receive($timeout);
+                $payload = json_decode($payload->serialize(), true);
                 if (
                     key_exists('@type', $payload) &&
                     $payload['@type'] == self::MSG_TYPE &&
                     key_exists('~thread', $payload) &&
                     $payload['~thread']['thid'] == $this->id
                 ) {
-                    if (key_exists('exception', $payload)) {
+                    if (key_exists('exception', $payload) && $payload['exception']) {
                         $this->exception = $payload['exception'];
                     } else {
                         $value = $payload['value'];
@@ -124,9 +126,9 @@ class Future
                         } else {
                             $this->value = $value;
                         }
-                        $this->read_ok = true;
-                        return true;
                     }
+                    $this->read_ok = true;
+                    return true;
                 }
                 return false;
             }
@@ -156,7 +158,7 @@ class Future
         if (!$this->read_ok) {
             throw new SiriusPendingOperation();
         }
-        return $this->exception == null;
+        return $this->exception != null;
     }
 
     /**
@@ -166,10 +168,15 @@ class Future
     public function getException()
     {
         if ($this->hasException()) {
-            if (key_exists('indy', $this->exception)) {
+            if (key_exists('indy', $this->exception) && $this->exception['indy']) {
                 $indy_exc = $this->exception['indy'];
-                $exc_class = errorcode_to_exception($indy_exc['error_code']);
-                return new $exc_class($indy_exc['error_code']);
+                $exc_class = ErrorCodeToException::parse($indy_exc['error_code']);
+                return new $exc_class(
+                    $indy_exc['error_code'],
+                    [
+                        'message' => $indy_exc['message'],
+                        'indy_backtrace' => null
+                    ]);
             } else {
                 return new SiriusPromiseContextException(
                     $this->exception['class_name'],
