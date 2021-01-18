@@ -14,7 +14,7 @@ class IndyError extends Exception
     public $indy_backtrace;
 
     public function __construct(
-        ErrorCode $error_code,
+        int $error_code,
         array $error_details = null,
         $message = "",
         $code = 0,

@@ -62,6 +62,9 @@ class P2PConnection
     public function unpack($enc_message)
     {
         try {
+            if (is_array($enc_message)) {
+                $enc_message = json_encode($enc_message);
+            }
             $unpacked = Ed25519::unpack_message($enc_message, $this->my_keys[0], $this->my_keys[1]);
         } catch (\Exception $exception) {
             throw new SiriusCryptoError($exception->getMessage());
