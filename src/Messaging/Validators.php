@@ -36,7 +36,7 @@ class Validators
      * @param array $expected_attributes
      * @throws SiriusValidationError
      */
-    public function check_for_attributes(array $partial, array $expected_attributes)
+    public static function check_for_attributes(array $partial, array $expected_attributes)
     {
         foreach ($expected_attributes as $attribute) {
             if (is_array($attribute)) {

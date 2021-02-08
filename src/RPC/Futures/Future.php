@@ -18,7 +18,6 @@ use Siruis\Errors\Exceptions\SiriusValueEmpty;
 use Siruis\Errors\IndyExceptions\ErrorCodeToException;
 use Siruis\RPC\Tunnel\AddressedTunnel;
 use SodiumException;
-use function Siruis\Errors\IndyExceptions\errorcode_to_exception;
 
 class Future
 {

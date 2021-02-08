@@ -86,7 +86,7 @@ class Message extends ArrayObject
      *
      * @throws SiriusInvalidMessageClass
      */
-    public function unserialize($serialized)
+    public static function deserialize(string $serialized): Message
     {
         try {
             return new Message(json_decode($serialized));
