@@ -4,7 +4,7 @@ namespace Siruis\Agent\Wallet\Abstracts;
 
 use Siruis\Base\JsonSerializable;
 
-class CacheOptions extends JsonSerializable
+class CacheOptions implements JsonSerializable
 {
     public $no_cache;
     public $no_update;
@@ -38,7 +38,7 @@ class CacheOptions extends JsonSerializable
         return json_encode($this->toJson());
     }
 
-    public function deserialize($cls, $buffer)
+    public function deserialize($buffer)
     {
         $data = json_decode($buffer);
         $this->no_cache = key_exists('noCache', $data) ? $data['noCache'] : false;

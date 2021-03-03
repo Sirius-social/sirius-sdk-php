@@ -16,7 +16,7 @@ class KeyDerivationMethod extends Enum
         return $this->getValue();
     }
 
-    public function deserialize(string $buffer)
+    public static function deserialize(string $buffer)
     {
         if ($buffer == 'ARGON2I_MOD') {
             return self::DEFAULT;

@@ -19,7 +19,7 @@ class NYMRole extends Enum
         return $this->getValue();
     }
 
-    public function deserialize(string $buffer)
+    public static function deserialize(string $buffer)
     {
         $role_name = $buffer;
         if ($role_name == 'null') {

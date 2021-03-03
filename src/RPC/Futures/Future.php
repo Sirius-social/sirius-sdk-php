@@ -100,14 +100,13 @@ class Future
             } elseif ($timeout != null) {
                 $expires_time = date("Y-m-d h:i:s", time() + $timeout);
             } else {
-                $now->modify('+1 year');
-                $expires_time = $now->format('Y-m-d h:i:s');
+                $expires_time = date("Y-m-d h:i:s", time() + 365);
             }
-            while (date('Y-m-d h:i:s') < $expires_time) {
-                $timedelta = (new DateTime($expires_time))->diff(new DateTime());
+            do {
+                $timedelta = (new DateTime($expires_time->format('Y-m-d H:i:s')))->diff(new DateTime());
                 $timeout = max($timedelta->s, 0);
                 $payload = $this->tunnel->receive($timeout);
-                $payload = json_decode($payload->serialize(), true);
+                $payload = $payload->payload;
                 if (
                     key_exists('@type', $payload) &&
                     $payload['@type'] == self::MSG_TYPE &&
@@ -130,7 +129,7 @@ class Future
                     return true;
                 }
                 return false;
-            }
+            } while (date('Y-m-d h:i:s') < $expires_time);
         } catch (SiriusTimeoutIO $exception) {
             return false;
         }

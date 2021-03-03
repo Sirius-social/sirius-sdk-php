@@ -89,7 +89,7 @@ class Message extends ArrayObject
     public static function deserialize(string $serialized): Message
     {
         try {
-            return new Message(json_decode($serialized));
+            return new Message(json_decode($serialized, true));
         } catch (Exception $exception) {
             throw new SiriusInvalidMessageClass('Could not serialize message'. $exception);
         }

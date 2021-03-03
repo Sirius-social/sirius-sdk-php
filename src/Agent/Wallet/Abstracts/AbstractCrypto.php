@@ -79,16 +79,36 @@ abstract class AbstractCrypto
     public abstract function anonCrypt(string $recipientVk, string $msg): string;
 
     /**
+     * Decrypts a message by anonymous-encryption scheme.
+     *
+     * Sealed boxes are designed to anonymously send messages to a Recipient given its public key.
+     * Only the Recipient can decrypt these messages, using its private key.
+     * While the Recipient can verify the integrity of the message, it cannot verify the identity of the Sender.
+     *
+     * Note to use DID keys with this function you can call key_for_did to get key id (verkey)
+     * for specific DID.
+     *
+     * Note: use unpack_message function for A2A goals.
+     *
+     *
+     * @param string $recipient_vk id (verkey) of my key. The key must be created by calling indy_create_key or create_and_store_my_did
+     * @param string $encrypted_msg encrypted message
+     * @return string  decrypted message as an array of bytes
+     */
+    public abstract function anonDecrypt(string $recipient_vk, string $encrypted_msg): string;
+
+    /**
      * Packs a message by encrypting the message and serializes it in a JWE-like format (Experimental)
+     *
      * Note to use DID keys with this function you can call did.key_for_did to get key id (verkey)
      * for specific DID.
      *
      * @param mixed $message the message being sent as a string. If it's JSON formatted it should be converted to a string
      * @param array $recipientVerkeys a list of Strings which are recipient verkeys
-     * @param string|null $senderVerkey  the sender's verkey as a string. -> When None is passed in this parameter, anoncrypt mode is used
+     * @param string|null $sender_verkey the sender's verkey as a string. -> When None is passed in this parameter, anoncrypt mode is used
      * @return string an Agent Wire Message format as a byte array.
      */
-    public abstract function anonDecrypt($message, array $recipientVerkeys, string $senderVerkey = null): string;
+    public abstract function pack_message($message, array $recipientVerkeys, string $sender_verkey = null): string;
 
     /**
      * Unpacks a JWE-like formatted message outputted by pack_message (Experimental)

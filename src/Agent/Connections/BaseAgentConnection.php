@@ -83,11 +83,10 @@ abstract class BaseAgentConnection
      */
     public function close()
     {
-        return $this->connector->close();
+        $this->connector->close();
     }
 
     /**
-     * @param $class
      * @param string $server_address
      * @param $credentials
      * @param P2PConnection $p2p
@@ -98,8 +97,7 @@ abstract class BaseAgentConnection
      *
      * @throws SiriusInvalidMessageClass
      */
-    public function create(
-        $class,
+    public static function create(
         string $server_address,
         $credentials,
         P2PConnection $p2p,
@@ -107,11 +105,11 @@ abstract class BaseAgentConnection
         $loop = null
     )
     {
-        $instance = new $class($server_address, $credentials, $p2p, $timeout, $loop);
+        $instance = new static($server_address, $credentials, $p2p, $timeout, $loop);
         $instance->connector->open();
         $payload = $instance->connector->read($timeout);
-        $context = (new Message)->unserialize($payload);
-        $msg_type = key_exists('@type', (array)$context) ? $context['@type'] : null;
+        $context = Message::deserialize($payload);
+        $msg_type = key_exists('@type', $context->payload) ? $context->payload['@type'] : null;
         if (!$msg_type) {
             throw new RuntimeException('message @type is empty');
         } elseif ($msg_type != self::MSG_TYPE_CONTEXT) {
@@ -120,12 +118,5 @@ abstract class BaseAgentConnection
             $instance->setup($context);
         }
         return $instance;
-    }
-
-    /**
-     * @param Message $context
-     */
-    public function setup(Message $context)
-    {
     }
 }

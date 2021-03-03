@@ -4,14 +4,13 @@
 namespace Siruis\Base;
 
 
-abstract class JsonSerializable
+interface JsonSerializable
 {
-    abstract public function serialize();
+    public function serialize();
 
     /**
-     * @param $cls
      * @param array|string $buffer
      * @return mixed
      */
-    abstract public function deserialize($cls, $buffer);
+    public function deserialize($buffer);
 }

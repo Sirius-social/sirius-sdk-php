@@ -10,6 +10,11 @@ class AnonCredSchema
 {
     public $body;
 
+    /**
+     * AnonCredSchema constructor.
+     * @param array|null $args
+     * @throws SiriusValidationError
+     */
     public function __construct(array $args = null)
     {
         $this->body = array();
@@ -23,22 +28,35 @@ class AnonCredSchema
         $this->body = $args;
     }
 
+    /**
+     * @return string
+     */
     public function getId(): string
     {
         return $this->body['id'];
     }
 
-    public function getAttributes()
+    /**
+     * @return array
+     */
+    public function getAttributes(): array
     {
-        return sort($this->body['attrNames']);
+        sort($this->body['attrNames']);
+        return $this->body['attrNames'];
     }
 
+    /**
+     * @return string
+     */
     public function getName(): string
     {
         return $this->body['name'];
     }
 
-    public function version()
+    /**
+     * @return string
+     */
+    public function getVersion(): string
     {
         return $this->body['version'];
     }
