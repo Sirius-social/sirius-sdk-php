@@ -10,6 +10,18 @@ use Siruis\Tests\Helpers\Conftest;
 
 class TestPairwise extends TestCase
 {
+    public function test_create_and_store_my_did()
+    {
+        $agent = Conftest::agent1();
+        $agent->open();
+        try {
+            $casmd = $agent->wallet->did->create_and_store_my_did();
+
+        } finally {
+            $agent->close();
+        }
+    }
+
     public function test_pairwise_list()
     {
         $agent1 = Conftest::agent1();

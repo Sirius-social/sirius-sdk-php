@@ -11,6 +11,7 @@ use Siruis\Messaging\Message;
 use WebSocket\BadOpcodeException;
 use WebSocket\Client;
 use WebSocket\TimeoutException;
+use function Ratchet\Client\connect;
 
 
 class WebSocketConnector extends BaseConnector
@@ -24,11 +25,18 @@ class WebSocketConnector extends BaseConnector
     private $session;
     private $port;
     private $url;
+    private $ws_address;
+    private $options;
 
     public function __construct($server_address, $path, $credentials, $defTimeout = null, $port = null, $enc = null)
     {
+        $this->server_address = $server_address;
         $parsed = parse_url($server_address);
-        $this->server_address = $parsed['scheme'] == 'http' ? 'ws://'. $parsed['host'] : 'wss://' . $parsed['host'];
+        $ws_address = $parsed['scheme'] == 'http' ? 'ws://'. $parsed['host'] : 'wss://' . $parsed['host'];
+        if (key_exists('port', $parsed)) {
+            $ws_address .= ':' . $parsed['port'];
+        }
+        $this->ws_address = $ws_address;
         $this->path = $path;
         $this->credentials = $credentials;
         if ($defTimeout) {
@@ -38,8 +46,16 @@ class WebSocketConnector extends BaseConnector
             $this->enc = $enc;
         }
         $this->port = $port;
-        $this->url = urljoin($this->server_address, $path);
-        $this->session = new Client($this->url, ['headers' => ['origin' => $server_address, 'credentials' => $credentials], 'timeout' => $this->defTimeout]);
+        $this->url = urljoin($this->ws_address, $path);
+        $this->options = [
+            'headers' => [
+                'credentials' => mb_convert_encoding($this->credentials, 'ascii'),
+                'origin' => $this->server_address,
+                'mode' => 'text'
+            ],
+            'timeout' => $this->defTimeout
+        ];
+        $this->session = new Client($this->url, $this->options);
     }
 
     public function isOpen(): bool
@@ -53,7 +69,7 @@ class WebSocketConnector extends BaseConnector
     public function open()
     {
         if (!$this->isOpen()) {
-            $this->session->ping();
+            $this->session = new Client($this->url, $this->options);
         }
     }
 
@@ -73,7 +89,7 @@ class WebSocketConnector extends BaseConnector
     public function reconnect()
     {
         $this->session->close();
-        $this->session->ping();
+        $this->session = new Client($this->url, $this->options);
     }
 
     /**
@@ -114,7 +130,7 @@ class WebSocketConnector extends BaseConnector
             $payload = $data;
         }
         try {
-            $this->session->binary($payload);
+            $this->session->text(mb_convert_encoding($payload, 'utf-8'));
             return true;
         } catch (\Throwable $e) {
             return false;

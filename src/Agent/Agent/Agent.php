@@ -75,7 +75,6 @@ class Agent extends TransportLayers
      * @var AbstractMicroledgerList|null
      */
     public $microledgers;
-    public $is_open;
 
     /**
      * Agent constructor.
@@ -113,10 +112,9 @@ class Agent extends TransportLayers
         $this->p2p = $p2p;
         $this->name = $name;
         $this->spawnStrategy = SpawnStrategy::PARALLEL;
-        $this->is_open = $this->getIsOpen();
     }
 
-    public function getIsOpen(): bool
+    public function isOpen(): bool
     {
         return $this->rpc && $this->rpc->isOpen();
     }
@@ -251,6 +249,15 @@ class Agent extends TransportLayers
         );
     }
 
+    /**
+     * Service for QR codes generation
+     *
+     * You may create PNG image for QR code to share it on Web or others.
+     *
+     * @param string $value
+     * @return mixed
+     * @throws SiriusConnectionClosed
+     */
     public function generate_qr_code(string $value)
     {
         $this->__check_is_open();
@@ -259,6 +266,30 @@ class Agent extends TransportLayers
             ['value' => $value]
         );
         return $resp['url'];
+    }
+
+    public function acquire(array $resources, float $lock_timeout, float $enter_timeout = 3): array
+    {
+        $this->__check_is_open();
+        list($success, $busy) = $this->rpc->remoteCall(
+            'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin/1.0/acquire',
+            [
+                'names' => $resources,
+                'enter_timeout' => $enter_timeout,
+                'lock_timeout' => $lock_timeout
+            ]
+        );
+        return [$success, $busy];
+    }
+
+    /**
+     * Release earlier locked resources
+     */
+    public function release()
+    {
+        $this->rpc->remoteCall(
+            'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin/1.0/release'
+        );
     }
 
     public function reopen(bool $kill_tasks = false)

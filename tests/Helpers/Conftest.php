@@ -68,6 +68,11 @@ class Conftest
         ];
     }
 
+    public static function test_suite(): ServerTestSuite
+    {
+        return static::get_suite_singleton();
+    }
+
     public static function agent1(): Agent
     {
         return self::get_agent('agent1');

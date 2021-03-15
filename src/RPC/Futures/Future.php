@@ -102,7 +102,7 @@ class Future
             } else {
                 $expires_time = date("Y-m-d h:i:s", time() + 365);
             }
-            do {
+            while (date('Y-m-d h:i:s') < $expires_time) {
                 $timedelta = (new DateTime($expires_time->format('Y-m-d H:i:s')))->diff(new DateTime());
                 $timeout = max($timedelta->s, 0);
                 $payload = $this->tunnel->receive($timeout);
@@ -129,7 +129,7 @@ class Future
                     return true;
                 }
                 return false;
-            } while (date('Y-m-d h:i:s') < $expires_time);
+            }
         } catch (SiriusTimeoutIO $exception) {
             return false;
         }

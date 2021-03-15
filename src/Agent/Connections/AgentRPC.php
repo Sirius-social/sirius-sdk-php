@@ -113,7 +113,8 @@ class AgentRPC extends BaseAgentConnection
                 $this->reopen();
                 return $this->remoteCall($msg_type, $params, $waitResponse, false);
             } else {
-                throw new SiriusConnectionClosed();
+                error_log($exception->getMessage());
+                throw $exception;
             }
         }
     }

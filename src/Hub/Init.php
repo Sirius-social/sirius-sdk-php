@@ -123,4 +123,30 @@ class Init
     {
         return self::$agent->generate_qr_code($value);
     }
+
+    /**
+     * @param array $resources
+     * @param float $lock_timeout
+     * @param float|null $enter_timeout
+     * @return array
+     * @throws SiriusInitializationError
+     */
+    public static function acquire(array $resources, float $lock_timeout, float $enter_timeout = null): array
+    {
+        $agent = Hub::current_hub()->get_agent_connection_lazy();
+        if ($enter_timeout) {
+            return $agent->acquire($resources, $lock_timeout, $enter_timeout);
+        } else {
+            return $agent->acquire($resources, $lock_timeout);
+        }
+    }
+
+    /**
+     * @throws SiriusInitializationError
+     */
+    public static function release()
+    {
+        $agent = Hub::current_hub()->get_agent_connection_lazy();
+        $agent->release();
+    }
 }
