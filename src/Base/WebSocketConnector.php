@@ -125,12 +125,12 @@ class WebSocketConnector extends BaseConnector
     public function write($data): bool
     {
         if ($data instanceof Message) {
-            $payload = $data->serialize();
+            $payload = mb_convert_encoding($data->serialize(), $this->enc);
         } else {
             $payload = $data;
         }
         try {
-            $this->session->text(mb_convert_encoding($payload, 'utf-8'));
+            $this->session->binary($payload);
             return true;
         } catch (\Throwable $e) {
             return false;

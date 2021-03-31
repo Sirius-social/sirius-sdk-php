@@ -16,6 +16,7 @@ use Siruis\Errors\Exceptions\SiriusInvalidType;
 use Siruis\Messaging\Message;
 use Siruis\Messaging\Type\Type;
 use Siruis\RPC\Futures\Future;
+use stdClass;
 
 class Parsing {
     const MSG_TYPE_FUTURE = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/future';
@@ -104,13 +105,13 @@ class Parsing {
     /**
      * @param string $msg_type
      * @param Future $future
-     * @param array $params
+     * @param array|stdClass $params
      * @return Message
      * @throws SiriusInvalidType
      * @throws SodiumException
      * @throws SiriusInvalidMessageClass
      */
-    public static function build_request(string $msg_type, Future $future, array $params)
+    public static function build_request(string $msg_type, Future $future, $params)
     {
         $typ = Type::fromString($msg_type);
         if (!in_array($typ->protocol, ['sirius_rpc', 'admin', 'microledgers'])) {
@@ -119,6 +120,9 @@ class Parsing {
         $p = [];
         foreach ($params as $k => $v) {
             $p[$k] = self::incapsulate_param($v);
+        }
+        if (empty($p)) {
+            $p = new stdClass();
         }
         return new Message([
             '@type' => $msg_type,

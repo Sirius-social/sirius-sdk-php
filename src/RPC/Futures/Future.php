@@ -5,6 +5,7 @@ namespace Siruis\RPC\Futures;
 
 
 use DateTime;
+use DateTimeZone;
 use Exception;
 use Siruis\Encryption\Encryption;
 use Siruis\Errors\Exceptions\SiriusCryptoError;
@@ -91,19 +92,20 @@ class Future
             return true;
         }
         try {
-            $now = new DateTime();
+            $timezone = new DateTimeZone('Asia/Almaty');
+            $now = DateTime::createFromFormat('Y-m-d h:i:s', date('Y-m-d h:i:s', time()), $timezone);
             if ($timeout == 0) {
                 return false;
             }
             if ($this->expiration_time != null) {
                 $expires_time = $this->expiration_time;
             } elseif ($timeout != null) {
-                $expires_time = date("Y-m-d h:i:s", time() + $timeout);
+                $expires_time = DateTime::createFromFormat('Y-m-d h:i:s', date('Y-m-d h:i:s', time() + $timeout), $timezone);
             } else {
-                $expires_time = date("Y-m-d h:i:s", time() + 365);
+                $expires_time = DateTime::createFromFormat('Y-m-d h:i:s', date('Y-m-d h:i:s', time() + 365), $timezone);
             }
-            while (date('Y-m-d h:i:s') < $expires_time) {
-                $timedelta = (new DateTime($expires_time->format('Y-m-d H:i:s')))->diff(new DateTime());
+            while ($now < $expires_time) {
+                $timedelta = $expires_time->diff(new DateTime());
                 $timeout = max($timedelta->s, 0);
                 $payload = $this->tunnel->receive($timeout);
                 $payload = $payload->payload;

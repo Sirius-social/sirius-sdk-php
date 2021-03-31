@@ -19,10 +19,12 @@ use Siruis\Messaging\Type\Type;
 use Siruis\RPC\Futures\Future;
 use Siruis\RPC\Parsing;
 use Siruis\RPC\Tunnel\AddressedTunnel;
+use stdClass;
 use WebSocket\Client;
 
 class AgentRPC extends BaseAgentConnection
 {
+    const EXPIRATION_OFF = true;
     /**
      * @var null
      */
@@ -84,7 +86,7 @@ class AgentRPC extends BaseAgentConnection
             if (!$this->connector->isOpen()) {
                 throw new SiriusConnectionClosed('Open agent connection at first');
             }
-            if ($this->timeout) {
+            if ($this->timeout && !self::EXPIRATION_OFF) {
                 $expirationTime = date("Y-m-d h:i:s", time() + $this->timeout);
                 $expirationTime = DateTime::createFromFormat('Y-m-d H:i:s', $expirationTime);
             } else {
@@ -93,8 +95,8 @@ class AgentRPC extends BaseAgentConnection
             $future = new Future($this->tunnel_rpc, $expirationTime);
             $request = Parsing::build_request($msg_type, $future, $params ? $params : []);
             $msg_typ = Type::fromString($msg_type);
-            $encrypt = $msg_typ->protocol;
-            $this->tunnel_rpc->post($request, $encrypt ? true : false);
+            $encrypt = !in_array($msg_typ->protocol, ['admin', 'microledgers', 'microledgers-batched']);
+            $this->tunnel_rpc->post($request, $encrypt);
             if ($waitResponse) {
                 $success = $future->wait($this->timeout);
                 if ($success) {

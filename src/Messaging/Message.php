@@ -75,7 +75,7 @@ class Message extends ArrayObject
      */
     public function serialize()
     {
-        return json_encode($this->payload);
+        return json_encode($this->payload, JSON_UNESCAPED_SLASHES);
     }
 
     /**
