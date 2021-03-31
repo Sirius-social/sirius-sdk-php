@@ -26,35 +26,167 @@ abstract class AbstractDID
      */
     public abstract function create_and_store_my_did(string $did = null, string $seed = null, bool $cid = null): array;
 
+    /**
+     * Saves their DID for a pairwise connection in a secured Wallet,
+     * so that it can be used to verify transaction.
+     * Updates DID associated verkey in case DID already exists in the Wallet.
+     *
+     * @param string $did string, (required)
+     * @param string|null $verkey string (optional, if only pk is provided),
+     * @return mixed
+     */
     public abstract function store_their_did(string $did, string $verkey = null);
 
+    /**
+     * Saves/replaces the meta information for the giving DID in the wallet.
+     *
+     * @param string $did the DID to store metadata.
+     * @param array|null $metadata the meta information that will be store with the DID.
+     * @return mixed Error code
+     */
     public abstract function set_did_metadata(string $did, array $metadata = null);
 
+    /**
+     * List DIDs and metadata stored in the wallet.
+     *
+     * @return array List of DIDs with verkeys and meta data.
+     */
     public abstract function list_my_dids_with_meta(): array;
 
+    /**
+     * Retrieves the meta information for the giving DID in the wallet.
+     *
+     * @param mixed $did The DID to retrieve metadata.
+     * @return array|null The meta information stored with the DID; Can be null if no metadata was saved for this DID.
+     */
     public abstract function get_did_metadata($did): ?array;
 
+    /**
+     * Returns ver key (key id) for the given DID.
+     *
+     * "key_for_local_did" call looks data stored in the local wallet only and skips freshness checking.
+     *
+     * Note if you want to get fresh data from the ledger you can use "key_for_did" call instead.
+     *
+     * Note that "create_and_store_my_did" makes similar wallet record as "create_key".
+     * As result we can use returned ver key in all generic crypto and messaging functions.
+     *
+     * @param string $did The DID to resolve key.
+     * @return string The DIDs ver key (key id).
+     */
     public abstract function key_for_local_did(string $did): string;
 
+    /**
+     * Returns ver key (key id) for the given DID.
+     * "key_for_did" call follow the idea that we resolve information about their DID from
+     * the ledger with cache in the local wallet. The "open_wallet" call has freshness parameter
+     * that is used for checking the freshness of cached pool value.
+     *
+     * Note if you don't want to resolve their DID info from the ledger you can use
+     * "key_for_local_did" call instead that will look only to local wallet and skip
+     * freshness checking.
+     *
+     * Note that "create_and_store_my_did" makes similar wallet record as "create_key".
+     * As result we can use returned ver key in all generic crypto and messaging functions.
+     *
+     * @param string $pool_name Pool Name.
+     * @param string $did The DID to resolve key.
+     * @return string The DIDs ver key (key id).
+     */
     public abstract function key_for_did(string $pool_name, string $did): string;
 
+    /**
+     * Creates keys pair and stores in the wallet.
+     *
+     * @param string|null $seed string, (optional) Seed that allows deterministic key creation
+     *                          (if not set random one will be created).
+     *                          Can be UTF-8, base64 or hex string.
+     * @return string Ver key of generated key pair, also used as key identifier
+     */
     public abstract function create_key(string $seed = null): string;
 
+    /**
+     * Generated new keys (signing and encryption keys) for an existing
+     * DID (owned by the caller of the library).
+     *
+     * @param string $did signing DID
+     * @param string|null $seed string, (optional) Seed that allows deterministic key creation
+     *                          (if not set random one will be created). Can be UTF-8, base64 or hex string.
+     * @return string verkey
+     */
     public abstract function replce_keys_start(string $did, string $seed = null): string;
 
+    /**
+     * Apply temporary keys as main for an existing DID (owned by the caller of the library).
+     *
+     * @param string $did The DID to resolve key.
+     * @return mixed Error code
+     */
     public abstract function replace_keys_apply(string $did);
 
+    /**
+     * Creates keys pair and stores in the wallet.
+     *
+     * @param string $verkey the key (verkey, key id) to store metadata.
+     * @param array $metadata the meta information that will be store with the key.
+     * @return mixed Error code
+     */
     public abstract function set_key_metadata(string $verkey, array $metadata);
 
+    /**
+     * Retrieves the meta information for the giving key in the wallet.
+     *
+     * @param string $verkey The key (verkey, key id) to retrieve metadata.
+     * @return array The meta information stored with the key; Can be null if no metadata was saved for this key.
+     */
     public abstract function get_key_metadata(string $verkey): array;
 
+    /**
+     * Set/replaces endpoint information for the given DID.
+     *
+     * @param string $did The DID to resolve endpoint.
+     * @param string $address The DIDs endpoint address.
+     * @param string $transport_key The DIDs transport key (ver key, key id).
+     * @return mixed Error code
+     */
     public abstract function set_endpoint_for_did(string $did, string $address, string $transport_key);
 
+    /**
+     * Returns endpoint information for the given DID.
+     *
+     * @param string $pool_name Pool name.
+     * @param string $did The DID to resolve endpoint.
+     * @return mixed (endpoint, transport_vk)
+     */
     public abstract function get_endpoint_for_did(string $pool_name, string $did);
 
+    /**
+     * Get DID metadata and verkey stored in the wallet.
+     *
+     * @param string $did The DID to retrieve metadata.
+     * @return mixed DID with verkey and metadata.
+     */
     public abstract function get_my_did_with_meta(string $did);
 
+    /**
+     * Retrieves abbreviated verkey if it is possible otherwise return full verkey.
+     *
+     * @param string $did The DID.
+     * @param string $full_verkey The DIDs verification key,
+     * @return string Either abbreviated or full verkey.
+     */
     public abstract function abbreviate_verkey(string $did, string $full_verkey): string;
 
+    /**
+     * Update DID stored in the wallet to make fully qualified, or to do other DID maintenance.
+     *      - If the DID has no prefix, a prefix will be appended (prepend did:peer to a legacy did)
+     *      - If the DID has a prefix, a prefix will be updated (migrate did:peer to did:peer-new)
+     *
+     * Update DID related entities stored in the wallet.
+     *
+     * @param string $did target DID stored in the wallet.
+     * @param string $method method to apply to the DID.
+     * @return string fully qualified did
+     */
     public abstract function qualify_did(string $did, string $method): string;
 }

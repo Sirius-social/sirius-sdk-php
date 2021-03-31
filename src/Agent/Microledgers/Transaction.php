@@ -24,7 +24,7 @@ class Transaction extends ArrayObject
         $this->payload = $payload;
     }
 
-    public function has_metadata()
+    public function has_metadata(): bool
     {
         if (key_exists(Microledgers::METADATA_ATTR, $this->payload)) {
             $meta = $this->payload[Microledgers::METADATA_ATTR];
@@ -51,13 +51,19 @@ class Transaction extends ArrayObject
 
     /**
      * @param $from
-     * @return Transaction
+     * @return array|Transaction
      * @throws SiriusContextError
      */
-    public static function from_value($from)
+    public static function from_value($from, $type = null)
     {
         if (is_array($from)) {
             return new Transaction($from);
+        } elseif ($type == 'list') {
+            $txns = [];
+            foreach ($from as $txn) {
+                array_push($txns, new Transaction($txn));
+            }
+            return $txns;
         } else {
             throw new SiriusContextError('Unexpected input value');
         }

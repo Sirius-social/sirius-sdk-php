@@ -10,15 +10,15 @@ class AriesProblemReport extends AriesProtocolMessage
     /**
      * @var string|null
      */
-    private $problemCode;
+    public $problemCode;
     /**
      * @var string|null
      */
-    private $explain;
+    public $explain;
     /**
      * @var array|null
      */
-    private $thread;
+    public $thread;
 
     public function __construct(
         array $payload,

@@ -4,7 +4,7 @@ namespace Siruis\Agent\Wallet\Abstracts;
 
 use Siruis\Base\JsonSerializable;
 
-class PurgeOptions extends JsonSerializable
+class PurgeOptions implements JsonSerializable
 {
     public $max_age;
 
@@ -13,7 +13,7 @@ class PurgeOptions extends JsonSerializable
         $this->max_age = $max_age;
     }
 
-    public function toJson()
+    public function toJson(): array
     {
         return [
             'maxAge' => $this->max_age
@@ -25,7 +25,7 @@ class PurgeOptions extends JsonSerializable
         return json_encode($this->toJson());
     }
 
-    public function deserialize($cls, $buffer)
+    public function deserialize($buffer)
     {
         $data = json_decode($buffer);
         $this->max_age = key_exists('maxAge', $data) ? $data['maxAge'] : -1;

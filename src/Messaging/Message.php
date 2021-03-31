@@ -54,13 +54,14 @@ class Message extends ArrayObject
 
         if (!key_exists('@id', $payload)) {
             $payload['@id'] = self::generate_id();
+            $this->id = $payload['@id'];
         } elseif (!is_string($payload['@id'])) {
             throw new SiriusInvalidMessageClass('Message @id is invalid; must be str');
         }
 
         if ($this->type instanceof Type) {
             $this->_type = $payload['@type'];
-            settype($payload['@type'], 'string');
+            $payload['@type'] = (string)$this->_type;
         } else {
             $this->_type = Type::fromString($payload['@type']);
         }
@@ -74,7 +75,7 @@ class Message extends ArrayObject
      */
     public function serialize()
     {
-        return json_encode($this->payload);
+        return json_encode($this->payload, JSON_UNESCAPED_SLASHES);
     }
 
     /**
@@ -89,7 +90,7 @@ class Message extends ArrayObject
     public static function deserialize(string $serialized): Message
     {
         try {
-            return new Message(json_decode($serialized));
+            return new Message(json_decode($serialized, true));
         } catch (Exception $exception) {
             throw new SiriusInvalidMessageClass('Could not serialize message'. $exception);
         }

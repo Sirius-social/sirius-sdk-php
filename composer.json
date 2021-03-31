@@ -16,10 +16,14 @@
         "ext-json": "*",
         "stephenhill/base58": "^1.1",
         "phlak/semver": "^3.2.0",
-        "bloatless/php-websocket": "^2.1",
         "myclabs/php-enum": "^1.7",
         "php-ds/php-ds": "^1.3",
-      "ext-http": "*"
+        "guzzlehttp/guzzle": "^7.0",
+        "textalk/websocket": "^1.5",
+        "wrench/wrench": "^2.0",
+        "ratchet/pawl": "^0.3.5",
+        "wisembly/elephant.io": "^3.3",
+        "ext-sockets": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.3"

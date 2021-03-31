@@ -19,7 +19,7 @@ abstract class FieldBase implements FieldValidator
     /**
      * @inheritDoc
      */
-    public function validate($value)
+    public function validate($value): string
     {
         if ($this->nullable && !$value) {
             return;
@@ -38,7 +38,7 @@ abstract class FieldBase implements FieldValidator
 
     abstract public function _specific_validation($value);
 
-    private function __type_check($value)
+    private function __type_check($value): string
     {
         if (!$this->base_types) {
             return;
@@ -51,7 +51,7 @@ abstract class FieldBase implements FieldValidator
         return $this->_wrong_type_msg($value);
     }
 
-    private function _wrong_type_msg($value)
+    private function _wrong_type_msg($value): string
     {
         return 'expected types "'. implode(',', $this->base_types) . '", got "' . gettype($value) . '"';
     }

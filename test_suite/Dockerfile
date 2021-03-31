@@ -4,7 +4,5 @@ RUN apt-get update && apt-get install -y \
         libgmp-dev \
         && docker-php-ext-install gmp bcmath \
         && pecl install xdebug-2.9.8 \
-        && docker-php-ext-enable xdebug \
-        && pecl install pthreads \
-        && docker-php-ext-enable pthreads
+        && docker-php-ext-enable xdebug
 

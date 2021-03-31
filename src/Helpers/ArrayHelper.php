@@ -25,4 +25,15 @@ class ArrayHelper
 
         return $previous;
     }
+
+    /**
+     * @param string $key
+     * @param array $array
+     * @param null $ret
+     * @return mixed|null
+     */
+    public static function getValueWithKeyFromArray(string $key, array $array, $ret = null)
+    {
+        return key_exists($key, $array) && $array[$key] ? $array[$key] : $ret;
+    }
 }

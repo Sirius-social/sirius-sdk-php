@@ -15,7 +15,7 @@ class PoolAction extends Enum
         return $this->getValue();
     }
 
-    public function deserialize(string $buffer)
+    public static function deserialize(string $buffer)
     {
         if ($buffer == 'POOL_RESTART') {
             return self::POOL_RESTART;

@@ -4,7 +4,7 @@ namespace Siruis\Agent\Wallet\Abstracts\NonSecrets;
 
 use Siruis\Base\JsonSerializable;
 
-class RetrieveRecordOptions extends JsonSerializable
+class RetrieveRecordOptions implements JsonSerializable
 {
     public $retrieve_type;
     public $retrieve_value;
@@ -27,7 +27,7 @@ class RetrieveRecordOptions extends JsonSerializable
         $this->retrieve_tags = true;
     }
 
-    public function toJson()
+    public function toJson(): array
     {
         $options = [];
         if ($this->retrieve_type) {
@@ -47,7 +47,7 @@ class RetrieveRecordOptions extends JsonSerializable
         return json_encode($this->toJson());
     }
 
-    public function deserialize($cls, $buffer)
+    public function deserialize($buffer)
     {
         $data = json_decode($buffer);
         $this->retrieve_type = key_exists('retrieveType', $data) ? $data['retrieveType'] : false;
