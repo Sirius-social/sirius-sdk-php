@@ -1,6 +1,6 @@
 <?php
 
-namespace Siruis\Tests\Encryption;
+namespace Siruis\Tests;
 
 use Exception;
 use Siruis\Encryption\Ed25519;

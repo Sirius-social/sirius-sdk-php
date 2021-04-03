@@ -19,9 +19,14 @@ class Transaction extends ArrayObject
     {
         parent::__construct($array, $flags, $iteratorClass);
         if (!key_exists(Microledgers::METADATA_ATTR, $payload)) {
-            $payload[Microledgers::METADATA_ATTR] = [];
+            $payload[Microledgers::METADATA_ATTR] = (object)[];
         }
         $this->payload = $payload;
+    }
+
+    public function as_object()
+    {
+        return (object)$this->payload;
     }
 
     public function has_metadata(): bool
@@ -46,26 +51,6 @@ class Transaction extends ArrayObject
             throw new SiriusContextError(Microledgers::METADATA_ATTR . ' attribute must be empty for new transaction');
         } else {
             return $inst;
-        }
-    }
-
-    /**
-     * @param $from
-     * @return array|Transaction
-     * @throws SiriusContextError
-     */
-    public static function from_value($from, $type = null)
-    {
-        if (is_array($from)) {
-            return new Transaction($from);
-        } elseif ($type == 'list') {
-            $txns = [];
-            foreach ($from as $txn) {
-                array_push($txns, new Transaction($txn));
-            }
-            return $txns;
-        } else {
-            throw new SiriusContextError('Unexpected input value');
         }
     }
 }

@@ -52,7 +52,11 @@ class Parsing {
         } elseif ($var instanceof KeyDerivationMethod) {
             return [$revert[KeyDerivationMethod::class], $var->serialize()];
         } elseif (is_string($var)) {
-            return ['application/base64', Encryption::bytes_to_b64($var)];
+            if (self::contains_any_multibyte($var)) {
+                return ['application/base64', Encryption::bytes_to_b64($var)];
+            } else {
+                return [null, $var];
+            }
         } else {
             return [null, $var];
         }
@@ -167,5 +171,10 @@ class Parsing {
         } else {
             throw new SiriusInvalidType('Except message type '. MSG_TYPE_FUTURE);
         }
+    }
+
+    protected static function contains_any_multibyte(string $string)
+    {
+        return !mb_check_encoding($string, 'ASCII') && mb_check_encoding($string, 'UTF-8');
     }
 }

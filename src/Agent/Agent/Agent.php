@@ -16,6 +16,7 @@ use Siruis\Agent\Ledgers\Ledger;
 use Siruis\Agent\Listener\Listener;
 use Siruis\Agent\Microledgers\AbstractMicroledgerList;
 use Siruis\Agent\Microledgers\MicroledgerList;
+use Siruis\Agent\Pairwise\AbstractPairwiseList;
 use Siruis\Agent\Pairwise\Pairwise;
 use Siruis\Agent\Pairwise\TheirEndpoint;
 use Siruis\Agent\Pairwise\WalletPairwiseList;
@@ -70,6 +71,9 @@ class Agent extends TransportLayers
     public $wallet;
     public $endpoints;
     public $ledgers;
+    /**
+     * @var AbstractPairwiseList|null
+     */
     public $pairwise_list;
     /**
      * @var AbstractMicroledgerList|null

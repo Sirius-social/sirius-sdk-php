@@ -15,10 +15,10 @@ services:
   
 before_install:
   # Run TestSuite
-  #- cd ./test_suite
-  #- docker-compose up -d
-  #- cd ..
-  #- sleep 60  # Wait for TestSuite is ready
+  - cd ./test_suite
+  - docker-compose up -d
+  - cd ..
+  - sleep 60  # Wait for TestSuite is ready
   - composer install
   - composer dump-autoload
   

@@ -99,7 +99,7 @@ class Microledger extends AbstractMicroledger
     }
 
     /**
-     * @param array $genesis
+ 9a9n57ey    * @param array $genesis
      * @return mixed
      * @throws SiriusContextError
      */
@@ -109,15 +109,16 @@ class Microledger extends AbstractMicroledger
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/microledgers/1.0/initialize',
             [
                 'name' => $this->name,
-                'new_name' => $genesis
+                'genesis_txns' => $genesis
             ]
         );
         $this->state = $remoteCallResult[0];
         $txns = $remoteCallResult[1];
+        $result = [];
         foreach ($txns as $txn) {
-            array_push($result, Transaction::from_value($txn));
+            array_push($result, Transaction::create($txn));
         }
-        return $txns;
+        return $result;
     }
 
     /**

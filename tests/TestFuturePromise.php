@@ -1,6 +1,6 @@
 <?php
 
-namespace Siruis\Tests\RPC;
+namespace Siruis\Tests;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;

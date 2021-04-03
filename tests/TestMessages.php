@@ -1,6 +1,6 @@
 <?php
 
-namespace Siruis\Tests\Messaging;
+namespace Siruis\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Siruis\Agent\AriesRFC\feature_0015_acks\Ack;

@@ -37,9 +37,10 @@ class MicroledgerList extends AbstractMicroledgerList
         $genesis_txns = [];
         foreach ($genesis as $txn) {
             if ($txn instanceof Transaction) {
-                array_push($genesis_txns, $txn);
+                array_push($genesis_txns, $txn->as_object());
             } elseif (is_array($txn)) {
-                array_push($genesis_txns, Transaction::create($txn));
+                $txn = Transaction::create($txn);
+                array_push($genesis_txns, $txn->as_object());
             } else {
                 throw new RuntimeException('Unexpected transaction type');
             }
