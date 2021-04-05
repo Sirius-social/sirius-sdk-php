@@ -29,6 +29,11 @@ class Transaction extends ArrayObject
         return (object)$this->payload;
     }
 
+    public function as_json()
+    {
+        return json_encode($this->payload);
+    }
+
     public function has_metadata(): bool
     {
         if (key_exists(Microledgers::METADATA_ATTR, $this->payload)) {

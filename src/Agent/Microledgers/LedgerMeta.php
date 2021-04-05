@@ -31,4 +31,9 @@ class LedgerMeta extends ArrayObject
         $this->uuid = $uuid;
         $this->created = $created;
     }
+
+    public function __toString(): string
+    {
+        return '{"name": '. $this->name .', "uuid": '.$this->uuid.', "created": '.$this->created.'}';
+    }
 }
