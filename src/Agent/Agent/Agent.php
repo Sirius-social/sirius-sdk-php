@@ -3,7 +3,6 @@
 
 namespace Siruis\Agent\Agent;
 
-
 use GuzzleHttp\Exception\GuzzleException;
 use RuntimeException;
 use Siruis\Agent\Connections\AgentEvents;
@@ -91,13 +90,14 @@ class Agent extends TransportLayers
      * @param int|null $spawnStrategy
      */
     public function __construct(
-        string $server_address, string $credentials, P2PConnection $p2p,
+        string $server_address,
+        string $credentials,
+        P2PConnection $p2p,
         int $timeout = BaseAgentConnection::IO_TIMEOUT,
         AbstractImmutableCollection $storage = null,
         string $name = null,
         int $spawnStrategy = null
-    )
-    {
+    ) {
         $parsed = parse_url($server_address);
         if (!in_array($parsed['scheme'], ['https'])) {
             error_log('Endpoints has non secure scheme, you will have issues for Android/iOS devices');
@@ -141,14 +141,17 @@ class Agent extends TransportLayers
     public function spawnPairwise(Pairwise $pairwise): PairwiseCoProtocolTransport
     {
         return new PairwiseCoProtocolTransport(
-            $pairwise, $this->__get_RPC()
+            $pairwise,
+            $this->__get_RPC()
         );
     }
 
     public function spawnThidPairwise(string $thid, Pairwise $pairwise): ThreadBasedCoProtocolTransport
     {
         return new ThreadBasedCoProtocolTransport(
-            $thid, $pairwise, $this->__get_RPC()
+            $thid,
+            $pairwise,
+            $this->__get_RPC()
         );
     }
 
@@ -164,14 +167,20 @@ class Agent extends TransportLayers
     public function spawnThidPairwisePthd(string $thid, Pairwise $pairwise, string $pthid): ThreadBasedCoProtocolTransport
     {
         return new ThreadBasedCoProtocolTransport(
-            $thid, $pairwise, $this->__get_RPC(), $pthid
+            $thid,
+            $pairwise,
+            $this->__get_RPC(),
+            $pthid
         );
     }
 
     public function spawnThidPthid(string $thid, string $pthid): ThreadBasedCoProtocolTransport
     {
         return new ThreadBasedCoProtocolTransport(
-            $thid, null, $this->__get_RPC(), $pthid
+            $thid,
+            null,
+            $this->__get_RPC(),
+            $pthid
         );
     }
 
@@ -185,8 +194,11 @@ class Agent extends TransportLayers
         }
         foreach ($this->rpc->networks as $network) {
             $this->ledgers[$network] = new Ledger(
-                $network, $this->wallet->ledger, $this->wallet->anoncreds,
-                $this->wallet->cache, $this->storage
+                $network,
+                $this->wallet->ledger,
+                $this->wallet->anoncreds,
+                $this->wallet->cache,
+                $this->storage
             );
         }
         $this->pairwise_list = new WalletPairwiseList([$this->wallet->pairwise, $this->wallet->did]);
@@ -197,7 +209,10 @@ class Agent extends TransportLayers
     {
         $this->__check_is_open();
         $this->events = new AgentEvents(
-            $this->server_address, $this->credentials, $this->p2p, $this->timeout
+            $this->server_address,
+            $this->credentials,
+            $this->p2p,
+            $this->timeout
         );
         return new Listener($this->events, $this->pairwise_list);
     }
@@ -231,10 +246,13 @@ class Agent extends TransportLayers
      * @throws SiriusRPCError
      */
     public function send_message(
-        Message $message, $their_vk, string $endpoint, ?string $my_vk, ?array $routing_keys = null
-    )
-    {
-        $this->__check_is_open();
+        Message $message,
+        $their_vk,
+        string $endpoint,
+        ?string $my_vk,
+        ?array $routing_keys = null
+    ) {
+        $dd = $this->__check_is_open();
         $this->rpc->sendMessage($message, $their_vk, $endpoint, $my_vk, $routing_keys, false);
     }
 
@@ -249,7 +267,11 @@ class Agent extends TransportLayers
     {
         $this->__check_is_open();
         $this->send_message(
-            $message, $to->their->verkey, $to->their->endpoint, $to->me->verkey, $to->their->routing_keys
+            $message,
+            $to->their->verkey,
+            $to->their->endpoint,
+            $to->me->verkey,
+            $to->their->routing_keys
         );
     }
 
@@ -309,7 +331,10 @@ class Agent extends TransportLayers
     {
         if ($this->spawnStrategy = SpawnStrategy::PARALLEL) {
             $rpc = new AgentRPC(
-                $this->server_address, $this->credentials, $this->p2p, $this->timeout
+                $this->server_address,
+                $this->credentials,
+                $this->p2p,
+                $this->timeout
             );
         } else {
             $rpc = $this->rpc;

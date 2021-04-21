@@ -118,7 +118,7 @@ class Parsing {
     public static function build_request(string $msg_type, Future $future, $params)
     {
         $typ = Type::fromString($msg_type);
-        if (!in_array($typ->protocol, ['sirius_rpc', 'admin', 'microledgers'])) {
+        if (!in_array($typ->protocol, ['sirius_rpc', 'admin', 'microledgers', 'microledgers-batched'])) {
             throw new SiriusInvalidType('Expect sirius_rpc protocol');
         }
         $p = [];

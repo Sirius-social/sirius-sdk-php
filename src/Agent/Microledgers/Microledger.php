@@ -14,11 +14,18 @@ class Microledger extends AbstractMicroledger
     public $api;
     public $state;
 
-    public function __construct(string $name, AgentRPC $api)
+    public function __construct(string $name, AgentRPC $api, array $state = null)
     {
         $this->name = $name;
         $this->api = $api;
-        $this->state = null;
+        $this->state = $state;
+    }
+
+    public function assign_to(AbstractMicroledger $other)
+    {
+        if ($other instanceof Microledger) {
+            $other->state = $this->state;
+        }
     }
 
     public function getName(): string
@@ -89,13 +96,14 @@ class Microledger extends AbstractMicroledger
 
     public function rename(string $new_name)
     {
-        return $this->api->remoteCall(
+        $this->api->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/microledgers/1.0/rename',
             [
                 'name' => $this->name,
                 'new_name' => $new_name
             ]
         );
+        $this->name = $new_name;
     }
 
     /**
@@ -105,19 +113,17 @@ class Microledger extends AbstractMicroledger
      */
     public function init(array $genesis)
     {
-        $remoteCallResult = $this->api->remoteCall(
+        list($this->state, $txns) = $this->api->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/microledgers/1.0/initialize',
             [
                 'name' => $this->name,
                 'genesis_txns' => $genesis
             ]
         );
-        $this->state = $remoteCallResult[0];
-        $txns = $remoteCallResult[1];
         $result = [];
         foreach ($txns as $txn) {
             $txn = Transaction::create($txn);
-            array_push($result, $txn->as_object());
+            array_push($result, $txn);
         }
         return $result;
     }
@@ -301,9 +307,9 @@ class Microledger extends AbstractMicroledger
         );
         $ts = [];
         foreach ($txns as $t) {
-            array_push($ts, $t[1]);
+            array_push($ts, new Transaction($t[1]));
         }
-        return Transaction::from_value($ts);
+        return $ts;
     }
 
     public function get_uncommitted_transactions(): array

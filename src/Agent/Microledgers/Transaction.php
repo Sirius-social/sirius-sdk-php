@@ -44,6 +44,11 @@ class Transaction extends ArrayObject
         }
     }
 
+    public function __toString()
+    {
+        return json_encode($this->payload);
+    }
+
     /**
      * @param array $payload
      * @return Transaction
