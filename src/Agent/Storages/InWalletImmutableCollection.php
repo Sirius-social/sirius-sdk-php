@@ -59,7 +59,7 @@ class InWalletImmutableCollection extends AbstractImmutableCollection
         if ($collection) {
             $values = [];
             foreach ($collection as $item) {
-                array_push($values, json_encode($item['value']));
+                array_push($values, json_decode($item['value'], true));
             }
             return [$values, $total_count];
         } else {

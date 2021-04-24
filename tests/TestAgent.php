@@ -10,17 +10,6 @@ use Siruis\Tests\Helpers\TrustPingMessageUnderTest;
 
 class TestAgent extends TestCase
 {
-    protected function get_endpoints(array $endpoints): array
-    {
-        $return = [];
-        foreach ($endpoints as $endpoint) {
-            if ($endpoint->routingKeys == []) {
-                array_push($return, $endpoint);
-            }
-        }
-        return $return;
-    }
-
     /** @test */
     public function test__all_agents_ping()
     {
@@ -91,7 +80,7 @@ class TestAgent extends TestCase
         $agent2->open();
         try {
             // Get endpoints
-            $agent2_endpoint = $this->get_endpoints($agent2->endpoints)[0]->address;
+            $agent2_endpoint = Conftest::get_endpoints($agent2->endpoints)[0]->address;
             $agent2_listener = $agent2->subscribe();
             // Exchange pairwise
             $agent1->wallet->did->store_their_did($entity2['did'], $entity2['verkey']);
@@ -155,7 +144,7 @@ class TestAgent extends TestCase
         $agent2->open();
         try {
             // Get endpoints
-            $agent2_endpoint = $this->get_endpoints($agent2->endpoints)[0]->address;
+            $agent2_endpoint = Conftest::get_endpoints($agent2->endpoints)[0]->address;
             $agent2_listener = $agent2->subscribe();
             // Exchange pairwise
             $agent1->wallet->did->store_their_did($entity2['did'], $entity2['verkey']);
@@ -214,8 +203,8 @@ class TestAgent extends TestCase
         $agent2->open();
         try {
             // Get endpoints
-            $agent1_endpoint = $this->get_endpoints($agent1->endpoints)[0]->address;
-            $agent2_endpoint = $this->get_endpoints($agent2->endpoints)[0]->address;
+            $agent1_endpoint = Conftest::get_endpoints($agent1->endpoints)[0]->address;
+            $agent2_endpoint = Conftest::get_endpoints($agent2->endpoints)[0]->address;
             $agent1_listener = $agent1->subscribe();
             $agent2_listener = $agent2->subscribe();
             // Exchange pairwise

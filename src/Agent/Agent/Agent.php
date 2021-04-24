@@ -252,7 +252,7 @@ class Agent extends TransportLayers
         ?string $my_vk,
         ?array $routing_keys = null
     ) {
-        $dd = $this->__check_is_open();
+        $this->__check_is_open();
         $this->rpc->sendMessage($message, $their_vk, $endpoint, $my_vk, $routing_keys, false);
     }
 

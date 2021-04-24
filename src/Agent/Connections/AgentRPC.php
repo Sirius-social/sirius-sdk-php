@@ -150,7 +150,7 @@ class AgentRPC extends BaseAgentConnection
             $recipient_verkeys = $their_vk;
         }
         $params = [
-            'message' => $message,
+            'message' => $message->payload,
             'routing_keys' => $routing_keys ? $routing_keys : [],
             'recipient_verkey' => $recipient_verkeys,
             'sender_verkey' => $my_vk

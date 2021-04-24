@@ -3,9 +3,9 @@
 
 namespace Siruis\Agent\Wallet\Impl;
 
-
 use Siruis\Agent\Connections\AgentRPC;
 use Siruis\Agent\Wallet\Abstracts\AbstractCrypto;
+use Siruis\Agent\Wallet\Abstracts\ByteOptions;
 
 class CryptoProxy extends AbstractCrypto
 {
@@ -140,7 +140,7 @@ class CryptoProxy extends AbstractCrypto
         return $this->rpc->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/unpack_message',
             [
-                'jwe' => $jwe
+                'jwe' => new ByteOptions($jwe)
             ]
         );
     }
