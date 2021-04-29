@@ -1,8 +1,8 @@
 <?php
 
-namespace Siruis\Agent\Wallet\Abstracts;
+namespace Siruis\RPC;
 
-class ByteOptions
+class RawBytes
 {
     public $payload;
 
@@ -11,7 +11,7 @@ class ByteOptions
         $this->payload = $payload;
     }
 
-    public function toByte()
+    public function toBytes()
     {
         return utf8_encode($this->payload);
     }

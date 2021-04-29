@@ -208,12 +208,7 @@ class Agent extends TransportLayers
     public function subscribe(): Listener
     {
         $this->__check_is_open();
-        $this->events = new AgentEvents(
-            $this->server_address,
-            $this->credentials,
-            $this->p2p,
-            $this->timeout
-        );
+        $this->events = AgentEvents::create($this->server_address, $this->credentials, $this->p2p, $this->timeout);
         return new Listener($this->events, $this->pairwise_list);
     }
 

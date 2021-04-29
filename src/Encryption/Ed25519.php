@@ -268,10 +268,7 @@ class Ed25519
         if (!$is_authcrypt && $alg != 'Anoncrypt') {
             throw new Exception('Unsupported pack algorithm: ' . $alg);
         }
-        $located = self::locate_pack_recipient_key($recips_outer->recipients, $my_verkey, $my_sigkey);
-        $cek = $located[0];
-        $sender_vk = $located[1];
-        $recip_vk = $located[2];
+        list($cek, $sender_vk, $recip_vk) = self::locate_pack_recipient_key($recips_outer->recipients, $my_verkey, $my_sigkey);
         if (!$sender_vk && $is_authcrypt) {
             throw new Exception('Sender public key not provided for Authcrypt message');
         }

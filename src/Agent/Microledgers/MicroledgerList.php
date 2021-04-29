@@ -3,11 +3,11 @@
 
 namespace Siruis\Agent\Microledgers;
 
-
 use RuntimeException;
 use Siruis\Agent\Connections\AgentRPC;
 use Siruis\Encryption\Encryption;
 use Siruis\Errors\Exceptions\SiriusContextError;
+use Siruis\RPC\RawBytes;
 
 class MicroledgerList extends AbstractMicroledgerList
 {
@@ -120,10 +120,10 @@ class MicroledgerList extends AbstractMicroledgerList
         $resp = $this->api->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/microledgers/1.0/leaf_hash',
             [
-                'data' => $data
+                'data' => new RawBytes($data)
             ]
         );
-        return Encryption::b58_to_bytes($resp);
+        return $resp;
     }
 
     public function list()

@@ -111,9 +111,9 @@ class TestAgent extends TestCase
                 []
             );
             $event = $agent2_listener->get_one(5);
-            $msg = $event['message'];
-            self::assertEquals('did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping', $msg['@type']);
-            self::assertEquals($trust_ping->id, $msg['@id']);
+            $msg = $event->getMessage();
+            self::assertEquals('did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping', $msg->payload['@type']);
+            self::assertEquals($trust_ping->id, $msg->id);
         } finally {
             $agent1->close();
             $agent2->close();
@@ -171,7 +171,7 @@ class TestAgent extends TestCase
                 []
             );
             $event = $agent2_listener->get_one(5);
-            $msg = $event['message'];
+            $msg = $event->payload['message'];
             self::assertInstanceOf(TrustPingMessageUnderTest::class, $msg, 'Unexpected msg type: ' . (string)gettype($msg));
         } finally {
             $agent1->close();
@@ -233,6 +233,7 @@ class TestAgent extends TestCase
                 []
             );
             $event = $agent2_listener->get_one(5);
+            $event = $event->payload;
             self::assertEquals($entity1['verkey'], $event['recipient_verkey']);
             self::assertEquals($entity2['verkey'], $event['sender_verkey']);
             $msg = $event['message'];
@@ -254,6 +255,7 @@ class TestAgent extends TestCase
             );
 
             $event = $agent1_listener->get_one(5);
+            $event = $event->payload;
             self::assertEquals($entity1['verkey'], $event['recipient_verkey']);
             self::assertEquals($entity2['verkey'], $event['sender_verkey']);
             $msg = $event['message'];

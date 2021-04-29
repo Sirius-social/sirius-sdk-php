@@ -8,7 +8,7 @@ use Siruis\Messaging\Message;
 use Siruis\RPC\Futures\Future;
 use Siruis\Messaging\Type\Type;
 use Siruis\Encryption\Encryption;
-use Siruis\Agent\Wallet\Abstracts\ByteOptions;
+use Siruis\RPC\RawBytes;
 use Siruis\Agent\Wallet\Abstracts\CacheOptions;
 use Siruis\Agent\Wallet\Abstracts\PurgeOptions;
 use Siruis\Errors\Exceptions\SiriusInvalidType;
@@ -54,8 +54,8 @@ class Parsing
             return [$revert[PoolAction::class], $var->serialize()];
         } elseif ($var instanceof KeyDerivationMethod) {
             return [$revert[KeyDerivationMethod::class], $var->serialize()];
-        } elseif ($var instanceof ByteOptions) {
-            return [$revert[ByteOptions::class], $var->toByte()];
+        } elseif ($var instanceof RawBytes) {
+            return ['application/base64', Encryption::bytes_to_b64($var->toBytes())];
         } elseif (is_string($var)) {
             if (self::contains_any_multibyte($var)) {
                 return ['application/base64', Encryption::bytes_to_b64($var)];

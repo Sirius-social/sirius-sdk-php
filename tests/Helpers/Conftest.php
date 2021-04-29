@@ -3,7 +3,6 @@
 
 namespace Siruis\Tests\Helpers;
 
-
 use Siruis\Agent\Agent\Agent;
 use Siruis\Encryption\Encryption;
 use Siruis\Encryption\P2PConnection;
@@ -93,6 +92,25 @@ class Conftest
         return self::get_agent('agent4');
     }
 
+    public static function ledger_name(): string
+    {
+        return 'Ledger-'.uniqid();
+    }
+
+    public static function ledger_names(int $range = 2): array
+    {
+        $ledger_names = [];
+        for ($i = 0; $i < $range; $i++) {
+            array_push($ledger_names, 'Ledger-'.uniqid());
+        }
+        return $ledger_names;
+    }
+
+    public static function default_network(): string
+    {
+        return 'default';
+    }
+
     public static function get_suite_singleton(): ServerTestSuite
     {
         if (!self::$SERVER_SUITE instanceof ServerTestSuite) {
@@ -124,5 +142,16 @@ class Conftest
             null,
             $name
         );
+    }
+
+    public static function get_endpoints(array $endpoints): array
+    {
+        $return = [];
+        foreach ($endpoints as $endpoint) {
+            if ($endpoint->routingKeys == []) {
+                array_push($return, $endpoint);
+            }
+        }
+        return $return;
     }
 }

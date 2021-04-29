@@ -3,7 +3,6 @@
 
 namespace Siruis\Tests;
 
-
 use PHPUnit\Framework\TestCase;
 use Siruis\Agent\Microledgers\AbstractMicroledger;
 use Siruis\Agent\Microledgers\BatchedAPI;
@@ -11,6 +10,7 @@ use Siruis\Agent\Microledgers\LedgerMeta;
 use Siruis\Agent\Microledgers\MerkleInfo;
 use Siruis\Agent\Microledgers\Microledger;
 use Siruis\Agent\Microledgers\Transaction;
+use Siruis\Encryption\Encryption;
 use Siruis\Tests\Helpers\Conftest;
 use stdClass;
 
@@ -355,9 +355,10 @@ class TestMicroledgers extends TestCase
             [$ledger, $txns] = $agent->microledgers->create($ledger_name, $genesis_txns);
             $txn = $txns[0];
             $leaf_hash = $agent->microledgers->leaf_hash($txn);
+            $leaf_hash_b58 = Encryption::bytes_to_b58($leaf_hash);
             self::assertIsString($leaf_hash);
-            $expected = b'y\xd9\x92\x9f\xd1\xe7\xf1o\t\x9c&\xb6\xf4HP\xda\x04J\xd0\xfeQ\xe9.X-\x9c\xa3r\xf2\xb8\xb90';
-            self::assertEquals($expected, $leaf_hash);
+            $expected_b58 = '9Cekj2hzePVyyCMELL9WvSAccaShLK3QKfWMBHvy4WzT';
+            self::assertEquals($expected_b58, $leaf_hash_b58);
         } finally {
             $agent->close();
         }
