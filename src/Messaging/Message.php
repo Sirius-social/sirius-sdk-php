@@ -50,6 +50,8 @@ class Message extends ArrayObject
         parent::__construct();
         if (!key_exists('@type', $payload)) {
             throw new SiriusInvalidMessageClass('No @type in message');
+        } else {
+            $this->type = $payload['@type'];
         }
 
         if (!key_exists('@id', $payload)) {
@@ -57,6 +59,8 @@ class Message extends ArrayObject
             $this->id = $payload['@id'];
         } elseif (!is_string($payload['@id'])) {
             throw new SiriusInvalidMessageClass('Message @id is invalid; must be str');
+        } else {
+            $this->id = $payload['@id'];
         }
 
         if ($this->type instanceof Type) {

@@ -77,9 +77,9 @@ class WalletPairwiseList extends AbstractPairwiseList
 
     public function load_for_verkey(string $their_verkey): ?Pairwise
     {
-        $array = $this->api_pairwise->search(['their_verkey' => $their_verkey], 1);
-        if ($array['collection']) {
-            $metadata = $array['collection'][0]['metadata'];
+        list($collection, $count) = $this->api_pairwise->search(['their_verkey' => $their_verkey], 1);
+        if ($collection) {
+            $metadata = $collection[0]['metadata'];
             return self::restore_pairwise($metadata);
         } else {
             return null;
