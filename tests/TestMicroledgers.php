@@ -3,6 +3,7 @@
 
 namespace Siruis\Tests;
 
+use DateTime;
 use PHPUnit\Framework\TestCase;
 use Siruis\Agent\Microledgers\AbstractMicroledger;
 use Siruis\Agent\Microledgers\BatchedAPI;
@@ -11,6 +12,7 @@ use Siruis\Agent\Microledgers\MerkleInfo;
 use Siruis\Agent\Microledgers\Microledger;
 use Siruis\Agent\Microledgers\Transaction;
 use Siruis\Encryption\Encryption;
+use Siruis\Errors\Exceptions\SiriusPromiseContextException;
 use Siruis\Tests\Helpers\Conftest;
 use stdClass;
 
@@ -502,17 +504,17 @@ class TestMicroledgers extends TestCase
             $batched = $agent->microledgers->batched();
             $batched->open($ledger_names);
             try {
-                $stamp1 = time();
+                $stamp1 = new DateTime();
                 $batched->append($commit_txns);
                 $ledgers = $batched->commit();
-                $stamp2 = time();
+                $stamp2 = new DateTime();
             } finally {
                 $batched->close();
             }
-            $seconds_for_2 = $stamp2 - $stamp1;
-            printf('========== Timeout for 2 Ledgers =======');
-            printf("Seconds: $seconds_for_2");
-            printf('========================================');
+            $seconds_for_2 = date_diff($stamp2, $stamp1)->f;
+            error_log('========== Timeout for 2 Ledgers =======');
+            error_log("Seconds: $seconds_for_2");
+            error_log('========================================');
             // Calc timeout for ledgers count = 100
             $ledger_names = Conftest::ledger_names(100);
             foreach ($ledger_names as $ledger_name) {
@@ -521,35 +523,35 @@ class TestMicroledgers extends TestCase
             $batched = $agent->microledgers->batched();
             $batched->open($ledger_names);
             try {
-                $stamp1 = time();
+                $stamp1 = new DateTime();
                 $batched->append($commit_txns);
                 $batched->commit();
-                $stamp2 = time();
+                $stamp2 = new DateTime();
             } finally {
                 $batched->close();
             }
-            $seconds_for_100 = $stamp2 - $stamp1;
-            printf('========== Timeout for 100 Ledgers =======');
-            printf("Seconds: $seconds_for_100");
-            printf('========================================');
-            self::assertGreaterThan((50 * $seconds_for_2), $seconds_for_100);
+            $seconds_for_100 = date_diff($stamp2, $stamp1)->f;
+            error_log('========== Timeout for 100 Ledgers =======');
+            error_log("Seconds: $seconds_for_100");
+            error_log('========================================');
+            self::assertGreaterThan($seconds_for_100, 50 * $seconds_for_2);
             $ledger_names = Conftest::ledger_names(100);
             $ledgers = [];
             foreach ($ledger_names as $ledger_name) {
                 [$ledger, $txns] = $agent->microledgers->create($ledger_name, $genesis_txns);
                 array_push($ledgers, $ledger);
             }
-            $stamp1 = time();
+            $stamp1 = new DateTime();
             foreach ($ledgers as $ledger) {
                 $ledger->append($commit_txns);
                 $ledger->commit(count($commit_txns));
             }
-            $stamp2 = time();
-            $seconds_for_100_non_parallel = $stamp2 - $stamp1;
-            printf('========== Timeout for 100 Ledgers =======');
-            printf("Seconds: $seconds_for_100_non_parallel");
-            printf('========================================');
-            self::assertGreaterThan($seconds_for_100, ($seconds_for_100_non_parallel / 2));
+            $stamp2 = new DateTime();
+            $seconds_for_100_non_parallel = date_diff($stamp2, $stamp1)->f;
+            error_log('========== Timeout for 100 Ledgers Non-parallel mode =======');
+            error_log("Seconds: $seconds_for_100_non_parallel");
+            error_log('========================================');
+            self::assertGreaterThan($seconds_for_100, $seconds_for_100_non_parallel / 2);
         } finally {
             $agent->close();
         }
@@ -626,6 +628,26 @@ class TestMicroledgers extends TestCase
             } finally {
                 $batched->close();
             }
+        } finally {
+            $agent->close();
+        }
+    }
+
+    /** @test */
+    public function test_batched_ops_errors()
+    {
+        $agent = Conftest::agent4();
+        $ledger_names = Conftest::ledger_names();
+        $agent->open();
+        try {
+            $api = $agent->microledgers->batched();
+            $exc = null;
+            try {
+                $api->open(['missing-ledger-name']);
+            } catch (SiriusPromiseContextException $exception) {
+                $exc = $exception;
+            }
+            self::assertNotNull($exc);
         } finally {
             $agent->close();
         }

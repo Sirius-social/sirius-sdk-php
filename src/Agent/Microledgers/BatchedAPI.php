@@ -22,16 +22,11 @@ class BatchedAPI extends AbstractBatchedAPI
      */
     protected $external;
 
-    public function __construct(AgentRPC $api, array $external = null)
+    public function __construct(AgentRPC $api, LedgerCache $external = null)
     {
         $this->api = $api;
         $this->names = [];
         $this->external = $external;
-    }
-
-    public function reset_external(array $value)
-    {
-        $this->external = $value;
     }
 
     public function open($ledgers): array
@@ -107,10 +102,10 @@ class BatchedAPI extends AbstractBatchedAPI
             $state = $states[$name];
             $ledger = new Microledger($name, $this->api, $state);
             if (!is_null($this->external)) {
-                if (key_exists($name, $this->external)) {
-                    $ledger->assign_to($this->external[$name]);
+                if ($this->external->is_exists($name)) {
+                    $ledger->assign_to($this->external->get($name));
                 } else {
-                    $this->external[$name] = $ledger;
+                    $this->external->set($name, $ledger);
                 }
             }
             array_push($resp, $ledger);

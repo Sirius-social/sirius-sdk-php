@@ -9,6 +9,7 @@ use Siruis\Encryption\Encryption;
 use Siruis\Errors\Exceptions\SiriusContextError;
 use Siruis\RPC\RawBytes;
 
+
 class MicroledgerList extends AbstractMicroledgerList
 {
     const TTL = 60*60;
@@ -28,8 +29,8 @@ class MicroledgerList extends AbstractMicroledgerList
     public function __construct(AgentRPC $api)
     {
         $this->api = $api;
-        $this->instances = new ExpiringDict(self::TTL);
-        $this->batched_api = new BatchedAPI($api, $this->instances->get_items());
+        $this->instances = new LedgerCache();
+        $this->batched_api = new BatchedAPI($api, $this->instances);
     }
 
     public function batched(): AbstractBatchedAPI
@@ -58,8 +59,7 @@ class MicroledgerList extends AbstractMicroledgerList
         }
         $instance = new Microledger($name, $this->api);
         $txns = $instance->init($genesis_txns);
-        $this->instances->flush($name, $instance);
-        $this->batched_api->reset_external($this->instances->get_items());
+        $this->instances->set($name, $instance);
         return [$instance, $txns];
     }
 
@@ -70,13 +70,12 @@ class MicroledgerList extends AbstractMicroledgerList
      */
     public function ledger(string $name): AbstractMicroledger
     {
-        if (!key_exists($name, $this->instances->get_items())) {
+        if (!$this->instances->is_exists($name)) {
             $this->__check_is_exists($name);
             $instance = new Microledger($name, $this->api);
-            $this->instances->flush($name, $instance);
+            $this->instances->set($name, $instance);
         }
-        $this->batched_api->reset_external($this->instances->get_items());
-        return $this->instances->get_item($name);
+        return $this->instances->get($name);
     }
 
     /**
@@ -92,10 +91,9 @@ class MicroledgerList extends AbstractMicroledgerList
                 'name' => $name
             ]
         );
-        if (key_exists($name, $this->instances->get_items())) {
-            $this->instances->delete_item($name);
+        if ($this->instances->is_exists($name)) {
+            $this->instances->delete($name);
         }
-        $this->batched_api->reset_external($this->instances->get_items());
     }
 
     public function is_exists(string $name): bool
@@ -147,7 +145,7 @@ class MicroledgerList extends AbstractMicroledgerList
      */
     protected function __check_is_exists(string $name)
     {
-        if (key_exists($name, $this->instances->get_items())) {
+        if (!$this->instances->is_exists($name)) {
             $is_exists = $this->is_exists($name);
             if (!$is_exists) {
                 throw new SiriusContextError('MicroLedger with name ' . $name . ' does not exists');
