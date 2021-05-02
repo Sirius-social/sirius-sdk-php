@@ -33,6 +33,7 @@ class WalletPairwiseList extends AbstractPairwiseList
         $this->api_did->store_their_did($pairwise->their->did, $pairwise->their->verkey);
         $metadata = $pairwise->metadata ? $pairwise->metadata : [];
         $metadata = ArrayHelper::update($metadata, self::build_metadata($pairwise));
+        $pairwise->metadata = $metadata;
         $this->api_pairwise->create_pairwise(
             $pairwise->their->did,
             $pairwise->me->did,
@@ -131,19 +132,20 @@ class WalletPairwiseList extends AbstractPairwiseList
 
     public static function restore_pairwise(array $metadata): Pairwise
     {
+        list($me, $their) = self::metadata_filter($metadata);
         return new Pairwise(
             new Me(
-                $metadata['me']['did'],
-                $metadata['me']['verkey'],
-                $metadata['me']['did_doc']
+                $me['did'],
+                $me['verkey'],
+                $me['did_doc']
             ),
             new Their(
-                $metadata['their']['did'],
-                $metadata['their']['verkey'],
-                $metadata['their']['label'],
-                $metadata['their']['endpoint'],
-                $metadata['their']['routing_keys'],
-                $metadata['their']['did_doc']
+                $their['did'],
+                $their['verkey'],
+                $their['label'],
+                $their['endpoint'],
+                $their['routing_keys'],
+                $their['did_doc']
             ),
             $metadata
         );
@@ -168,5 +170,32 @@ class WalletPairwiseList extends AbstractPairwiseList
                 'did_doc' => $pairwise->their->did_doc
             ]
         ];
+    }
+
+    /**
+     * Filter given metadata.
+     *
+     * @param array $metadata
+     * @return array[]
+     */
+    protected function metadata_filter(array $metadata)
+    {
+        $me = ArrayHelper::getValueWithKeyFromArray('me', $metadata[0], []);
+        $their = ArrayHelper::getValueWithKeyFromArray('their', $metadata[1], []);
+        $me_filtered = [
+            'did' => ArrayHelper::getValueWithKeyFromArray('did', $me),
+            'verkey' => ArrayHelper::getValueWithKeyFromArray('verkey', $me),
+            'did_doc' => ArrayHelper::getValueWithKeyFromArray('did_doc', $me)
+        ];
+        $their_endpoint = ArrayHelper::getValueWithKeyFromArray('endpoint', $their, []);
+        $their_filtered = [
+            'did' => ArrayHelper::getValueWithKeyFromArray('did', $their),
+            'verkey' => ArrayHelper::getValueWithKeyFromArray('verkey', $their),
+            'label' => ArrayHelper::getValueWithKeyFromArray('label', $their),
+            'endpoint' => ArrayHelper::getValueWithKeyFromArray('address', $their_endpoint),
+            'routing_keys' => ArrayHelper::getValueWithKeyFromArray('routing_keys', $their_endpoint),
+            'did_doc' => ArrayHelper::getValueWithKeyFromArray('did_doc', $their)
+        ];
+        return [$me_filtered, $their_filtered];
     }
 }
