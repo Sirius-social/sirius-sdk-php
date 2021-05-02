@@ -35,3 +35,4 @@ script:
   - php vendor/phpunit/phpunit/phpunit ./tests/TestMessages.php
   - php vendor/phpunit/phpunit/phpunit ./tests/TestMicroledgers.php
   - php vendor/phpunit/phpunit/phpunit ./tests/TestStorages.php
+  - php vendor/phpunit/phpunit/phpunit ./tests/TestWallet.php

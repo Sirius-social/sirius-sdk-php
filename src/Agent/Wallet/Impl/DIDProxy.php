@@ -58,7 +58,7 @@ class DIDProxy extends AbstractDID
     public function set_did_metadata(string $did, array $metadata = null)
     {
         return $this->rpc->remoteCall(
-            'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/store_their_did',
+            'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/set_did_metadata',
             [
                 'did' => $did,
                 'metadata' => $metadata
@@ -245,7 +245,7 @@ class DIDProxy extends AbstractDID
     public function qualify_did(string $did, string $method): string
     {
         return $this->rpc->remoteCall(
-            'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/get_my_did_with_meta',
+            'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/qualify_did',
             [
                 'did' => $did,
                 'method' => $method

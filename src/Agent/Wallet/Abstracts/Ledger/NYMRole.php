@@ -16,7 +16,8 @@ class NYMRole extends Enum
 
     public function serialize()
     {
-        return $this->getValue();
+        list($_, $role_name) = $this->getValue();
+        return $role_name;
     }
 
     public static function deserialize(string $buffer)

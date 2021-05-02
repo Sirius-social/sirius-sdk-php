@@ -36,7 +36,7 @@ abstract class AbstractLedger
      * @param string $target_did Target DID as base58-encoded string for 16 or 32 bit DID value.
      * @param string|null $ver_key Target identity verification key as base58-encoded string.
      * @param string|null $alias NYM's alias.
-     * @param NYMRole|null $role Role of a user NYM record:
+     * @param NYMRole|array|null $role Role of a user NYM record:
      *                           null (common USER)
      *                           TRUSTEE
      *                           STEWARD
@@ -48,7 +48,7 @@ abstract class AbstractLedger
      */
     public abstract function write_nym(
         string $pool_name, string $submitter_did, string $target_did,
-        string $ver_key = null, string $alias = null, NYMRole $role = null
+        string $ver_key = null, string $alias = null, $role = null
     ): array;
 
     /**

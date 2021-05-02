@@ -57,7 +57,7 @@ class Parsing
         } elseif ($var instanceof RawBytes) {
             return ['application/base64', Encryption::bytes_to_b64($var->toBytes())];
         } elseif (is_string($var)) {
-            if (self::contains_any_multibyte($var)) {
+            if (self::is_binary($var)) {
                 return ['application/base64', Encryption::bytes_to_b64($var)];
             } else {
                 return [null, $var];
@@ -178,8 +178,8 @@ class Parsing
         }
     }
 
-    protected static function contains_any_multibyte(string $string)
+    protected static function is_binary(string $string): bool
     {
-        return !mb_check_encoding($string, 'ASCII') && mb_check_encoding($string, 'UTF-8');
+        return preg_match('~[^\x20-\x7E\t\r\n]~', $string) > 0;
     }
 }

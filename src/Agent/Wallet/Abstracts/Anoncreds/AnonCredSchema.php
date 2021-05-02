@@ -20,7 +20,7 @@ class AnonCredSchema
         $this->body = array();
         $fields = ['ver', 'id', 'name', 'version', 'attrNames'];
         foreach ($fields as $field) {
-            if (key_exists($field, $args)) {
+            if (!key_exists($field, $args)) {
                 throw new SiriusValidationError('Except for '. $field . ' field exists');
             }
             $this->body[$field] = $args[$field];
