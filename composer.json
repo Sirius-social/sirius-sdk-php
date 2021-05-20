@@ -1,50 +1,52 @@
 {
-    "name": "sirius-social/sirius-sdk-php",
-    "description": "SDK to develop Smart-Contracts in Self-sovereign-identity environment",
-    "type": "library",
-    "license": "Apache-2.0",
-    "authors": [
-        {
-            "name": "Kerei Khan",
-            "email": "kerei.khan@gmail.com"
-        }
-    ],
-    "require": {
-        "php": "^7.3",
-        "paragonie/sodium_compat": "^1.13",
-        "ext-mbstring": "*",
-        "ext-json": "*",
-        "stephenhill/base58": "^1.1",
-        "phlak/semver": "^3.2.0",
-        "myclabs/php-enum": "^1.7",
-        "php-ds/php-ds": "^1.3",
-        "guzzlehttp/guzzle": "^7.0",
-        "textalk/websocket": "^1.5",
-        "wrench/wrench": "^2.0",
-        "ratchet/pawl": "^0.3.5",
-        "wisembly/elephant.io": "^3.3",
-        "ext-sockets": "*"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^9.3"
-    },
-    "autoload": {
-        "psr-0": {
-            "Siruis\\": "src"
-        },
-        "psr-4": {
-            "Siruis\\": "src"
-        },
-        "files": [
-            "src/urljoin.php"
-        ]
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Siruis\\Tests\\": "tests"
-        },
-        "psr-0": {
-            "Siruis\\Tests\\": "tests"
-        }
+  "name": "sirius-social/sirius-sdk-php",
+  "description": "SDK to develop Smart-Contracts in Self-sovereign-identity environment",
+  "type": "library",
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "Kerei Khan",
+      "email": "kerei.khan@gmail.com"
     }
+  ],
+  "require": {
+    "php": "^7.3",
+    "paragonie/sodium_compat": "^1.13",
+    "ext-mbstring": "*",
+    "ext-json": "*",
+    "stephenhill/base58": "^1.1",
+    "phlak/semver": "^3.2.0",
+    "myclabs/php-enum": "^1.7",
+    "php-ds/php-ds": "^1.3",
+    "guzzlehttp/guzzle": "^7.0",
+    "textalk/websocket": "^1.5",
+    "wrench/wrench": "^2.0",
+    "ratchet/pawl": "^0.3.5",
+    "wisembly/elephant.io": "^3.3",
+    "ext-sockets": "*",
+    "ext-pthreads": "*",
+    "ext-pcntl": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.3"
+  },
+  "autoload": {
+    "psr-0": {
+      "Siruis\\": "src"
+    },
+    "psr-4": {
+      "Siruis\\": "src"
+    },
+    "files": [
+      "src/urljoin.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Siruis\\Tests\\": "tests"
+    },
+    "psr-0": {
+      "Siruis\\Tests\\": "tests"
+    }
+  }
 }

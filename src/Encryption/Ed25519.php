@@ -106,8 +106,8 @@ class Ed25519
     {
         $not_found = [];
         foreach ($recipients as $recipient) {
-            if (!key_exists('header', $recipient)
-                || !key_exists('encrypted_key', $recipient)
+            if (!isset($recipient->header)
+                || !isset($recipient->encrypted_key)
                 || !$recipient) {
                 throw new Exception('Invalid recipient header');
             }
@@ -122,8 +122,8 @@ class Ed25519
             $pk = ParagonIE_Sodium_Compat::crypto_sign_ed25519_pk_to_curve25519($my_verKey);
             $sk = ParagonIE_Sodium_Compat::crypto_sign_ed25519_sk_to_curve25519($my_sigKey);
             $encrypted_key = Encryption::b64_to_bytes($recipient->encrypted_key, true);
-            if (key_exists('iv', $recipient->header) && $recipient->header->iv
-                && key_exists('sender', $recipient->header) && $recipient->header->sender)
+            if (isset($recipient->header->iv) && $recipient->header->iv
+                && isset($recipient->header->sender) && $recipient->header->sender)
             {
                 $nonce = Encryption::b64_to_bytes($recipient->header->iv, true);
                 $enc_sender = Encryption::b64_to_bytes($recipient->header->sender, true);
