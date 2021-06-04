@@ -325,7 +325,7 @@ class Agent extends TransportLayers
     protected function __get_RPC(): ?AgentRPC
     {
         if ($this->spawnStrategy = SpawnStrategy::PARALLEL) {
-            $rpc = new AgentRPC(
+            $rpc = AgentRPC::create(
                 $this->server_address,
                 $this->credentials,
                 $this->p2p,

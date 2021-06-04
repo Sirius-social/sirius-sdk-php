@@ -110,12 +110,11 @@ class Hub
 
     public function abort()
     {
-
-    }
-
-    public function run_soon($coro)
-    {
-
+        $old_agent = $this->agent;
+        $this->__create_agent_instance();
+        if ($old_agent->isOpen()) {
+            $old_agent->close();
+        }
     }
 
     public function get_agent_connection_lazy(): Agent

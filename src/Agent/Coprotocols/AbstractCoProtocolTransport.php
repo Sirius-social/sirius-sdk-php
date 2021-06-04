@@ -52,7 +52,7 @@ abstract class AbstractCoProtocolTransport
     public $pairwise_list;
     public $die_timestamp;
     public $their_vk;
-    public $endpoint;
+    public $__endpoint;
     public $my_vk;
     public $routing_keys;
     public $is_setup;
@@ -76,7 +76,7 @@ abstract class AbstractCoProtocolTransport
         $this->pairwise_list = new WalletPairwiseList([$this->wallet->pairwise, $this->wallet->did]);
         $this->die_timestamp = null;
         $this->their_vk = null;
-        $this->endpoint = null;
+        $this->__endpoint = null;
         $this->my_vk = null;
         $this->routing_keys = null;
         $this->is_setup = false;
@@ -86,11 +86,11 @@ abstract class AbstractCoProtocolTransport
     }
 
 
-    public function setup(string $their_verkey, string $endpoint, string $my_verkey = null, array $routing_keys = null)
+    public function setup(string $their_verkey, $endpoint, string $my_verkey = null, array $routing_keys = null)
     {
         $this->their_vk = $their_verkey;
         $this->my_vk = $my_verkey;
-        $this->endpoint = $endpoint;
+        $this->__endpoint = $endpoint;
         $this->routing_keys = $routing_keys ? $routing_keys : [];
         $this->is_setup = true;
     }
@@ -130,7 +130,7 @@ abstract class AbstractCoProtocolTransport
             $this->rpc->setTimeout($this->__get_io_timeout());
             try {
                 $event = $this->rpc->sendMessage(
-                    $message, $this->their_vk, $this->endpoint, $this->my_vk,
+                    $message, $this->their_vk, $this->__endpoint, $this->my_vk,
                     $this->routing_keys, true
                 );
             } finally {
@@ -212,7 +212,7 @@ abstract class AbstractCoProtocolTransport
         $this->rpc->setTimeout($this->__get_io_timeout());
         $this->__setup_context($message);
         $this->rpc->sendMessage(
-            $message, $this->their_vk, $this->endpoint, $this->my_vk,
+            $message, $this->their_vk, $this->__endpoint, $this->my_vk,
             $this->routing_keys, false, false
         );
     }
@@ -230,7 +230,7 @@ abstract class AbstractCoProtocolTransport
         $batches = [];
         foreach ($to as $p) {
             array_push($batches, new RoutingBatch(
-                $p->their->verkey, $p->their->endpoint, $p->me->verkey, $p->their->routing_keys
+                $p->their->verkey, $p->their->__endpoint, $p->me->verkey, $p->their->routing_keys
             ));
         }
         if (!$this->is_setup) {
@@ -262,9 +262,9 @@ abstract class AbstractCoProtocolTransport
 
     public function __cleanup_context(Message $message = null)
     {
-        $message = json_decode($message->serialize(), true);
-        $ack_message_id = null;
         if ($message) {
+            $message = json_decode($message->serialize(), true);
+            $ack_message_id = null;
             if (key_exists(self::PLEASE_ACK_DECORATOR, $message->payload)) {
                 $ack_message_id = $message[self::PLEASE_ACK_DECORATOR]['message_id'] ? $message[self::PLEASE_ACK_DECORATOR]['message_id'] : $message['id'];
             }
@@ -278,7 +278,7 @@ abstract class AbstractCoProtocolTransport
             $this->rpc->stop_protocol_with_threads(
                 $this->please_ack_ids, true
             );
-            unset($this->please_ack_ids);
+            $this->please_ack_ids = [];
         }
     }
 

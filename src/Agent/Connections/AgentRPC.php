@@ -155,11 +155,8 @@ class AgentRPC extends BaseAgentConnection
             'recipient_verkeys' => $recipient_verkeys,
             'sender_verkey' => $my_vk
         ];
-        $ok = false;
-        $body = null;
         if ($this->preferAgentSide) {
-            $params['timeout'] = $this->timeout;
-            $params['endpoint_address'] = $endpoint;
+            $params = array_merge($params, ['timeout' => $this->timeout, 'endpoint_address' => $endpoint]);
             list($ok, $body) = $this->remoteCall('did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/send_message', $params);
         } else {
             $wired = $this->remoteCall(
@@ -206,7 +203,7 @@ class AgentRPC extends BaseAgentConnection
 
     public function read_protocol_message(): Message
     {
-        return $this->tunnel_coprotocols->recieve($this->timeout);
+        return $this->tunnel_coprotocols->receive($this->timeout);
     }
 
     public function start_protocol_with_threading(string $thid, int $ttl = null)
@@ -282,7 +279,7 @@ class AgentRPC extends BaseAgentConnection
         bool $off_response = false
     ) {
         $this->remoteCall(
-            '',
+            'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/stop_protocol',
             [
                 'sender_verkey' => $sender_verkey,
                 'recipient_verkey' => $recipient_verkey,

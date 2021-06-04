@@ -4,6 +4,7 @@
 namespace Siruis\Tests\Helpers;
 
 use Siruis\Agent\Agent\Agent;
+use Siruis\Agent\Connections\Endpoint;
 use Siruis\Encryption\Encryption;
 use Siruis\Encryption\P2PConnection;
 use Siruis\Errors\Exceptions\SiriusCryptoError;
@@ -144,6 +145,10 @@ class Conftest
         );
     }
 
+    /**
+     * @param array $endpoints
+     * @return Endpoint[]
+     */
     public static function get_endpoints(array $endpoints): array
     {
         $return = [];

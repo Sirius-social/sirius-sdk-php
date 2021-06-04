@@ -94,7 +94,7 @@ class Future
         try {
             $timezone = new DateTimeZone('Asia/Almaty');
             $now = DateTime::createFromFormat('Y-m-d h:i:s', date('Y-m-d h:i:s', time()), $timezone);
-            if ($timeout == 0) {
+            if ($timeout === 0) {
                 return false;
             }
             if ($this->expiration_time != null) {

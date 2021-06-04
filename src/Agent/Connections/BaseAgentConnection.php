@@ -55,9 +55,9 @@ abstract class BaseAgentConnection
     }
 
     /**
-     * @param int $value
+     * @param int|null $value
      */
-    public function setTimeout(int $value)
+    public function setTimeout(?int $value)
     {
         if (!$value) {
             $this->timeout = null;

@@ -54,24 +54,27 @@ class Context
 
     private function _get_ctx($key)
     {
-        $this->lock->lock();
-        return ArrayHelper::getValueWithKeyFromArray($key, self::$instances);
+        return $this->lock->synchronized(function () use ($key) {
+            return ArrayHelper::getValueWithKeyFromArray($key, self::$instances);
+        });
     }
 
     private function _set_ctx($key, $value)
     {
-        $ok = $this->lock->trylock();
-        self::$instances[$key] = $value;
+        $this->lock->synchronized(function () use ($key, $value) {
+            self::$instances[$key] = $value;
+        });
     }
 
     private function _clear_ctx($key)
     {
-        $this->lock->lock();
-        $context = $this->_get_ctx($key);
-        if ($context) {
-            unset($context);
-            unset(self::$instances[$key]);
-        }
+        $this->lock->synchronized(function () use ($key) {
+            $context = $this->_get_ctx($key);
+            if ($context) {
+                unset($context);
+                unset(self::$instances[$key]);
+            }
+        });
     }
 
     private function _ensure_ctx_exists($key) {

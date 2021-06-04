@@ -10,29 +10,6 @@ use Swoole\Lock;
 
 class TestHub extends TestCase
 {
-    public function testswool()
-    {
-        $lock = new Lock(SWOOLE_MUTEX);
-        echo "[Master] Create lock\n";
-        $lock->lock();
-        if (pcntl_fork() > 0)
-        {
-            sleep(1);
-            $lock->unlock();
-        }
-        else
-        {
-            echo "[Child] Wait Lock\n";
-            $lock->lock();
-            echo "[Child] Get Lock\n";
-            $lock->unlock();
-            exit("[Child] exit\n");
-        }
-        echo "[Master]release lock\n";
-        unset($lock);
-        sleep(1);
-        echo "[Master]exit\n";
-    }
     /** @test */
     public function test_sane()
     {
@@ -84,5 +61,32 @@ class TestHub extends TestCase
         sort($new_my_did_list2);
         self::assertNotEquals($new_endpoints2, $new_endpoints1);
         self::assertNotEquals($new_my_did_list2, $new_my_did_list1);
+    }
+
+    public function test_aborting()
+    {
+        $test_suite = Conftest::test_suite();
+        $params = $test_suite->get_agent_params('agent1');
+        $agent1 = null;
+        $agent2 = null;
+        Hub::alloc_context($params['server_address'], $params['credentials'], $params['p2p']);
+        try {
+            $hub = Hub::current_hub();
+        } finally {
+            Hub::free_context();
+        }
+
+        $agent1 = $hub->get_agent_connection_lazy();
+        $ok1 = $agent1->ping();
+        self::assertTrue($ok1);
+
+        $hub->abort();
+
+        $agent2 = $hub->get_agent_connection_lazy();
+        $ok2 = $agent2->ping();
+        self::assertTrue($ok2);
+        self::assertNotEquals(spl_object_id($agent2), spl_object_id($agent1));
+        self::assertNotNull($agent1);
+        self::assertNotNull($agent2);
     }
 }
