@@ -70,20 +70,20 @@ class CoprotocolsTest extends TestCase
             $agent2_endpoints = Conftest::get_endpoints($agent2->endpoints)[0]->address;
             // Make protocol instances
             $their1 = new TheirEndpoint($agent2_endpoints, $entity2['verkey']);
-            $agnet1_protocol = $agent1->spawnTheirEndpoint($entity1['verkey'], $their1);
-            self::assertInstanceOf(TheirEndpointCoProtocolTransport::class, $agnet1_protocol);
+            $agent1_protocol = $agent1->spawnTheirEndpoint($entity1['verkey'], $their1);
+            self::assertInstanceOf(TheirEndpointCoProtocolTransport::class, $agent1_protocol);
             $their2 = new TheirEndpoint($agent1_endpoints, $entity1['verkey']);
-            $agnet2_protocol = $agent1->spawnTheirEndpoint($entity2['verkey'], $their2);
-            self::assertInstanceOf(TheirEndpointCoProtocolTransport::class, $agnet2_protocol);
-            $agnet1_protocol->start(['test-protocol']);
-            $agnet2_protocol->start(['test-protocol']);
+            $agent2_protocol = $agent1->spawnTheirEndpoint($entity2['verkey'], $their2);
+            self::assertInstanceOf(TheirEndpointCoProtocolTransport::class, $agent2_protocol);
+            $agent2_protocol->start(['test-protocol']);
+            $agent2_protocol->start(['test-protocol']);
             try {
                 self::$MSG_LOG = [];
-                Threads::run_threads([new FirstTask($agnet1_protocol), new SecondTask($agnet2_protocol)]);
+                Threads::run_threads([new FirstTask($agent1_protocol), new SecondTask($agent2_protocol)]);
                 $this->check_msg_log();
             } finally {
-                $agnet1_protocol->stop();
-                $agnet2_protocol->stop();
+                $agent1_protocol->stop();
+                $agent2_protocol->stop();
             }
         } finally {
             $agent1->close();

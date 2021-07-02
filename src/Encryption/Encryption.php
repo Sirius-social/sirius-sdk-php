@@ -7,6 +7,9 @@ use ParagonIE_Sodium_Compat;
 use Siruis\Errors\Exceptions\SiriusCryptoError;
 use SodiumException;
 use StephenHill\Base58;
+use function Sodium\crypto_sign;
+use function Sodium\crypto_sign_open;
+use const Sodium\CRYPTO_SIGN_BYTES;
 
 class Encryption
 {
@@ -118,5 +121,38 @@ class Encryption
         }
 
         return $seed;
+    }
+
+    /**
+     * Sign a message using a private signing key.
+     * 
+     * @param string $message The message to sign
+     * @param string $secret The private signing key
+     * @return false|string The signature
+     * @throws SodiumException
+     */
+    public static function sign_message(string $message, string $secret)
+    {
+        $result = crypto_sign($message, $secret);
+        return substr($result, 0, CRYPTO_SIGN_BYTES);
+    }
+
+    /**
+     * Verify a signed message according to a public verification key.
+     *
+     * @param string $verkey The verkey to use in verification
+     * @param string $message original message
+     * @param string $signature The signed message
+     * @return bool
+     */
+    public static function verify_signed_message(string $verkey, string $message, string $signature)
+    {
+        $signed = $signature . $message;
+        return (bool)crypto_sign_open($signed, $verkey);
+    }
+
+    public static function did_from_verkey(string $verkey)
+    {
+        return substr($verkey, 0, 16);
     }
 }

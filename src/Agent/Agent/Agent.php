@@ -123,6 +123,11 @@ class Agent extends TransportLayers
         return $this->rpc && $this->rpc->isOpen();
     }
 
+    public function ensure_rpc()
+    {
+
+    }
+
     public function ledger(string $name)
     {
         $this->__check_is_open();
@@ -322,15 +327,10 @@ class Agent extends TransportLayers
         );
     }
 
-    protected function __get_RPC(): ?AgentRPC
+    protected function  __get_RPC(): ?AgentRPC
     {
         if ($this->spawnStrategy = SpawnStrategy::PARALLEL) {
-            $rpc = AgentRPC::create(
-                $this->server_address,
-                $this->credentials,
-                $this->p2p,
-                $this->timeout
-            );
+            $rpc = $this->__new_RPC();
         } else {
             $rpc = $this->rpc;
         }
@@ -352,6 +352,11 @@ class Agent extends TransportLayers
      */
     protected function __new_RPC(): AgentRPC
     {
-        return AgentRPC::create($this->server_address, $this->credentials, $this->p2p, $this->timeout);
+        return AgentRPC::create(
+            $this->server_address,
+            $this->credentials,
+            $this->p2p,
+            $this->timeout
+        );
     }
 }

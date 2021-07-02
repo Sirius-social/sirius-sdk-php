@@ -85,7 +85,6 @@ abstract class AbstractCoProtocolTransport
         $this->is_started = false;
     }
 
-
     public function setup(string $their_verkey, $endpoint, string $my_verkey = null, array $routing_keys = null)
     {
         $this->their_vk = $their_verkey;
@@ -134,7 +133,7 @@ abstract class AbstractCoProtocolTransport
                     $this->routing_keys, true
                 );
             } finally {
-                $this->__cleanup_context();
+                $this->__cleanup_context($message);
             }
             if ($this->check_verkeys) {
                 $recipient_verkey = $event['recipient_verkey'] ? $event['recipient_verkey'] : null;
@@ -263,15 +262,13 @@ abstract class AbstractCoProtocolTransport
     public function __cleanup_context(Message $message = null)
     {
         if ($message) {
-            $message = json_decode($message->serialize(), true);
-            $ack_message_id = null;
             if (key_exists(self::PLEASE_ACK_DECORATOR, $message->payload)) {
                 $ack_message_id = $message[self::PLEASE_ACK_DECORATOR]['message_id'] ? $message[self::PLEASE_ACK_DECORATOR]['message_id'] : $message['id'];
-            }
-            $this->rpc->stop_protocol_with_threads([$ack_message_id], true);
-            foreach ($this->please_ack_ids as $please_ack_id) {
-                if ($please_ack_id !== $ack_message_id) {
-                    $this->please_ack_ids = [$ack_message_id];
+                $this->rpc->stop_protocol_with_threads([$ack_message_id], true);
+                foreach ($this->please_ack_ids as $please_ack_id) {
+                    if ($please_ack_id !== $ack_message_id) {
+                        $this->please_ack_ids = [$ack_message_id];
+                    }
                 }
             }
         } else {

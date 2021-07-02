@@ -4,6 +4,9 @@
 namespace Siruis\Tests\Helpers;
 
 
+use Siruis\Agent\Coprotocols\AbstractCoProtocolTransport;
+use Siruis\Messaging\Message;
+use Siruis\Tests\CoprotocolsTest;
 use Thread;
 use Threaded;
 
