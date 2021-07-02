@@ -134,6 +134,22 @@ services:
       - kafkarest
       - old_agent
 
+  dev:
+    build:
+      context: .
+    image: "dev"
+    volumes:
+      - ../:/sirius-sdk
+    environment:
+      XDEBUG_CONFIG: "remote_host=10.0.0.1 remote_enable=1"
+      TEST_SUITE_BASE_URL: "http://10.0.0.90"
+      INDY_AGENT_BASE_URL: "http://10.0.0.52:8888"
+    networks:
+      test_network:
+        ipv4_address: 10.0.0.91
+    depends_on:
+      - test_suite
+
 networks:
   test_network:
     driver: bridge
