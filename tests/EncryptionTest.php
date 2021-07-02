@@ -1,6 +1,6 @@
 <?php
 
-namespace Siruis\Tests\Encryption;
+namespace Siruis\Tests;
 
 use Exception;
 use Siruis\Encryption\Ed25519;
@@ -67,5 +67,39 @@ class EncryptionTest extends TestCase
         self::assertEquals($message, $unpacked_message);
         self::assertEquals($sender_vk, $verkey_sender);
         self::assertEquals($recip_vk, $verkey_recipient);
+    }
+
+    /**
+     * @test
+     */
+    public function test_crypto_sign()
+    {
+        $keys = Encryption::create_keypair(b'0000000000000000000000000000SEED');
+        $verkey = $keys['verkey'];
+        $sigkey = $keys['sigkey'];
+        $msg = b'message';
+        $signature = Encryption::sign_message($msg, $sigkey);
+        self::assertEquals('3tfqJYZ8ME8gTFUSHcH4uVTUx5kV7S1qPJJ65k2VtSocMfXvnzR1sbbfq6F2RcXrFtaufjEr4KQVu7aeyirYrcRm', Encryption::bytes_to_b58($signature));
+
+        $success = Encryption::verify_signed_message($verkey, $msg, $signature);
+        self::assertTrue($success);
+
+        $keys2 = Encryption::create_keypair(b'000000000000000000000000000SEED2');
+        $verkey2 = $keys2['verkey'];
+        $sigkey2 = $keys2['sigkey'];
+        self::assertNotEquals($verkey, $verkey2);
+        $signature = Encryption::sign_message($msg, $sigkey2);
+        $success = Encryption::verify_signed_message($verkey, $msg, $signature);
+        self::assertFalse($success);
+    }
+    
+    /** @test */
+    public function test_did_from_verkey()
+    {
+        $keys = Encryption::create_keypair(b'0000000000000000000000000000SEED');
+        $verkey = $keys['verkey'];
+        self::assertEquals('GXhjv2jGf2oT1sqMyvJtgJxNYPMHmTsdZ3c2ZYQLJExj', Encryption::bytes_to_b58($verkey));
+        $did = Encryption::did_from_verkey($verkey);
+        self::assertEquals('VVZbGvuFqBdoVNY1Jh4j9Q', Encryption::bytes_to_b58($did));
     }
 }

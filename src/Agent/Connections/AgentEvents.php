@@ -3,7 +3,6 @@
 
 namespace Siruis\Agent\Connections;
 
-
 use JsonException;
 use Siruis\Encryption\P2PConnection;
 use Siruis\Errors\Exceptions\SiriusConnectionClosed;
@@ -27,12 +26,13 @@ class AgentEvents extends BaseAgentConnection
      * @param int $timeout
      * @param null $loop
      */
-    public function __construct(string $server_address,
-                                $credentials,
-                                P2PConnection $p2p,
-                                int $timeout = self::IO_TIMEOUT,
-                                $loop = null)
-    {
+    public function __construct(
+        string $server_address,
+        $credentials,
+        P2PConnection $p2p,
+        int $timeout = self::IO_TIMEOUT,
+        $loop = null
+    ) {
         parent::__construct($server_address, $credentials, $p2p, $timeout, $loop);
         $this->tunnel = null;
         $this->balancingGroup = null;
@@ -65,13 +65,13 @@ class AgentEvents extends BaseAgentConnection
             throw new SiriusConnectionClosed('agent unreachable');
         }
         try {
-            $payload = json_decode(mb_convert_encoding($data, $this->connector->enc));
+            $payload = json_decode(mb_convert_encoding($data, $this->connector->enc), true);
         } catch (JsonException $exception) {
             throw new SiriusInvalidPayloadStructure();
         }
         if (key_exists('protected', $payload)) {
             $message = $this->p2p->unpack($payload);
-            return new Message($message);
+            return new Message(json_decode($message, true));
         } else {
             return new Message($payload);
         }
@@ -102,6 +102,7 @@ class AgentEvents extends BaseAgentConnection
      */
     public function setup(Message $context)
     {
+        $context = $context->payload;
         $balancing = $context['~balancing'] ? $context['~balancing'] : [];
         foreach ($balancing as $balance) {
             if ($balance['id'] == 'kafka') {

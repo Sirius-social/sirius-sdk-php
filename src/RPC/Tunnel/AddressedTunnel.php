@@ -3,7 +3,6 @@
 
 namespace Siruis\RPC\Tunnel;
 
-
 use Exception;
 use Siruis\Base\ReadOnlyChannel;
 use Siruis\Base\WriteOnlyChannel;
@@ -38,8 +37,7 @@ class AddressedTunnel
         ReadOnlyChannel $input,
         WriteOnlyChannel $output,
         P2PConnection $p2p
-    )
-    {
+    ) {
         $this->address = $address;
         $this->input = $input;
         $this->output = $output;
@@ -78,6 +76,9 @@ class AddressedTunnel
         if (!is_string($payload) && !is_array($payload)) {
             throw new TypeError('Expected bytes or dict, got ' . gettype($payload));
         }
+        if (is_array($payload) && count($payload) == 1) {
+            $payload = $payload[0];
+        }
         if (is_string($payload)) {
             try {
                 $payload = json_decode($payload, true);
@@ -106,6 +107,7 @@ class AddressedTunnel
      */
     public function post(Message $message, bool $encrypt = true)
     {
+        error_log(json_encode($message->payload));
         if ($encrypt) {
             $payload = $this->p2p->pack($message->payload);
         } else {

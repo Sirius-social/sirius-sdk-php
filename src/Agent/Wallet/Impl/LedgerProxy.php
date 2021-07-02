@@ -54,7 +54,7 @@ class LedgerProxy extends AbstractLedger
     /**
      * @inheritDoc
      */
-    public function write_nym(string $pool_name, string $submitter_did, string $target_did, string $ver_key = null, string $alias = null, NYMRole $role = null): array
+    public function write_nym(string $pool_name, string $submitter_did, string $target_did, string $ver_key = null, string $alias = null, $role = null): array
     {
         return $this->rpc->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/write_nym',

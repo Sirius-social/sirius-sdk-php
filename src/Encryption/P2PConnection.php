@@ -63,7 +63,7 @@ class P2PConnection
     {
         try {
             if (is_array($enc_message)) {
-                $enc_message = json_encode($enc_message);
+                $enc_message = json_encode($enc_message, JSON_UNESCAPED_SLASHES);
             }
             $unpacked = Ed25519::unpack_message($enc_message, $this->my_keys[0], $this->my_keys[1]);
         } catch (\Exception $exception) {

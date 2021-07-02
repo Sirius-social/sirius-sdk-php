@@ -3,7 +3,6 @@
 
 namespace Siruis\Agent\Storages;
 
-
 use Siruis\Agent\Wallet\Abstracts\NonSecrets\AbstractNonSecrets;
 use Siruis\Agent\Wallet\Abstracts\NonSecrets\RetrieveRecordOptions;
 use Siruis\Storage\Abstracts\AbstractImmutableCollection;
@@ -17,12 +16,20 @@ class InWalletImmutableCollection extends AbstractImmutableCollection
      */
     public $storage;
 
+    /**
+     * @var string
+     */
     public $selected_db;
 
+    /**
+     * InWalletImmutableCollection constructor.
+     * @param AbstractNonSecrets $in_wallet_storage
+     * @return void
+     */
     public function __construct(AbstractNonSecrets $in_wallet_storage)
     {
         $this->storage = $in_wallet_storage;
-        $this->selected_db = null;
+        $this->selected_db = '';
     }
 
     public function select_db(string $db_name)
@@ -32,7 +39,7 @@ class InWalletImmutableCollection extends AbstractImmutableCollection
 
     public function add($value, array $tags)
     {
-        $payload = json_decode($value);
+        $payload = json_encode($value, JSON_UNESCAPED_SLASHES);
         $this->storage->add_wallet_record(
             $this->selected_db,
             uniqid(),
@@ -43,20 +50,20 @@ class InWalletImmutableCollection extends AbstractImmutableCollection
 
     public function fetch(array $tags, int $limit = null): array
     {
-        $result = $this->storage->wallet_search(
+        list($collection, $total_count) = $this->storage->wallet_search(
             $this->selected_db,
             $tags,
             new RetrieveRecordOptions(true),
             $limit ? $limit : self::DEFAULT_FETCH_LIMIT
         );
-        if ($result[0]) {
+        if ($collection) {
             $values = [];
-            foreach ($result[0] as $item) {
-                array_push($values, json_encode($item['value']));
+            foreach ($collection as $item) {
+                array_push($values, json_decode($item['value'], true));
             }
-            return [$values, $result[1]];
+            return [$values, $total_count];
         } else {
-            return [[], $result[1]];
+            return [[], $total_count];
         }
     }
 }

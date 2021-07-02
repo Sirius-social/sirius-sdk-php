@@ -79,8 +79,7 @@ class AgentRPC extends BaseAgentConnection
         array $params = null,
         bool $waitResponse = true,
         bool $reconnectOnError = true
-    )
-    {
+    ) {
         try {
             $expirationTime = null;
             if (!$this->connector->isOpen()) {
@@ -109,7 +108,6 @@ class AgentRPC extends BaseAgentConnection
                     throw new SiriusTimeoutRPC();
                 }
             }
-
         } catch (SiriusConnectionClosed | Exception $exception) {
             if ($reconnectOnError) {
                 $this->reopen();
@@ -135,12 +133,15 @@ class AgentRPC extends BaseAgentConnection
      * @throws GuzzleException
      */
     public function sendMessage(
-        Message $message, $their_vk, string $endpoint,
-        ?string $my_vk, array $routing_keys, bool $coprotocol = false,
+        Message $message,
+        $their_vk,
+        string $endpoint,
+        ?string $my_vk,
+        array $routing_keys,
+        bool $coprotocol = false,
         bool $ignore_errors = false
-    ): ?Message
-    {
-        if ($this->connector->isOpen()) {
+    ): ?Message {
+        if (!$this->connector->isOpen()) {
             throw new SiriusConnectionClosed('Open agent connection at first');
         }
         if (is_string($their_vk)) {
@@ -149,17 +150,14 @@ class AgentRPC extends BaseAgentConnection
             $recipient_verkeys = $their_vk;
         }
         $params = [
-            'message' => $message,
+            'message' => $message->payload,
             'routing_keys' => $routing_keys ? $routing_keys : [],
-            'recipient_verkey' => $recipient_verkeys,
+            'recipient_verkeys' => $recipient_verkeys,
             'sender_verkey' => $my_vk
         ];
-        $ok = false;
-        $body = null;
         if ($this->preferAgentSide) {
-            $params['timeout'] = $this->timeout;
-            $params['endpoint_address'] = $endpoint;
-            $arr_remote_call = $this->remoteCall('did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/send_message', $params);
+            $params = array_merge($params, ['timeout' => $this->timeout, 'endpoint_address' => $endpoint]);
+            list($ok, $body) = $this->remoteCall('did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/send_message', $params);
         } else {
             $wired = $this->remoteCall(
                 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/prepare_message_for_send',
@@ -167,13 +165,11 @@ class AgentRPC extends BaseAgentConnection
             );
             if (StringHelper::startsWith($endpoint, 'ws://') || StringHelper::startsWith($endpoint, 'wss://')) {
                 $ws = $this->getWebsocket($endpoint);
-                $ws->send($wired);
+                $ws->binary($wired);
                 $ok = true;
                 $body = b'';
             } else {
-                $httpArray = Transport::http_send($wired, $endpoint, $this->timeout);
-                $ok = $httpArray[0];
-                $body = $httpArray[1];
+                list($ok, $body) = Transport::http_send($wired, $endpoint, $this->timeout);
             }
         }
         if (!$ok) {
@@ -207,7 +203,7 @@ class AgentRPC extends BaseAgentConnection
 
     public function read_protocol_message(): Message
     {
-        return $this->tunnel_coprotocols->recieve($this->timeout);
+        return $this->tunnel_coprotocols->receive($this->timeout);
     }
 
     public function start_protocol_with_threading(string $thid, int $ttl = null)
@@ -234,11 +230,12 @@ class AgentRPC extends BaseAgentConnection
         );
     }
 
-    public function start_protocol_for_p2p(string $sender_verkey,
-                                           string $recipient_verkey,
-                                           array $protocols,
-                                           int $ttl = null)
-    {
+    public function start_protocol_for_p2p(
+        string $sender_verkey,
+        string $recipient_verkey,
+        array $protocols,
+        int $ttl = null
+    ) {
         $this->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/start_protocol',
             [
@@ -276,11 +273,13 @@ class AgentRPC extends BaseAgentConnection
     }
 
     public function stop_protocol_for_p2p(
-        string $sender_verkey, string $recipient_verkey, array $protocols, bool $off_response = false
-    )
-    {
+        string $sender_verkey,
+        string $recipient_verkey,
+        array $protocols,
+        bool $off_response = false
+    ) {
         $this->remoteCall(
-            '',
+            'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/stop_protocol',
             [
                 'sender_verkey' => $sender_verkey,
                 'recipient_verkey' => $recipient_verkey,
@@ -311,10 +310,16 @@ class AgentRPC extends BaseAgentConnection
             throw new RuntimeException('sub-protocol channel is empty');
         }
         $this->tunnel_rpc = new AddressedTunnel(
-            $channel_rpc, $this->connector, $this->connector, $this->p2p
+            $channel_rpc,
+            $this->connector,
+            $this->connector,
+            $this->p2p
         );
         $this->tunnel_coprotocols = new AddressedTunnel(
-            $channel_sub_protocol, $this->connector, $this->connector, $this->p2p
+            $channel_sub_protocol,
+            $this->connector,
+            $this->connector,
+            $this->p2p
         );
         // Extract active endpoints
         $endpoints = $context['~endpoints'] ? $context['~endpoints'] : [];

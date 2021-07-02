@@ -2,23 +2,25 @@
 
 namespace Siruis\RPC;
 
+use stdClass;
 use RuntimeException;
+use Siruis\Messaging\Message;
+use Siruis\RPC\Futures\Future;
+use Siruis\Messaging\Type\Type;
+use Siruis\Encryption\Encryption;
+use Siruis\RPC\RawBytes;
 use Siruis\Agent\Wallet\Abstracts\CacheOptions;
-use Siruis\Agent\Wallet\Abstracts\KeyDerivationMethod;
+use Siruis\Agent\Wallet\Abstracts\PurgeOptions;
+use Siruis\Errors\Exceptions\SiriusInvalidType;
 use Siruis\Agent\Wallet\Abstracts\Ledger\NYMRole;
 use Siruis\Agent\Wallet\Abstracts\Ledger\PoolAction;
-use Siruis\Agent\Wallet\Abstracts\NonSecrets\RetrieveRecordOptions;
-use Siruis\Agent\Wallet\Abstracts\PurgeOptions;
-use Siruis\Encryption\Encryption;
+use Siruis\Agent\Wallet\Abstracts\KeyDerivationMethod;
 use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
 use Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure;
-use Siruis\Errors\Exceptions\SiriusInvalidType;
-use Siruis\Messaging\Message;
-use Siruis\Messaging\Type\Type;
-use Siruis\RPC\Futures\Future;
-use stdClass;
+use Siruis\Agent\Wallet\Abstracts\NonSecrets\RetrieveRecordOptions;
 
-class Parsing {
+class Parsing
+{
     const MSG_TYPE_FUTURE = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/future';
     const CLS_MAP = [
         'application/cache-options' => CacheOptions::class,
@@ -27,6 +29,7 @@ class Parsing {
         'application/nym-role' => NYMRole::class,
         'application/pool-action' => PoolAction::class,
         'application/key-derivation-method' => KeyDerivationMethod::class,
+        'bytes' => ByteOptions::class,
     ];
 
     const CLS_MAP_REVERT = [];
@@ -51,8 +54,14 @@ class Parsing {
             return [$revert[PoolAction::class], $var->serialize()];
         } elseif ($var instanceof KeyDerivationMethod) {
             return [$revert[KeyDerivationMethod::class], $var->serialize()];
+        } elseif ($var instanceof RawBytes) {
+            return ['application/base64', Encryption::bytes_to_b64($var->toBytes())];
         } elseif (is_string($var)) {
-            return ['application/base64', Encryption::bytes_to_b64($var)];
+            if (self::is_binary($var)) {
+                return ['application/base64', Encryption::bytes_to_b64($var)];
+            } else {
+                return [null, $var];
+            }
         } else {
             return [null, $var];
         }
@@ -114,7 +123,7 @@ class Parsing {
     public static function build_request(string $msg_type, Future $future, $params)
     {
         $typ = Type::fromString($msg_type);
-        if (!in_array($typ->protocol, ['sirius_rpc', 'admin', 'microledgers'])) {
+        if (!in_array($typ->protocol, ['sirius_rpc', 'admin', 'microledgers', 'microledgers-batched'])) {
             throw new SiriusInvalidType('Expect sirius_rpc protocol');
         }
         $p = [];
@@ -154,7 +163,7 @@ class Parsing {
                     $value = $packet['value'];
                     if ($packet['is_tuple']) {
                         $parsed['value'] = [$value];
-                    } elseif($packet['is_bytes']) {
+                    } elseif ($packet['is_bytes']) {
                         $parsed['value'] = Encryption::b64_to_bytes($value);
                     } else {
                         $parsed['value'] = $value;
@@ -167,5 +176,10 @@ class Parsing {
         } else {
             throw new SiriusInvalidType('Except message type '. MSG_TYPE_FUTURE);
         }
+    }
+
+    protected static function is_binary(string $string): bool
+    {
+        return preg_match('~[^\x20-\x7E\t\r\n]~', $string) > 0;
     }
 }

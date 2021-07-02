@@ -113,6 +113,7 @@ services:
       - KAFKA_REST_ADDRESS=http://kafkarest:8000
       - DOWNLOAD_DIR=/tmp
       - TEST_SUITE=/test_suite/test_suite.json
+      - LOGLEVEL=DEBUG
     working_dir: /home/indy
     volumes:
        - sandbox:/var/sandbox
@@ -132,20 +133,6 @@ services:
       - kafka
       - kafkarest
       - old_agent
-
-  dev:
-    build:
-      context: .
-    image: "dev"
-    volumes:
-      - ../:/sirius-sdk
-    environment:
-      XDEBUG_CONFIG: "remote_host=10.0.0.1 remote_enable=1"
-    networks:
-      test_network:
-        ipv4_address: 10.0.0.91
-    depends_on:
-      - test_suite
 
 networks:
   test_network:

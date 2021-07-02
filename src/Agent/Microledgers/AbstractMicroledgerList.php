@@ -17,4 +17,6 @@ abstract class AbstractMicroledgerList
     public abstract function leaf_hash($txn);
 
     public abstract function list();
+
+    public abstract function batched();
 }

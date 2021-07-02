@@ -3,27 +3,39 @@
 
 namespace Siruis\Agent\Microledgers;
 
-
 use RuntimeException;
 use Siruis\Agent\Connections\AgentRPC;
+use Siruis\Encryption\Encryption;
 use Siruis\Errors\Exceptions\SiriusContextError;
+use Siruis\RPC\RawBytes;
+
 
 class MicroledgerList extends AbstractMicroledgerList
 {
+    const TTL = 60*60;
     /**
      * @var AgentRPC
      */
     public $api;
-
     /**
      * @var array
      */
     public $instances;
+    /**
+     * @var BatchedAPI
+     */
+    public $batched_api;
 
     public function __construct(AgentRPC $api)
     {
         $this->api = $api;
-        $this->instances = [];
+        $this->instances = new LedgerCache();
+        $this->batched_api = new BatchedAPI($api, $this->instances);
+    }
+
+    public function batched(): AbstractBatchedAPI
+    {
+        return $this->batched_api;
     }
 
     /**
@@ -37,16 +49,17 @@ class MicroledgerList extends AbstractMicroledgerList
         $genesis_txns = [];
         foreach ($genesis as $txn) {
             if ($txn instanceof Transaction) {
-                array_push($genesis_txns, $txn);
+                array_push($genesis_txns, $txn->as_object());
             } elseif (is_array($txn)) {
-                array_push($genesis_txns, Transaction::create($txn));
+                $txn = Transaction::create($txn);
+                array_push($genesis_txns, $txn->as_object());
             } else {
                 throw new RuntimeException('Unexpected transaction type');
             }
         }
         $instance = new Microledger($name, $this->api);
         $txns = $instance->init($genesis_txns);
-        $this->instances[$name] = $instance;
+        $this->instances->set($name, $instance);
         return [$instance, $txns];
     }
 
@@ -57,12 +70,12 @@ class MicroledgerList extends AbstractMicroledgerList
      */
     public function ledger(string $name): AbstractMicroledger
     {
-        if (key_exists($name, $this->instances)) {
+        if (!$this->instances->is_exists($name)) {
             $this->__check_is_exists($name);
             $instance = new Microledger($name, $this->api);
-            $this->instances[$name] = $instance;
+            $this->instances->set($name, $instance);
         }
-        return $this->instances[$name];
+        return $this->instances->get($name);
     }
 
     /**
@@ -78,8 +91,8 @@ class MicroledgerList extends AbstractMicroledgerList
                 'name' => $name
             ]
         );
-        if (key_exists($name, $this->instances)) {
-            unset($this->instances[$name]);
+        if ($this->instances->is_exists($name)) {
+            $this->instances->delete($name);
         }
     }
 
@@ -96,18 +109,19 @@ class MicroledgerList extends AbstractMicroledgerList
     public function leaf_hash($txn)
     {
         if ($txn instanceof Transaction) {
-            $data = json_encode((array)$txn);
+            $data = mb_convert_encoding(json_encode($txn->payload, JSON_UNESCAPED_SLASHES | JSON_FORCE_OBJECT), 'utf-8');
         } elseif (is_string($txn)) {
             $data = $txn;
         } else {
             throw new RuntimeException('Unexpected transaction type');
         }
-        return $this->api->remoteCall(
+        $resp = $this->api->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/microledgers/1.0/leaf_hash',
             [
-                'data' => $data
+                'data' => new RawBytes($data)
             ]
         );
+        return $resp;
     }
 
     public function list()
@@ -131,7 +145,7 @@ class MicroledgerList extends AbstractMicroledgerList
      */
     protected function __check_is_exists(string $name)
     {
-        if (key_exists($name, $this->instances)) {
+        if (!$this->instances->is_exists($name)) {
             $is_exists = $this->is_exists($name);
             if (!$is_exists) {
                 throw new SiriusContextError('MicroLedger with name ' . $name . ' does not exists');

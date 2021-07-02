@@ -3,7 +3,6 @@
 
 namespace Siruis\Agent\Listener;
 
-
 use Siruis\Agent\Connections\AgentEvents;
 use Siruis\Agent\Pairwise\AbstractPairwiseList;
 use Siruis\Errors\Exceptions\SiriusConnectionClosed;
@@ -43,11 +42,9 @@ class Listener
     public function get_one(int $timeout = null): Event
     {
         $eventMessage = $this->source->pull($timeout);
-        $event = json_decode($eventMessage->serialize());
+        $event = json_decode($eventMessage->serialize(), true);
         if (key_exists('message', $event)) {
-            $restored = Message::restoreMessageInstance($event['message']);
-            $ok = $restored[0];
-            $message = $restored[1];
+            list($ok, $message) = Message::restoreMessageInstance($event['message']);
             if ($ok) {
                 $event['message'] = $message;
             } else {

@@ -14,11 +14,18 @@ class Microledger extends AbstractMicroledger
     public $api;
     public $state;
 
-    public function __construct(string $name, AgentRPC $api)
+    public function __construct(string $name, AgentRPC $api, array $state = null)
     {
         $this->name = $name;
         $this->api = $api;
-        $this->state = null;
+        $this->state = $state;
+    }
+
+    public function assign_to(AbstractMicroledger $other)
+    {
+        if ($other instanceof Microledger) {
+            $other->state = $this->state;
+        }
     }
 
     public function getName(): string
@@ -89,35 +96,36 @@ class Microledger extends AbstractMicroledger
 
     public function rename(string $new_name)
     {
-        return $this->api->remoteCall(
+        $this->api->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/microledgers/1.0/rename',
             [
                 'name' => $this->name,
                 'new_name' => $new_name
             ]
         );
+        $this->name = $new_name;
     }
 
     /**
-     * @param array $genesis
+ 9a9n57ey    * @param array $genesis
      * @return mixed
      * @throws SiriusContextError
      */
     public function init(array $genesis)
     {
-        $remoteCallResult = $this->api->remoteCall(
+        list($this->state, $txns) = $this->api->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/microledgers/1.0/initialize',
             [
                 'name' => $this->name,
-                'new_name' => $genesis
+                'genesis_txns' => $genesis
             ]
         );
-        $this->state = $remoteCallResult[0];
-        $txns = $remoteCallResult[1];
+        $result = [];
         foreach ($txns as $txn) {
-            array_push($result, Transaction::from_value($txn));
+            $txn = Transaction::create($txn);
+            array_push($result, $txn);
         }
-        return $txns;
+        return $result;
     }
 
     /**
@@ -133,7 +141,8 @@ class Microledger extends AbstractMicroledger
             if ($txn instanceof Transaction) {
                 array_push($transactions_to_append, $txn);
             } elseif (is_array($txn)) {
-                array_push($transactions_to_append, Transaction::create($txn));
+                $txn = Transaction::create($txn);
+                array_push($transactions_to_append, $txn->as_object());
             } else {
                 throw new RuntimeException('Unexpected transaction type');
             }
@@ -146,17 +155,14 @@ class Microledger extends AbstractMicroledger
                 'txn_time' => $txn_time
             ]
         );
-        $resultArr = $this->api->remoteCall(
+        list($this->state, $start, $end, $appended_txns) = $this->api->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/microledgers/1.0/append_txns',
             [
                 'name' => $this->name,
                 'txns' => $transactions_with_meta
             ]
         );
-        $this->state = $resultArr[0];
-        return [
-            $resultArr[1], $resultArr[2], Transaction::from_value($resultArr[3])
-        ];
+        return [$start, $end, $appended_txns];
     }
 
     /**
@@ -166,17 +172,14 @@ class Microledger extends AbstractMicroledger
      */
     public function commit(int $count)
     {
-        $resultArr = $this->api->remoteCall(
+        list($this->state, $start, $end, $committed_txns) = $this->api->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/microledgers/1.0/commit_txns',
             [
                 'name' => $this->name,
                 'count' => $count
             ]
         );
-        $this->state = $resultArr[0];
-        return [
-            $resultArr[1], $resultArr[2], Transaction::from_value($resultArr[3])
-        ];
+        return [$start, $end, $committed_txns];
     }
 
     public function discard(int $count)
@@ -245,8 +248,7 @@ class Microledger extends AbstractMicroledger
                 'seqNo' => $seq_no
             ]
         );
-        $txn = Transaction::from_value($txn);
-        return $txn;
+        return new Transaction($txn);
     }
 
     public function get_uncommitted_transaction(int $seq_no): Transaction
@@ -258,8 +260,7 @@ class Microledger extends AbstractMicroledger
                 'seqNo' => $seq_no
             ]
         );
-        $txn = Transaction::from_value($txn);
-        return $txn;
+        return new Transaction($txn);
     }
 
     /**
@@ -274,8 +275,7 @@ class Microledger extends AbstractMicroledger
                 'name' => $this->name
             ]
         );
-        $txn = Transaction::from_value($txn);
-        return $txn;
+        return new Transaction($txn);
     }
 
     /**
@@ -290,8 +290,7 @@ class Microledger extends AbstractMicroledger
                 'name' => $this->name
             ]
         );
-        $txn = Transaction::from_value($txn);
-        return $txn;
+        return new Transaction($txn);
     }
 
     /**
@@ -308,9 +307,9 @@ class Microledger extends AbstractMicroledger
         );
         $ts = [];
         foreach ($txns as $t) {
-            array_push($ts, $t[1]);
+            array_push($ts, new Transaction($t[1]));
         }
-        return Transaction::from_value($ts);
+        return $ts;
     }
 
     public function get_uncommitted_transactions(): array
@@ -321,8 +320,11 @@ class Microledger extends AbstractMicroledger
                 'name' => $this->name
             ]
         );
-        $txns = Transaction::from_value($txns);
-        return $txns;
+        $result = [];
+        foreach ($txns as $txn) {
+            array_push($result, new Transaction($txn));
+        }
+        return $result;
     }
 
     /**

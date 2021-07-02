@@ -15,13 +15,15 @@ use Siruis\Agent\Wallet\Abstracts\AbstractDID;
 use Siruis\Agent\Wallet\Abstracts\Anoncreds\AbstractAnonCreds;
 use Siruis\Encryption\P2PConnection;
 use Siruis\Errors\Exceptions\SiriusInitializationError;
+use Siruis\Helpers\ArrayHelper;
+use Siruis\Hub\Context;
+use Siruis\Hub\ThreadLocal;
 use Siruis\Storage\Abstracts\AbstractImmutableCollection;
 
 class Hub
 {
-    public static $ROOT_HUB = null;
-    public static $THREAD_LOCAL_HUB = null;
-    public static $COROUTINE_LOCAL_HUB = null;
+    public static $ROOT_HUB = [];
+    public static $THREAD_LOCAL_HUB = [];
 
     /**
      * @var string
@@ -67,15 +69,18 @@ class Hub
      * @var Agent|null
      */
     public $agent;
+    /**
+     * @var Context
+     */
+    public static $context;
 
     public function __construct(
         string $server_uri, string $credentials, P2PConnection $p2p, int $io_timeout = null,
         AbstractImmutableCollection $storage = null, AbstractCrypto $crypto = null,
         AbstractMicroledgerList $microledgers = null, AbstractPairwiseList $pairwise_storage = null,
-        AbstractDID $did = null, AbstractAnonCreds $anonCreds = null
+        AbstractDID $did = null, AbstractAnonCreds $anonCreds = null, $context = null
     )
     {
-
         $this->server_uri = $server_uri;
         $this->credentials = $credentials;
         $this->p2p = $p2p;
@@ -87,6 +92,7 @@ class Hub
         $this->did = $did;
         $this->anonCreds = $anonCreds;
         $this->__create_agent_instance();
+        self::$context = $context ?? Context::getInstance();
     }
 
     public function copy(): Hub
@@ -104,17 +110,16 @@ class Hub
 
     public function abort()
     {
-
-    }
-
-    public function run_soon($coro)
-    {
-
+        $old_agent = $this->agent;
+        $this->__create_agent_instance();
+        if ($old_agent->isOpen()) {
+            $old_agent->close();
+        }
     }
 
     public function get_agent_connection_lazy(): Agent
     {
-        if (!$this->agent->is_open) {
+        if (!$this->agent->isOpen()) {
             $this->agent->open();
         }
         return $this->agent;
@@ -127,7 +132,7 @@ class Hub
 
     public function close()
     {
-        if ($this->agent->is_open) {
+        if ($this->agent->isOpen()) {
             $this->agent->close();
         }
     }
@@ -182,32 +187,29 @@ class Hub
         self::$ROOT_HUB = $root;
     }
 
-    public static function context(
+    public static function alloc_context(
         string $server_uri, string $credentials, P2PConnection $p2p, int $io_timeout = null,
         AbstractImmutableCollection $storage = null,
         AbstractCrypto $crypto = null, AbstractMicroledgerList $microledgers = null,
         AbstractDID $did = null, AbstractPairwiseList $pairwise_storage = null
-    ): Hub
+    )
     {
         $hub = new Hub(
             $server_uri, $credentials, $p2p, $io_timeout, $storage, $crypto, $microledgers, $pairwise_storage, $did
         );
         $old_hub = self::get_thread_local_hub();
-        self::$THREAD_LOCAL_HUB = $hub;
-        try {
-            $hub->open();
-            $old_hub_coro = self::$COROUTINE_LOCAL_HUB;
-            $token = self::$COROUTINE_LOCAL_HUB = $hub;
-            try {
-                return $token;
-            } finally {
-                self::$COROUTINE_LOCAL_HUB = $token;
-                $token->close();
-                self::$COROUTINE_LOCAL_HUB = $old_hub_coro;
-            }
-        } finally {
-            self::$THREAD_LOCAL_HUB = $old_hub;
-        }
+        self::$THREAD_LOCAL_HUB['hub'] = $hub;
+        $hub->open();
+        self::$context->set('old_hub', $old_hub);
+        self::$context->set('hub', $hub);
+    }
+
+    public static function free_context()
+    {
+        $old_hub = self::$context->get('old_hub');
+        self::$context->clear();
+        self::current_hub()->close();
+        self::$context->set('hub', $old_hub);
     }
 
     public static function get_root_hub()
@@ -217,19 +219,19 @@ class Hub
 
     public static function get_thread_local_hub()
     {
-        return self::$THREAD_LOCAL_HUB;
+        return ArrayHelper::getValueWithKeyFromArray('hub', self::$THREAD_LOCAL_HUB);
     }
 
     public static function current_hub(): ?Hub
     {
-        $inst = self::$COROUTINE_LOCAL_HUB;
+        $inst = self::$context->get('hub');
         if (!$inst) {
             $root_hub = self::get_thread_local_hub() ? self::get_thread_local_hub() : self::get_root_hub();
             if (!$root_hub) {
                 throw new SiriusInitializationError('Non initialized Sirius Agent connection');
             }
             $inst = $root_hub->copy();
-            self::$COROUTINE_LOCAL_HUB = $inst;
+            self::$context->set('hub', $inst);
         }
         return $inst;
     }
