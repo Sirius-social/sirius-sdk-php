@@ -1,4 +1,6 @@
-## Instructions for configuring PHP interpreters in phpstorm
+==================================================
+Instructions for configuring PHP interpreters in phpstorm
+==================================================
 
 - Press Ctrl+Alt+S to open IDE settings and select PHP.
 - On the PHP page that opens, click the Browse button next to the CLI Interpreter list.
