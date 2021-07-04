@@ -7,4 +7,4 @@
 - Then, in the Configuration files specify the path to the docker-compose.yml file. docker-compose.yml file path: sirius-sdk-php/test_suite/docker-compose.yml.
 - Then, in the Service choose dev and press OK button.
 
-<img src="https://raw.githubusercontent.com/Sirius-social/sirius-sdk-php/master/docs/_static/php_instructions.gif" width="800" >
+<img src="/Sirius-social/sirius-sdk-php/blob/feature_testing/docs/_static/php_instructions.gif?raw=true" alt="php_instructions.gif">
