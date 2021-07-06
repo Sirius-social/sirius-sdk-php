@@ -35,6 +35,7 @@ RUN mkdir ~/apps && cd ~/apps/ && wget https://www.php.net/distributions/php-7.3
            --enable-opcache \
            --enable-maintainer-zts \
            --enable-debug \
+           --enable-zip \
            --with-zlib \
            --with-readline \
            --with-curl \
