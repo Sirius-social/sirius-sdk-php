@@ -58,4 +58,5 @@ RUN cd ~/apps && git clone https://github.com/xdebug/xdebug.git \
     && ./configure --enable-xdebug \
     && make && make install \
     && echo 'zend_extension=xdebug' >> /usr/local/lib/php.ini \
-    && echo 'extension=pthreads' >> /usr/local/lib/php.ini
+    && echo 'extension=pthreads' >> /usr/local/lib/php.ini \
+    && echo 'xdebug.remote_host=host.docker.internal' >> /usr/local/lib/php.ini

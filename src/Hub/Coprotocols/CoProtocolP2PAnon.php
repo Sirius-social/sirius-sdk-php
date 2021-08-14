@@ -77,9 +77,7 @@ class CoProtocolP2PAnon extends AbstractP2PCoProtocol
     public function switch(Message $message): array
     {
         $transport = $this->__get_transport_lazy();
-        $switched = $transport->switch($message);
-        $success = $switched[0];
-        $response = $switched[1];
+        list($success, $response) = $transport->switch($message);
         if (key_exists(CoProtocols::PLEASE_ACK_DECORATOR, $response)) {
             $this->thread_id = ArrayHelper::getValueWithKeyFromArray(
                 'message_id', $response[CoProtocols::PLEASE_ACK_DECORATOR], $message->id

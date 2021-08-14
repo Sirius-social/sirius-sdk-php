@@ -10,7 +10,7 @@ class SchemaFilters
 
     public function __construct()
     {
-        $this->tags = ['category', 'schema'];
+        $this->tags = ['category' => 'schema'];
     }
 
     public function getId(): ?string

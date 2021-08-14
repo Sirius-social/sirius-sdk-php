@@ -15,17 +15,16 @@ class FirstTask extends Volatile
     /**
      * @var AbstractCoProtocolTransport
      */
-    public $shared;
+    private $protocol;
 
     public function __construct(AbstractCoProtocolTransport $protocol)
     {
-        $this->shared = new Volatile();
-        $this->shared['protocol'] = $protocol;
+        $this->protocol = $protocol;
     }
 
     public function work()
     {
-        $protocol = $this->getProtocol();
+        $protocol = $this->protocol;
         $first_req = new Message([
             '@type' => CoprotocolsTest::$TEST_MSG_TYPES[0],
             'content' => 'Request1'
@@ -40,13 +39,5 @@ class FirstTask extends Volatile
         ]));
         CoprotocolsTest::assertTrue($ok);
         array_push(CoprotocolsTest::$MSG_LOG, $resp2);
-    }
-
-    public function getProtocol()
-    {
-        /** @var AbstractCoProtocolTransport $protocol */
-        $protocol = $this->shared['protocol'];
-        $protocol->rpc->reopen();
-        return $protocol;
     }
 }

@@ -5,15 +5,27 @@ namespace Siruis\Tests;
 use PHPUnit\Framework\TestCase;
 use Siruis\Agent\Agent\Agent;
 use Siruis\Agent\Coprotocols\AbstractCoProtocolTransport;
+use Siruis\Agent\Coprotocols\PairwiseCoProtocolTransport;
 use Siruis\Agent\Coprotocols\TheirEndpointCoProtocolTransport;
+use Siruis\Agent\Coprotocols\ThreadBasedCoProtocolTransport;
+use Siruis\Agent\Pairwise\Me;
+use Siruis\Agent\Pairwise\Pairwise;
+use Siruis\Agent\Pairwise\Their;
 use Siruis\Agent\Pairwise\TheirEndpoint;
 use Siruis\Encryption\P2PConnection;
 use Siruis\Hub\Coprotocols\AbstractCoProtocol;
+use Siruis\Hub\Coprotocols\CoProtocolP2P;
+use Siruis\Hub\Coprotocols\CoProtocolP2PAnon;
+use Siruis\Hub\Coprotocols\CoProtocolThreadedP2P;
 use Siruis\Hub\Core\Hub;
 use Siruis\Messaging\Message;
 use Siruis\Tests\Helpers\Conftest;
+use Siruis\Tests\Helpers\DelayedAborter;
 use Siruis\Tests\Helpers\FirstTask;
+use Siruis\Tests\Helpers\FirstTaskOnHub;
+use Siruis\Tests\Helpers\InfiniteReader;
 use Siruis\Tests\Helpers\SecondTask;
+use Siruis\Tests\Helpers\SecondTaskOnHub;
 use Siruis\Tests\Helpers\Threads;
 
 class CoprotocolsTest extends TestCase
@@ -88,6 +100,359 @@ class CoprotocolsTest extends TestCase
         } finally {
             $agent1->close();
             $agent2->close();
+        }
+    }
+
+    /** @test */
+    public function test__their_endpoint_protocol_on_hub()
+    {
+        $test_suite = Conftest::test_suite();
+        $agent1_params = $test_suite->get_agent_params('agent1');
+        $agent2_params = $test_suite->get_agent_params('agent2');
+        $entity1 = array_values($agent1_params['entities'])[0];
+        $entity2 = array_values($agent2_params['entities'])[0];
+        $agent1 = new Agent(
+            $agent1_params['server_address'],
+            $agent1_params['credentials'],
+            $agent1_params['p2p'],
+            5
+        );
+        $agent2 = new Agent(
+            $agent2_params['server_address'],
+            $agent2_params['credentials'],
+            $agent2_params['p2p'],
+            5
+        );
+        $agent1->open();
+        $agent2->open();
+        try {
+            // Get endpoints
+            $agent1_endpoint = Conftest::get_endpoints($agent1->endpoints)[0]->address;
+            $agent2_endpoint = Conftest::get_endpoints($agent2->endpoints)[0]->address;
+        } finally {
+            $agent1->close();
+            $agent2->close();
+        }
+
+        // FIRE!!!
+        $their1 = new TheirEndpoint($agent2_endpoint, $entity2['verkey']);
+        $their2 = new TheirEndpoint($agent1_endpoint, $entity1['verkey']);
+        $co1 = new CoProtocolP2PAnon($entity1['verkey'], $their1, ['test_protocol']);
+        $co2 = new CoProtocolP2PAnon($entity2['verkey'], $their2, ['test_protocol']);
+        self::$MSG_LOG = [];
+        Threads::run_threads([
+            new FirstTaskOnHub($co1, $agent2->server_address, $agent1->credentials, $agent1->p2p),
+            new SecondTaskOnHub($co2, $agent2->server_address, $agent2->credentials, $agent2->p2p)
+        ]);
+        self::check_msg_log();
+    }
+
+    /** @test */
+    public function test__pairwise_protocol()
+    {
+        $test_suite = Conftest::test_suite();
+        $agent1_params = $test_suite->get_agent_params('agent1');
+        $agent2_params = $test_suite->get_agent_params('agent2');
+        $agent1 = new Agent(
+            $agent1_params['server_address'],
+            $agent1_params['credentials'],
+            $agent1_params['p2p'],
+            5
+        );
+        $agent2 = new Agent(
+            $agent2_params['server_address'],
+            $agent2_params['credentials'],
+            $agent2_params['p2p'],
+            5
+        );
+        $agent1->open();
+        $agent2->open();
+        try {
+            // Get endpoints
+            $agent1_endpoint = Conftest::get_endpoints($agent1->endpoints)[0]->address;
+            $agent2_endpoint = Conftest::get_endpoints($agent2->endpoints)[0]->address;
+            // Init pairwise list #1
+            list($did1, $verkey1) = $agent1->wallet->did->create_and_store_my_did();
+            list($did2, $verkey2) = $agent2->wallet->did->create_and_store_my_did();
+            $agent1->wallet->did->store_their_did($did2, $verkey2);
+            $agent1->wallet->pairwise->create_pairwise($did2, $did1);
+            $agent2->wallet->did->store_their_did($did1, $verkey1);
+            $agent2->wallet->pairwise->create_pairwise($did1, $verkey1);
+            // Init pairwise list #2
+            $pairwise1 = new Pairwise(
+                new Me($did1, $verkey1),
+                new Their($did2, 'Label-2', $agent2_endpoint, $verkey2)
+            );
+            $pairwise2 = new Pairwise(
+                new Me($did2, $verkey2),
+                new Their($did1, 'Label-1', $agent1_endpoint, $verkey1)
+            );
+
+            $agent1_protocol = $agent1->spawnPairwise($pairwise1);
+            $agent2_protocol = $agent2->spawnPairwise($pairwise2);
+            self::assertInstanceOf(PairwiseCoProtocolTransport::class, $agent1_protocol);
+            self::assertInstanceOf(PairwiseCoProtocolTransport::class, $agent2_protocol);
+
+            $agent1_protocol->start(['test_protocol']);
+            $agent2_protocol->start(['test_protocol']);
+
+            try {
+                self::$MSG_LOG = [];
+                Threads::run_threads([new FirstTask($agent1_protocol), new SecondTask($agent2_protocol)]);
+                self::check_msg_log();
+            } finally {
+                $agent1_protocol->stop();
+                $agent2_protocol->stop();
+            }
+        } finally {
+            $agent1->close();
+            $agent2->close();
+        }
+    }
+
+    /** @test */
+    public function test__pairwise_protocol_on_hub()
+    {
+        $test_suite = Conftest::test_suite();
+        $agent1_params = $test_suite->get_agent_params('agent1');
+        $agent2_params = $test_suite->get_agent_params('agent2');
+        $agent1 = new Agent(
+            $agent1_params['server_address'],
+            $agent1_params['credentials'],
+            $agent1_params['p2p'],
+            5
+        );
+        $agent2 = new Agent(
+            $agent2_params['server_address'],
+            $agent2_params['credentials'],
+            $agent2_params['p2p'],
+            5
+        );
+        $agent1->open();
+        $agent2->open();
+        try {
+            // Get endpoints
+            $agent1_endpoint = Conftest::get_endpoints($agent1->endpoints)[0]->address;
+            $agent2_endpoint = Conftest::get_endpoints($agent2->endpoints)[0]->address;
+            // Init pairwise list #1
+            list($did1, $verkey1) = $agent1->wallet->did->create_and_store_my_did();
+            list($did2, $verkey2) = $agent2->wallet->did->create_and_store_my_did();
+            $agent1->wallet->did->store_their_did($did2, $verkey2);
+            $agent1->wallet->pairwise->create_pairwise($did2, $did1);
+            $agent2->wallet->did->store_their_did($did1, $verkey1);
+            $agent2->wallet->pairwise->create_pairwise($did1, $verkey1);
+            // Init pairwise list #2
+            $pairwise1 = new Pairwise(
+                new Me($did1, $verkey1),
+                new Their($did2, 'Label-2', $agent2_endpoint, $verkey2)
+            );
+            $pairwise2 = new Pairwise(
+                new Me($did2, $verkey2),
+                new Their($did1, 'Label-1', $agent1_endpoint, $verkey1)
+            );
+        } finally {
+            $agent1->close();
+            $agent2->close();
+        }
+
+        $co1 = new CoProtocolP2P($pairwise1, ['test_protocol']);
+        $co2 = new CoProtocolP2P($pairwise2, ['test_protocol']);
+        self::$MSG_LOG = [];
+        Threads::run_threads([
+            new FirstTaskOnHub($co1, $agent2->server_address, $agent1->credentials, $agent1->p2p),
+            new SecondTaskOnHub($co2, $agent2->server_address, $agent2->credentials, $agent2->p2p)
+        ]);
+        self::check_msg_log();
+    }
+
+    /** @test */
+    public function test__threadbased_protocol()
+    {
+        $test_suite = Conftest::test_suite();
+        $agent1_params = $test_suite->get_agent_params('agent1');
+        $agent2_params = $test_suite->get_agent_params('agent2');
+        $agent1 = new Agent(
+            $agent1_params['server_address'],
+            $agent1_params['credentials'],
+            $agent1_params['p2p'],
+            5
+        );
+        $agent2 = new Agent(
+            $agent2_params['server_address'],
+            $agent2_params['credentials'],
+            $agent2_params['p2p'],
+            5
+        );
+        $agent1->open();
+        $agent2->open();
+        try {
+            // Get endpoints
+            $agent1_endpoint = Conftest::get_endpoints($agent1->endpoints)[0]->address;
+            $agent2_endpoint = Conftest::get_endpoints($agent2->endpoints)[0]->address;
+            // Init pairwise list #1
+            list($did1, $verkey1) = $agent1->wallet->did->create_and_store_my_did();
+            list($did2, $verkey2) = $agent2->wallet->did->create_and_store_my_did();
+            $agent1->wallet->did->store_their_did($did2, $verkey2);
+            $agent1->wallet->pairwise->create_pairwise($did2, $did1);
+            $agent2->wallet->did->store_their_did($did1, $verkey1);
+            $agent2->wallet->pairwise->create_pairwise($did1, $verkey1);
+            // Init pairwise list #2
+            $pairwise1 = new Pairwise(
+                new Me($did1, $verkey1),
+                new Their($did2, 'Label-2', $agent2_endpoint, $verkey2)
+            );
+            $pairwise2 = new Pairwise(
+                new Me($did2, $verkey2),
+                new Their($did1, 'Label-1', $agent1_endpoint, $verkey1)
+            );
+        } finally {
+            $agent1->close();
+            $agent2->close();
+        }
+
+        $thread_id = uniqid();
+        $co1 = new CoProtocolThreadedP2P($thread_id, $pairwise1);
+        $co2 = new CoProtocolThreadedP2P($thread_id, $pairwise2);
+        self::$MSG_LOG = [];
+        Threads::run_threads([
+            new FirstTaskOnHub($co1, $agent2->server_address, $agent1->credentials, $agent1->p2p),
+            new SecondTaskOnHub($co2, $agent2->server_address, $agent2->credentials, $agent2->p2p)
+        ]);
+        self::check_msg_log();
+    }
+
+    public function test__protocols_intersections()
+    {
+        $test_suite = Conftest::test_suite();
+        $agent1_params = $test_suite->get_agent_params('agent1');
+        $agent2_params = $test_suite->get_agent_params('agent2');
+        $agent1 = new Agent(
+            $agent1_params['server_address'],
+            $agent1_params['credentials'],
+            $agent1_params['p2p'],
+            5
+        );
+        $agent2 = new Agent(
+            $agent2_params['server_address'],
+            $agent2_params['credentials'],
+            $agent2_params['p2p'],
+            5
+        );
+        $agent1->open();
+        $agent2->open();
+        try {
+            // Get endpoints
+            $agent1_endpoint = Conftest::get_endpoints($agent1->endpoints)[0]->address;
+            $agent2_endpoint = Conftest::get_endpoints($agent2->endpoints)[0]->address;
+            // Init pairwise list #1
+            list($did1, $verkey1) = $agent1->wallet->did->create_and_store_my_did();
+            list($did2, $verkey2) = $agent2->wallet->did->create_and_store_my_did();
+            $agent1->wallet->did->store_their_did($did2, $verkey2);
+            $agent1->wallet->pairwise->create_pairwise($did2, $did1);
+            $agent2->wallet->did->store_their_did($did1, $verkey1);
+            $agent2->wallet->pairwise->create_pairwise($did1, $verkey1);
+            // Init pairwise list #2
+            $pairwise1 = new Pairwise(
+                new Me($did1, $verkey1),
+                new Their($did2, 'Label-2', $agent2_endpoint, $verkey2)
+            );
+            $pairwise2 = new Pairwise(
+                new Me($did2, $verkey2),
+                new Their($did1, 'Label-1', $agent1_endpoint, $verkey1)
+            );
+
+            $thread_id = uniqid();
+            $agent1_protocol_threaded = $agent1->spawnThidPairwise($thread_id, $pairwise1);
+            $agent2_protocol_threaded = $agent2->spawnThidPairwise($thread_id, $pairwise2);
+            self::assertInstanceOf(ThreadBasedCoProtocolTransport::class, $agent1_protocol_threaded);
+            self::assertInstanceOf(ThreadBasedCoProtocolTransport::class, $agent2_protocol_threaded);
+            $agent1_protocol_pairwise = $agent1->spawnPairwise($pairwise1);
+            $agent2_protocol_pairwise = $agent2->spawnPairwise($pairwise2);
+            self::assertInstanceOf(PairwiseCoProtocolTransport::class, $agent1_protocol_pairwise);
+            self::assertInstanceOf(PairwiseCoProtocolTransport::class, $agent2_protocol_pairwise);
+
+            $agent1_protocol_threaded->start(['test_protocol']);
+            $agent2_protocol_threaded->start(['test_protocol']);
+            $agent1_protocol_pairwise->start(['test_protocol']);
+            $agent2_protocol_pairwise->start(['test_protocol']);
+            try {
+                self::$MSG_LOG = [];
+                Threads::run_threads([
+                    new FirstTask($agent1_protocol_threaded), new SecondTask($agent2_protocol_threaded),
+                    new FirstTask($agent1_protocol_pairwise), new SecondTask($agent2_protocol_pairwise)
+                ]);
+                // collect messages
+                $threaded_sequence = [];
+                $not_threaded_sequence = [];
+                foreach (self::$MSG_LOG as $message) {
+                    if (key_exists('~thread', $message)) {
+                        array_push($threaded_sequence, $message);
+                    } else {
+                        array_push($not_threaded_sequence, $message);
+                    }
+                }
+                self::$MSG_LOG = [];
+                array_merge(self::$MSG_LOG, $threaded_sequence);
+                $this->check_msg_log();
+                foreach ($threaded_sequence as $message) {
+                    self::assertEquals($thread_id, $message['~thread']['thid']);
+                }
+                // non-thread messages
+                self::$MSG_LOG = [];
+                array_merge(self::$MSG_LOG, $not_threaded_sequence);
+                $this->check_msg_log();
+            } finally {
+                $agent1_protocol_threaded->stop();
+                $agent2_protocol_threaded->stop();
+                $agent1_protocol_pairwise->stop();
+                $agent2_protocol_pairwise->stop();
+            }
+        } finally {
+            $agent1->close();
+            $agent2->close();
+        }
+    }
+
+    public function test_coprotocol_abort()
+    {
+        $test_suite = Conftest::test_suite();
+        $agent1 = Conftest::agent1();
+        $agent2 = Conftest::agent2();
+        $agent1_params = $test_suite->get_agent_params('agent1');
+        $agent1->open();
+        $agent2->open();
+        try {
+            $pw1 = Conftest::get_pairwise($agent1, $agent2);
+        } finally {
+            $agent1->close();
+            $agent2->close();
+        }
+        $co = new CoProtocolThreadedP2P(uniqid(), $pw1);
+        Threads::run_threads([
+            new InfiniteReader($co, $agent1->server_address, $agent1->credentials, $agent1->p2p),
+            new DelayedAborter($co)
+        ]);
+    }
+
+    public function test_coprotocol_threaded_theirs_send()
+    {
+        $test_suite = Conftest::test_suite();
+        $agent1 = Conftest::agent1();
+        $agent2 = Conftest::agent2();
+        $agent3 = Conftest::agent3();
+        $agent1_params = $test_suite->get_agent_params('agent1');
+        $agent2_params = $test_suite->get_agent_params('agent2');
+        $agent3_params = $test_suite->get_agent_params('agent3');
+        $agent1->open();
+        $agent2->open();
+        $agent3->open();
+        try {
+            $pw1 = Conftest::get_pairwise($agent1, $agent2);
+            $pw2 = Conftest::get_pairwise($agent1, $agent2);
+        } finally {
+            $agent1->close();
+            $agent2->close();
+            $agent3->close();
         }
     }
 }

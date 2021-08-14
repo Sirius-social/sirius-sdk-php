@@ -5,6 +5,9 @@ namespace Siruis\Tests\Helpers;
 
 use Siruis\Agent\Agent\Agent;
 use Siruis\Agent\Connections\Endpoint;
+use Siruis\Agent\Pairwise\Me;
+use Siruis\Agent\Pairwise\Pairwise;
+use Siruis\Agent\Pairwise\Their;
 use Siruis\Encryption\Encryption;
 use Siruis\Encryption\P2PConnection;
 use Siruis\Errors\Exceptions\SiriusCryptoError;
@@ -158,5 +161,52 @@ class Conftest
             }
         }
         return $return;
+    }
+
+    public static function get_pairwise(Agent $me, Agent $their)
+    {
+        $suite = self::get_suite_singleton();
+        $me_params = $suite->get_agent_params($me->name);
+        $their_params = $suite->get_agent_params($their->name);
+        $me_label = array_keys($me_params['entities'])[0];
+        $me_entity = array_keys($me_params['entities'])[0][1];
+        $their_label = array_keys($their_params['entities'])[0];
+        $their_entity = array_keys($their_params['entities'])[0][1];
+        $me_endpoint_address = self::get_endpoints($me->endpoints)[0]->address;
+        $their_endpoint_address = self::get_endpoints($their->endpoints)[0]->address;
+        foreach ([
+            [$me, $me_entity, $their_entity, $their_label, $their_endpoint_address],
+            [$their, $their_entity, $me_entity, $me_label, $me_endpoint_address]
+        ] as $items) {
+            /** @var Agent $agent */
+            list($agent, $entity_me, $entity_their, $label_their, $endpoint_their) = $items;
+            $pairwise = $agent->pairwise_list->load_for_did($entity_their['did']);
+            $is_filled = $pairwise && $pairwise->metadata;
+            if (!$is_filled) {
+                $me_ = new Me($entity_me['did'], $entity_me['verkey']);
+                $their_ = new Their($entity_their['did'], $label_their, $endpoint_their, $entity_their['verkey']);
+                $metadata = [
+                    'me' => [
+                        'did' => $entity_me['did'],
+                        'verkey' => $entity_me['verkey'],
+                        'did_doc' => null
+                    ],
+                    'their' => [
+                        'did' => $entity_their['did'],
+                        'verkey' => $entity_their['verkey'],
+                        'label' => $label_their,
+                        'endpoint' => [
+                            'address' => $endpoint_their,
+                            'routing_keys' =>  []
+                        ],
+                        'did_doc' => null,
+                    ]
+                ];
+                $pairwise = new Pairwise($me_, $their_, $metadata);
+                $agent->wallet->did->store_their_did($entity_their['did'], $entity_their['verkey']);
+                $agent->pairwise_list->ensure_exists($pairwise);
+            }
+            return $me->pairwise_list->load_for_did($their_entity['did']);
+        }
     }
 }

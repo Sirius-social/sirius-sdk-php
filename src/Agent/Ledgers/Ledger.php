@@ -9,6 +9,7 @@ use Siruis\Agent\Wallet\Abstracts\Anoncreds\AbstractAnonCreds;
 use Siruis\Agent\Wallet\Abstracts\Anoncreds\AnonCredSchema;
 use Siruis\Agent\Wallet\Abstracts\CacheOptions;
 use Siruis\Agent\Wallet\Abstracts\Ledger\AbstractLedger;
+use Siruis\Agent\Wallet\Abstracts\Ledger\NYMRole;
 use Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure;
 use Siruis\Errors\Exceptions\SiriusValidationError;
 use Siruis\Errors\IndyExceptions\LedgerNotFound;
@@ -61,6 +62,20 @@ class Ledger
         $this->cache = $cache;
         $this->storage = $storage;
         $this->db = 'ledger_storage_' . $name;
+    }
+
+    public function read_nym(string $submitter_did, string $target_did): array
+    {
+        return $this->api->read_nym($this->name, $submitter_did, $target_did);
+    }
+
+    public function write_nym(
+        string $submitter_did, string $target_did,
+        string $ver_key = null, string $alias = null, $role = null): array
+    {
+        return $this->api->write_nym(
+            $this->name, $submitter_did, $target_did, $ver_key, $alias, $role ?? NYMRole::COMMON_USER
+        );
     }
 
     /**
@@ -300,7 +315,7 @@ class Ledger
             ];
             $storageFetch = $this->storage->fetch($tags);
             if ($storageFetch[1] == 0) {
-                array_push($tags, [
+                array_merge($tags, [
                     'id' => $schema->getId(),
                     'name' => $schema->getName(),
                     'version' => $schema->getVersion(),

@@ -8,6 +8,7 @@ use Siruis\Encryption\P2PConnection;
 use Siruis\Hub\Coprotocols\AbstractCoProtocol;
 use Siruis\Hub\Core\Hub;
 use Siruis\Messaging\Message;
+use Siruis\Tests\CoprotocolsTest;
 use Threaded;
 
 class FirstTaskOnHub extends Threaded
