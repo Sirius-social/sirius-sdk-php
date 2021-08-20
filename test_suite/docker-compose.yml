@@ -141,7 +141,6 @@ services:
     volumes:
       - ../:/sirius-sdk
     environment:
-      XDEBUG_CONFIG: "mode=develop,debug client_host=host.docker.internal start_with_request=yes"
       TEST_SUITE_BASE_URL: "http://10.0.0.90"
       INDY_AGENT_BASE_URL: "http://10.0.0.52:8888"
     networks:

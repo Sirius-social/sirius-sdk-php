@@ -169,9 +169,9 @@ class Conftest
         $me_params = $suite->get_agent_params($me->name);
         $their_params = $suite->get_agent_params($their->name);
         $me_label = array_keys($me_params['entities'])[0];
-        $me_entity = array_keys($me_params['entities'])[0][1];
+        $me_entity = array_values($me_params['entities'])[0];
         $their_label = array_keys($their_params['entities'])[0];
-        $their_entity = array_keys($their_params['entities'])[0][1];
+        $their_entity = array_values($their_params['entities'])[0];
         $me_endpoint_address = self::get_endpoints($me->endpoints)[0]->address;
         $their_endpoint_address = self::get_endpoints($their->endpoints)[0]->address;
         foreach ([
@@ -180,11 +180,11 @@ class Conftest
         ] as $items) {
             /** @var Agent $agent */
             list($agent, $entity_me, $entity_their, $label_their, $endpoint_their) = $items;
-            $pairwise = $agent->pairwise_list->load_for_did($entity_their['did']);
+            $pairwise = $agent->pairwise_list->load_for_did($their_entity['did']);
             $is_filled = $pairwise && $pairwise->metadata;
             if (!$is_filled) {
                 $me_ = new Me($entity_me['did'], $entity_me['verkey']);
-                $their_ = new Their($entity_their['did'], $label_their, $endpoint_their, $entity_their['verkey']);
+                $their_ = new Their($entity_their['did'], $their_label, $endpoint_their, $entity_their['verkey']);
                 $metadata = [
                     'me' => [
                         'did' => $entity_me['did'],

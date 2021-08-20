@@ -59,4 +59,6 @@ RUN cd ~/apps && git clone https://github.com/xdebug/xdebug.git \
     && make && make install \
     && echo 'zend_extension=xdebug' >> /usr/local/lib/php.ini \
     && echo 'extension=pthreads' >> /usr/local/lib/php.ini \
-    && echo 'xdebug.remote_host=host.docker.internal' >> /usr/local/lib/php.ini
+    && echo "xdebug.mode=develop,debug"  >> /usr/local/lib/php.ini \
+    && echo "xdebug.start_with_request=yes"  >> /usr/local/lib/php.ini \
+    && echo "xdebug.client_host=10.0.0.1"  >> /usr/local/lib/php.ini

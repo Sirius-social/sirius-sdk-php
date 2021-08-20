@@ -94,7 +94,7 @@ abstract class AbstractCoProtocolTransport
         $this->is_setup = true;
     }
 
-    public function start(array $protocols, int $time_to_live = null)
+    public function start(array $protocols = null, int $time_to_live = null)
     {
         $this->protocols = $protocols;
         $this->time_to_live = $time_to_live;

@@ -407,4 +407,38 @@ class TestWallet extends TestCase
             $agent2->close();
         }
     }
+
+    public function test_attribute_operations_in_network()
+    {
+        $agent1 = Conftest::agent1();
+        $agent2 = Conftest::agent2();
+        $default_network = Conftest::default_network();
+        $agent1->open();
+        $agent2->open();
+        $steward = $agent1->wallet;
+        $actor = $agent2->wallet;
+        try {
+            $seed = '000000000000000000000000Steward1';
+            list($did_steward, $verkey_steward) = $steward->did->create_and_store_my_did(null, $seed);
+            list($did_common, $verkey_common) = $actor->did->create_and_store_my_did();
+            list($ok, $response) = $steward->ledger->write_nym(
+                $default_network, $did_steward, $did_common, $verkey_common, 'CommonUser', NYMRole::COMMON_USER
+            );
+            self::assertTrue($ok);
+
+            list($ok, $response) = $actor->ledger->write_attribute(
+                $default_network, $did_common, $did_common, 'attribute', 'value'
+            );
+            self::assertTrue($ok);
+
+            list($ok, $response) = $steward->ledger->read_attribute(
+                $default_network, $did_common, $did_common, 'attribute'
+            );
+            self::assertTrue($ok);
+            self::assertEquals('value', $response);
+        } finally {
+            $agent1->close();
+            $agent2->close();
+        }
+    }
 }

@@ -44,7 +44,7 @@ class ThreadBasedCoProtocolTransport extends AbstractCoProtocolTransport
     {
         parent::__construct($rpc);
         $this->thid = $thid;
-        $this->pairwise = $pairwise;
+        $this->pairwise = $this->setPairwise($pairwise);
         $this->pthid = $pthid;
         $this->sender_order = 0;
         $this->received_orders = [];

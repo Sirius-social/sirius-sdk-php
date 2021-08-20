@@ -20,10 +20,10 @@ class AriesProtocolMessage extends Message
      */
     public const THREAD_DECORATOR = '~thread';
 
-    public const DOC_URI = self::ARIES_DOC_URI;
-    public const PROTOCOL = null;
-    public const NAME = null;
-    public const DEF_VERSION = '1.0';
+    public static $DOC_URI = self::ARIES_DOC_URI;
+    public static $PROTOCOL = null;
+    public static $NAME = null;
+    public static $DEF_VERSION = '1.0';
     /**
      * @var string|null
      */
@@ -62,15 +62,14 @@ class AriesProtocolMessage extends Message
         string $doc_uri = null
     )
     {
-        if (self::NAME && !key_exists('@type', $payload)) {
+        if (self::$NAME && !key_exists('@type', $payload)) {
             $payload['@type'] = (string) new Type(
                 $doc_uri,
-                self::PROTOCOL,
-                self::NAME,
-                $version ? $version : self::DEF_VERSION
+                self::$PROTOCOL,
+                self::$NAME,
+                $version ? $version : self::$DEF_VERSION
             );
         }
-        parent::__construct($payload);
         $this->payload = $payload;
         $this->id_ = $id_;
         $this->version = $version;
@@ -81,12 +80,13 @@ class AriesProtocolMessage extends Message
         if ($this->doc_uri && !in_array($this->doc_uri, self::VALID_DOC_URI)) {
             throw new SiriusValidationError('Unexpected doc_uri "'.$this->doc_uri.'"');
         }
-        if ($this->protocol && $this->protocol != self::PROTOCOL) {
+        if ($this->protocol && $this->protocol != self::$PROTOCOL) {
             throw new SiriusValidationError('Unexpected protocol "'.$this->protocol.'"');
         }
-        if ($this->name != self::NAME) {
+        if ($this->name != self::$NAME) {
             throw new SiriusValidationError('Unexpected name "'.$this->name.'"');
         }
+        parent::__construct($payload);
     }
 
     /**

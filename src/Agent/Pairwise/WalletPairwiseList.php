@@ -178,10 +178,10 @@ class WalletPairwiseList extends AbstractPairwiseList
      * @param array $metadata
      * @return array[]
      */
-    protected function metadata_filter(array $metadata)
+    protected static function metadata_filter(array $metadata)
     {
-        $me = ArrayHelper::getValueWithKeyFromArray('me', $metadata[0], []);
-        $their = ArrayHelper::getValueWithKeyFromArray('their', $metadata[1], []);
+        $me = ArrayHelper::getValueWithKeyFromArray('me', $metadata, []);
+        $their = ArrayHelper::getValueWithKeyFromArray('their', $metadata, []);
         $me_filtered = [
             'did' => ArrayHelper::getValueWithKeyFromArray('did', $me),
             'verkey' => ArrayHelper::getValueWithKeyFromArray('verkey', $me),
