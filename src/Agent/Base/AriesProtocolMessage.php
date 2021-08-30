@@ -20,10 +20,10 @@ class AriesProtocolMessage extends Message
      */
     public const THREAD_DECORATOR = '~thread';
 
-    public static $DOC_URI = self::ARIES_DOC_URI;
-    public static $PROTOCOL = null;
-    public static $NAME = null;
-    public static $DEF_VERSION = '1.0';
+    public $DOC_URI = self::ARIES_DOC_URI;
+    public $PROTOCOL = null;
+    public $NAME = null;
+    public $DEF_VERSION = '1.0';
     /**
      * @var string|null
      */
@@ -62,14 +62,15 @@ class AriesProtocolMessage extends Message
         string $doc_uri = null
     )
     {
-        if (self::$NAME && !key_exists('@type', $payload)) {
+        if ($this->NAME && !key_exists('@type', $payload)) {
             $payload['@type'] = (string) new Type(
-                $doc_uri,
-                self::$PROTOCOL,
-                self::$NAME,
-                $version ? $version : self::$DEF_VERSION
+                $doc_uri ?? $this->DOC_URI,
+                $this->PROTOCOL,
+                $version ?? $this->DEF_VERSION,
+                $this->NAME
             );
         }
+        parent::__construct($payload);
         $this->payload = $payload;
         $this->id_ = $id_;
         $this->version = $version;
@@ -77,16 +78,15 @@ class AriesProtocolMessage extends Message
         if ($this->id_) {
             $payload['@id'] = $this->id_;
         }
-        if ($this->doc_uri && !in_array($this->doc_uri, self::VALID_DOC_URI)) {
+        if ($this->doc_uri && !in_array($this->doc_uri, $this->VALID_DOC_URI)) {
             throw new SiriusValidationError('Unexpected doc_uri "'.$this->doc_uri.'"');
         }
-        if ($this->protocol && $this->protocol != self::$PROTOCOL) {
+        if ($this->protocol && $this->protocol != $this->PROTOCOL) {
             throw new SiriusValidationError('Unexpected protocol "'.$this->protocol.'"');
         }
-        if ($this->name != self::$NAME) {
+        if ($this->getName() != $this->NAME) {
             throw new SiriusValidationError('Unexpected name "'.$this->name.'"');
         }
-        parent::__construct($payload);
     }
 
     /**

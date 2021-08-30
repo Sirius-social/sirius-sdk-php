@@ -25,7 +25,8 @@
     "wisembly/elephant.io": "^3.3",
     "ext-sockets": "*",
     "ext-pthreads": "*",
-    "ext-pcntl": "*"
+    "ext-pcntl": "*",
+    "ext-http": "*"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.3"

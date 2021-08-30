@@ -11,7 +11,7 @@ use SodiumException;
 
 class PreCommitTransactionsMessage extends BaseTransactionsMessage
 {
-    const NAME = 'stage-pre-commit';
+    public $NAME = 'stage-pre-commit';
     public $hash_sig;
 
     /**
@@ -31,8 +31,8 @@ class PreCommitTransactionsMessage extends BaseTransactionsMessage
         $hash_signed = $this->hash_sig ? $this->hash_sig : null;
         if ($hash_signed) {
             if ($hash_signed['signer'] == $expected_verkey) {
-                $verify = Utils::verify_signed($api, $hash_signed);
-                return [$verify[1], $verify[0]];
+                list($state_hash, $is_success) = Utils::verify_signed($api, $hash_signed);
+                return [$is_success, $state_hash];
             } else {
                 return [false, null];
             }

@@ -15,7 +15,7 @@ use SodiumException;
 
 class BaseInitLedgerMessage extends SimpleConsensusMessage
 {
-    const NAME = 'initialize';
+    public $NAME = 'initialize';
     public $ledger;
     public $ledger_hash;
     public $signatures;
@@ -53,7 +53,13 @@ class BaseInitLedgerMessage extends SimpleConsensusMessage
 
     public function getSignatures()
     {
-        return ArrayHelper::getValueWithKeyFromArray('signatures', $this->payload);
+        return ArrayHelper::getValueWithKeyFromArray('signatures', $this->payload, []);
+    }
+
+    public function setSignatures($value)
+    {
+        $this->payload['signatures'] = $value;
+        $this->signatures = $this->getSignatures();
     }
 
     /**
@@ -73,24 +79,23 @@ class BaseInitLedgerMessage extends SimpleConsensusMessage
         if ($participant == 'ALL') {
             $signatures = $this->signatures;
         } else {
-            $sigs = [];
             foreach ($this->signatures as $signature) {
                 if ($signature['participant'] == $participant) {
-                    array_push($sigs, $signature);
+                    array_push($signatures, $signature);
                 }
             }
         }
         if ($signatures) {
             $response = [];
             foreach ($signatures as $item) {
-                $verified = Utils::verify_signed($api, $item['signature']);
-                if (!$verified[1]) {
+                list($signed_ledger_hash, $is_success) = Utils::verify_signed($api, $item['signature']);
+                if (!$is_success) {
                     throw new SiriusValidationError('Invalid sign for participant '. $item['participant']);
                 }
-                if ($verified[0] != $this->ledger_hash) {
+                if ($signed_ledger_hash != $this->ledger_hash) {
                     throw new SiriusValidationError('NonConsistent ledger hash for participant ' . $item['participant']);
                 }
-                $response[$item['participant']] = $verified[0];
+                $response[$item['participant']] = $signed_ledger_hash;
             }
             return $response;
         } else {

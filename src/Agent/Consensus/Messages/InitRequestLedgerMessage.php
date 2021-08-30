@@ -13,7 +13,7 @@ use Siruis\Helpers\ArrayHelper;
 
 class InitRequestLedgerMessage extends BaseInitLedgerMessage
 {
-    const NAME = 'initialize-request';
+    public $NAME = 'initialize-request';
     public $timeout_sec;
     public $thread_id;
 
@@ -48,7 +48,7 @@ class InitRequestLedgerMessage extends BaseInitLedgerMessage
         if ($this->ledger_hash) {
             $hash_signature = Utils::sign($api, $this->ledger_hash, $me->verkey);
             $signatures = [];
-            foreach ($this->signatures as $signature) {
+            foreach ($this->getSignatures() as $signature) {
                 if ($signature['participant'] != $me->did) {
                     array_push($signatures, $signature);
                 }
@@ -57,7 +57,7 @@ class InitRequestLedgerMessage extends BaseInitLedgerMessage
                 'participant' => $me->did,
                 'signature' => $hash_signature
             ]);
-            $this->signatures = $signatures;
+            $this->setSignatures($signatures);
         } else {
             throw new SiriusContextError('Ledger Hash description is empty');
         }

@@ -12,7 +12,7 @@ use SodiumException;
 
 class CommitTransactionsMessage extends BaseTransactionsMessage
 {
-    const NAME = 'stage-commit';
+    public $NAME = 'stage-commit';
 
     public function getPreCommits()
     {

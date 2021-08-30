@@ -8,5 +8,5 @@ use Siruis\Agent\Base\AriesProblemReport;
 
 class SimpleConsensusProblemReport extends AriesProblemReport
 {
-    const PROTOCOL = SimpleConsensusMessage::PROTOCOL;
+    public $PROTOCOL = 'simple-consensus';
 }

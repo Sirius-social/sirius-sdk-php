@@ -13,7 +13,7 @@ use Siruis\Helpers\ArrayHelper;
 
 class BaseTransactionsMessage extends SimpleConsensusMessage
 {
-    const NAME = 'stage';
+    public $NAME = 'stage';
     public $transactions;
     public $state;
     public $hash;

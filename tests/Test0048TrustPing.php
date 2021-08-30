@@ -41,7 +41,7 @@ class Test0048TrustPing extends TestCase
             $event = $listener2->get_one();
             $recv = $event->getMessage();
             self::assertInstanceOf(Ping::class, $recv);
-            self::assertEquals($recv->comment, $ping->comment);
+            self::assertEquals($ping->comment, $recv->comment);
 
             // Check ERR
             $to = new Pairwise(

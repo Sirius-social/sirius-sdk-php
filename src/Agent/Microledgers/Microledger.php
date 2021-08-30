@@ -139,7 +139,7 @@ class Microledger extends AbstractMicroledger
         $transactions_to_append = [];
         foreach ($transactions as $txn) {
             if ($txn instanceof Transaction) {
-                array_push($transactions_to_append, $txn);
+                array_push($transactions_to_append, $txn->as_object());
             } elseif (is_array($txn)) {
                 $txn = Transaction::create($txn);
                 array_push($transactions_to_append, $txn->as_object());
@@ -150,7 +150,7 @@ class Microledger extends AbstractMicroledger
         $transactions_with_meta = $this->api->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/microledgers/1.0/append_txns_metadata',
             [
-                'name' => $this->name,
+                'name' => $this->getName(),
                 'txns' => $transactions_to_append,
                 'txn_time' => $txn_time
             ]

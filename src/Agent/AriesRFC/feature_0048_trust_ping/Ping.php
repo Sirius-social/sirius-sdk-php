@@ -11,8 +11,8 @@ use Siruis\Errors\Exceptions\SiriusValidationError;
 
 class Ping extends AriesProtocolMessage
 {
-    public static $PROTOCOL = 'trust_ping';
-    public static $NAME = 'ping';
+    public $PROTOCOL = 'trust_ping';
+    public $NAME = 'ping';
 
     /**
      * @var string|null

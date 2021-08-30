@@ -6,7 +6,7 @@ namespace Siruis\Agent\Consensus\Messages;
 
 class InitResponseLedgerMessage extends InitRequestLedgerMessage
 {
-    const NAME = 'initialize-response';
+    public $NAME = 'initialize-response';
 
     public function assign_from(BaseInitLedgerMessage $source)
     {

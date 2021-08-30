@@ -8,7 +8,7 @@ use Siruis\Errors\Exceptions\SiriusValidationError;
 
 class ProposeTransactionsMessage extends BaseTransactionsMessage
 {
-    const NAME = 'stage-propose';
+    public $NAME = 'stage-propose';
     public $timeout_sec;
 
     public function __construct(array $payload,

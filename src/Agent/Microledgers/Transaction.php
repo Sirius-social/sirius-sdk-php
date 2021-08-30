@@ -6,6 +6,7 @@ namespace Siruis\Agent\Microledgers;
 
 use ArrayObject;
 use Siruis\Errors\Exceptions\SiriusContextError;
+use Siruis\Helpers\ArrayHelper;
 
 class Transaction extends ArrayObject
 {
@@ -24,6 +25,19 @@ class Transaction extends ArrayObject
         $this->payload = $payload;
     }
 
+    public function getTime()
+    {
+        $metadata = ArrayHelper::getValueWithKeyFromArray(Microledgers::METADATA_ATTR, $this->payload, []);
+        return $metadata[Microledgers::ATTR_TIME];
+    }
+
+    public function setTime(string $value)
+    {
+        $metadata = $this->payload[Microledgers::METADATA_ATTR] ?? [];
+        $metadata->{Microledgers::ATTR_TIME} = $value;
+        $this->payload[Microledgers::METADATA_ATTR] = $metadata;
+    }
+
     public function as_object()
     {
         return (object)$this->payload;
@@ -38,7 +52,7 @@ class Transaction extends ArrayObject
     {
         if (key_exists(Microledgers::METADATA_ATTR, $this->payload)) {
             $meta = $this->payload[Microledgers::METADATA_ATTR];
-            return count($meta) > 0;
+            return count((array)$meta) > 0;
         } else {
             return false;
         }

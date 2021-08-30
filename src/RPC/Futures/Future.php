@@ -178,7 +178,6 @@ class Future
                         'indy_backtrace' => null
                     ]);
             } else {
-                var_dump($this->exception);
                 return new SiriusPromiseContextException(
                     $this->exception['class_name'],
                     $this->exception['printable']

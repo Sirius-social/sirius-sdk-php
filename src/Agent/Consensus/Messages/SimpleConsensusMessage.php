@@ -8,8 +8,7 @@ use Siruis\Agent\Base\AriesProtocolMessage;
 
 class SimpleConsensusMessage extends AriesProtocolMessage
 {
-    const PROTOCOL = 'simple-consensus';
-    public $participants;
+    public $PROTOCOL = 'simple-consensus';
 
     public function __construct(array $payload,
                                 array $participants = null,
@@ -18,6 +17,16 @@ class SimpleConsensusMessage extends AriesProtocolMessage
                                 string $doc_uri = null)
     {
         parent::__construct($payload, $id_, $version, $doc_uri);
-        $this->participants = $participants;
+        $this->payload['participants'] = $participants;
+    }
+
+    public function getParticipants()
+    {
+        return $this->payload['participants'] ?? [];
+    }
+
+    public function setParticipants($value)
+    {
+        $this->payload['participants'] = $value;
     }
 }

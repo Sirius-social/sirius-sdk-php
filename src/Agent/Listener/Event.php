@@ -31,7 +31,7 @@ class Event extends Message
         $this->extra = $this->getExtra();
     }
 
-    public function getMessage(): ?Message
+    public function getMessage()
     {
         if (key_exists('message', $this->payload)) {
             return $this->payload['message'];

@@ -12,7 +12,7 @@ use Siruis\Helpers\ArrayHelper;
 
 class PostCommitTransactionsMessage extends BaseTransactionsMessage
 {
-    const NAME = 'stage-post-commit';
+    public $NAME = 'stage-post-commit';
 
     public function getCommits(): array
     {

@@ -53,12 +53,11 @@ RUN cd ~/apps && git clone https://github.com/krakjoe/pthreads.git \
        --enable-pthreads=shared \
     && make && make install
 
-RUN cd ~/apps && git clone https://github.com/xdebug/xdebug.git \
-    && cd xdebug && phpize \
+RUN cd ~/apps && git clone git://github.com/xdebug/xdebug.git \
+    && cd xdebug && git checkout xdebug_2_9 && phpize \
     && ./configure --enable-xdebug \
     && make && make install \
-    && echo 'zend_extension=xdebug' >> /usr/local/lib/php.ini \
-    && echo 'extension=pthreads' >> /usr/local/lib/php.ini \
-    && echo "xdebug.mode=develop,debug"  >> /usr/local/lib/php.ini \
-    && echo "xdebug.start_with_request=yes"  >> /usr/local/lib/php.ini \
-    && echo "xdebug.client_host=10.0.0.1"  >> /usr/local/lib/php.ini
+    && echo "zend_extension=$(find /usr/local/lib/php/extensions/ -name xdebug.so)" >> /usr/local/lib/php.ini \
+    && echo "xdebug.remote_enable=on" >> /usr/local/lib/php.ini \
+    && echo "xdebug.remote_autostart=off" >> /usr/local/lib/php.ini \
+    && echo 'extension=pthreads' >> /usr/local/lib/php.ini

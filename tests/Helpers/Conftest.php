@@ -96,6 +96,26 @@ class Conftest
         return self::get_agent('agent4');
     }
 
+    public static function A(): Agent
+    {
+        return self::get_agent('agent1');
+    }
+
+    public static function B(): Agent
+    {
+        return self::get_agent('agent2');
+    }
+
+    public static function C(): Agent
+    {
+        return self::get_agent('agent3');
+    }
+
+    public static function D(): Agent
+    {
+        return self::get_agent('agent4');
+    }
+
     public static function ledger_name(): string
     {
         return 'Ledger-'.uniqid();

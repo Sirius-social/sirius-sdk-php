@@ -6,7 +6,7 @@ namespace Siruis\Agent\Base;
 
 class AriesProblemReport extends AriesProtocolMessage
 {
-    const NAME = 'problem_report';
+    public $NAME = 'problem_report';
     /**
      * @var string|null
      */

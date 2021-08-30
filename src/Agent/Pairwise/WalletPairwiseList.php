@@ -141,9 +141,9 @@ class WalletPairwiseList extends AbstractPairwiseList
             ),
             new Their(
                 $their['did'],
-                $their['verkey'],
                 $their['label'],
                 $their['endpoint'],
+                $their['verkey'],
                 $their['routing_keys'],
                 $their['did_doc']
             ),

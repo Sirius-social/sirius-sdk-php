@@ -4,24 +4,14 @@
 namespace Siruis\Hub;
 
 
-use GuzzleHttp\Exception\GuzzleException;
-use ParagonIE\Sodium\Crypto;
-use Siruis\Agent\Agent\Agent;
 use Siruis\Agent\Ledgers\Ledger;
 use Siruis\Agent\Listener\Listener;
-use Siruis\Agent\Microledgers\AbstractMicroledgerList;
-use Siruis\Agent\Pairwise\AbstractPairwiseList;
 use Siruis\Agent\Pairwise\Pairwise;
-use Siruis\Agent\Wallet\Abstracts\AbstractCache;
-use Siruis\Agent\Wallet\Abstracts\AbstractCrypto;
-use Siruis\Agent\Wallet\Abstracts\AbstractDID;
 use Siruis\Agent\Wallet\Impl\NonSecretsProxy;
-use Siruis\Errors\Exceptions\SiriusConnectionClosed;
-use Siruis\Errors\Exceptions\SiriusInitializationError;
-use Siruis\Errors\Exceptions\SiriusRPCError;
 use Siruis\Hub\Core\Hub;
 use Siruis\Hub\Proxies\AnonCredsProxy;
 use Siruis\Hub\Proxies\CacheProxy;
+use Siruis\Hub\Proxies\CryptoProxy;
 use Siruis\Hub\Proxies\DIDProxy;
 use Siruis\Hub\Proxies\MicroledgersProxy;
 use Siruis\Hub\Proxies\PairwiseProxy;
@@ -36,7 +26,7 @@ class Init
 
     public static function Crypto()
     {
-        return new Crypto();
+        return new CryptoProxy();
     }
 
     public static function Microledgers()
