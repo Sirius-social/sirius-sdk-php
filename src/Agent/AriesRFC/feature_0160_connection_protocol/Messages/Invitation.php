@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Siruis\Agent\AriesRFC\feature_0160_connection_protocol;
+namespace Siruis\Agent\AriesRFC\feature_0160_connection_protocol\Messages;
 
 
 use Siruis\Encryption\Encryption;
@@ -14,7 +14,7 @@ use SodiumException;
 
 class Invitation extends ConnProtocolMessage
 {
-    const NAME = 'invitation';
+    public $NAME = 'invitation';
 
     public function __construct(array $payload,
                                 string $label = null,
@@ -42,6 +42,7 @@ class Invitation extends ConnProtocolMessage
         if ($did) {
             $this->payload['did'] = $did;
         }
+        Message::registerMessageClass(Invitation::class, $this->PROTOCOL, $this->NAME);
     }
 
     public function validate()
@@ -59,7 +60,7 @@ class Invitation extends ConnProtocolMessage
      * @throws SiriusValidationError
      * @throws SodiumException
      */
-    public function fromUrl(string $url)
+    public static function fromUrl(string $url)
     {
         preg_match('/(.+)?c_i=(.+)/', $url, $matches);
         if (!$matches)  {

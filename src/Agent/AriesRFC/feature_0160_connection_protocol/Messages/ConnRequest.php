@@ -1,14 +1,15 @@
 <?php
 
 
-namespace Siruis\Agent\AriesRFC\feature_0160_connection_protocol;
+namespace Siruis\Agent\AriesRFC\feature_0160_connection_protocol\Messages;
 
 
+use Siruis\Messaging\Message;
 use Siruis\Messaging\Validators;
 
 class ConnRequest extends ConnProtocolMessage
 {
-    const NAME = 'request';
+    public $NAME = 'request';
 
     public function __construct(array $payload,
                                 string $label = null,
@@ -31,6 +32,7 @@ class ConnRequest extends ConnProtocolMessage
                 'DIDDoc' => self::build_did_doc($did, $verkey, $endpoint, $extra),
             ];
         }
+        Message::registerMessageClass(ConnRequest::class, $this->PROTOCOL, $this->NAME);
     }
 
     public function getLabel()

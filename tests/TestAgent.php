@@ -4,6 +4,7 @@ namespace Siruis\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Siruis\Agent\Agent\Agent;
+use Siruis\Encryption\Encryption;
 use Siruis\Messaging\Message;
 use Siruis\Tests\Helpers\Conftest;
 use Siruis\Tests\Helpers\TrustPingMessageUnderTest;
@@ -262,6 +263,47 @@ class TestAgent extends TestCase
             $msg = $event['message']->payload;
             self::assertEquals('did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping_response', $msg['@type']);
             self::assertEquals($ping_response->id, $msg['@id']);
+        } finally {
+            $agent1->close();
+            $agent2->close();
+        }
+    }
+    
+    /** @test */
+    public function test_agents_crypto()
+    {
+        $test_suite = Conftest::test_suite();
+        $agent1_params = $test_suite->get_agent_params('agent1');
+        $agent2_params = $test_suite->get_agent_params('agent2');
+        $agent1 = new Agent(
+            $agent1_params['server_address'],
+            $agent1_params['credentials'],
+            $agent1_params['p2p'],
+            5
+        );
+        $agent2 = new Agent(
+            $agent2_params['server_address'],
+            $agent2_params['credentials'],
+            $agent2_params['p2p'],
+            5
+        );
+        $agent1->open();
+        $agent2->open();
+        try {
+            $did_signer = 'Th7MpTaRZVRYnPiabds81Y';
+            $verkey_signer = 'FYmoFw55GeQH7SRFa37dkx1d2dZ3zUF8ckg7wmL7ofN4';
+            $msg = b'message';
+            // 1. Check sign
+            $expected_signature = 'QRHbNQxHLEhBuYKbe3ReTUCNRDnGDYMJvABJFEuUSFU8EzS6orRzWjMf3fR4PSgM2Z5gqfsc1kg6vYpQCCb4bjB';
+            $signature = $agent1->wallet->crypto->cryptoSign($verkey_signer, $msg);
+            self::assertEquals($expected_signature, Encryption::bytes_to_b58($signature));
+            // 2. Check verify
+            $success = $agent2->wallet->crypto->cryptoVerify($verkey_signer, $msg, $signature);
+            self::assertTrue($success);
+            // 3. Check verify with error
+            $other_msg = 'other-message';
+            $success = $agent2->wallet->crypto->cryptoVerify($verkey_signer, $other_msg, $signature);
+            self::assertFalse($success);
         } finally {
             $agent1->close();
             $agent2->close();

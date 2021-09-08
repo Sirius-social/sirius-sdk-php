@@ -85,10 +85,11 @@ class CoprotocolsTest extends TestCase
             $agent1_protocol = $agent1->spawnTheirEndpoint($entity1['verkey'], $their1);
             self::assertInstanceOf(TheirEndpointCoProtocolTransport::class, $agent1_protocol);
             $their2 = new TheirEndpoint($agent1_endpoints, $entity1['verkey']);
-            $agent2_protocol = $agent1->spawnTheirEndpoint($entity2['verkey'], $their2);
+            $agent2_protocol = $agent2->spawnTheirEndpoint($entity2['verkey'], $their2);
             self::assertInstanceOf(TheirEndpointCoProtocolTransport::class, $agent2_protocol);
             $agent1_protocol->start(['test-protocol']);
             $agent2_protocol->start(['test-protocol']);
+            $opened = $agent1_protocol->rpc->isOpen();
             try {
                 self::$MSG_LOG = [];
                 Threads::run_threads([new FirstTask($agent1_protocol), new SecondTask($agent2_protocol)]);

@@ -48,7 +48,9 @@ class TestConsensusSimple extends TestCase
             $request->add_signature($A->wallet->crypto, $A2B->me);
             $request->add_signature($B->wallet->crypto, $B2A->me);
 
-            self::assertCount(2, $request->signatures);
+            $signatures = $request->getSignatures();
+
+            self::assertCount(2, $request->getSignatures());
 
             $request->check_signatures($A->wallet->crypto, $A2B->me->did);
             $request->check_signatures($A->wallet->crypto, $B2A->me->did);

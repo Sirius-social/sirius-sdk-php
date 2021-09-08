@@ -42,7 +42,7 @@ class InitRequestLedgerMessage extends BaseInitLedgerMessage
 
     public function add_signature(AbstractCrypto $api, Me $me)
     {
-        if (!in_array($me->did, $this->participants)) {
+        if (!in_array($me->did, $this->getParticipants())) {
             throw new SiriusContextError('Signer must be a participant');
         }
         if ($this->ledger_hash) {

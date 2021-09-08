@@ -11,6 +11,8 @@ use Siruis\Errors\Exceptions\SiriusInvalidType;
 use Siruis\Errors\Exceptions\SiriusValidationError;
 use Siruis\Messaging\Message;
 use Siruis\Messaging\Type\Type;
+use Siruis\Agent\AriesRFC\feature_0095_basic_message\Messages\Message as msg0095_Message;
+use Siruis\Agent\AriesRFC\Mixins\Attach as msg0095_Attach;
 
 class Test1Message extends Message {
 
@@ -182,5 +184,17 @@ class TestMessages extends TestCase
         self::assertEquals('thread-id', $ack->getThreadId());
         $ack->validate();
         self::assertEquals(Status::PENDING, $ack->getStatus());
+    }
+
+    /** @test */
+    public function test_attaches_mixin()
+    {
+        $msg = new msg0095_Message([], 'content', 'en');
+        $attach = new msg0095_Attach('id', 'image/png', 'photo.png', null, null, 'eW91ciB0ZXh0');
+        $msg->addAttach($attach);
+
+        self::assertCount(1, $msg->getAttaches());
+        self::assertInstanceOf(msg0095_Attach::class, $msg->getAttaches()[0]);
+        self::assertEquals('eW91ciB0ZXh0', $msg->getAttaches()[0]->getData());
     }
 }

@@ -178,7 +178,7 @@ class Parsing
         }
     }
 
-    protected static function is_binary(string $string): bool
+    public static function is_binary(string $string): bool
     {
         return preg_match('~[^\x20-\x7E\t\r\n]~', $string) > 0;
     }

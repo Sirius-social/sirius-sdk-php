@@ -8,12 +8,16 @@ use Siruis\Agent\Base\AriesProtocolMessage;
 use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
 use Siruis\Errors\Exceptions\SiriusInvalidType;
 use Siruis\Errors\Exceptions\SiriusValidationError;
+use Siruis\Messaging\Message;
 use Siruis\Messaging\Validators;
 
 class Ack extends AriesProtocolMessage
 {
+    public $PROTOCOL = 'notification';
+    public $NAME =  'ack';
+
     public const PROTOCOL = 'notification';
-    public const NAME =  'ack';
+    public const NAME = 'ack';
 
     /**
      * @var string|null
@@ -68,6 +72,7 @@ class Ack extends AriesProtocolMessage
             $payload[self::THREAD_DECORATOR] = $thread;
         }
         $this->payload = $payload;
+        Message::registerMessageClass(Ack::class, $this->PROTOCOL, $this->NAME);
     }
 
     public function validate()

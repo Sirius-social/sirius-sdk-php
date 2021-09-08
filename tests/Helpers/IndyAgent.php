@@ -52,7 +52,7 @@ class IndyAgent
         assert($http_post[0]);
     }
 
-    public function load_initations(string $label, string $seed = null)
+    public function load_invitations(string $label, string $seed = null)
     {
         $url = '/agent/admin/wallets/' . self::WALLET . '/endpoints/' . $this->endpoint['uid'] . '/invitations/';
         $http_get = $this->__http_get($url);

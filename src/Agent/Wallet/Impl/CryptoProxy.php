@@ -5,6 +5,8 @@ namespace Siruis\Agent\Wallet\Impl;
 
 use Siruis\Agent\Connections\AgentRPC;
 use Siruis\Agent\Wallet\Abstracts\AbstractCrypto;
+use Siruis\Errors\Exceptions\SiriusFieldTypeError;
+use Siruis\RPC\Parsing;
 use Siruis\RPC\RawBytes;
 
 class CryptoProxy extends AbstractCrypto
@@ -65,6 +67,7 @@ class CryptoProxy extends AbstractCrypto
      */
     public function cryptoSign(string $signerVk, string $msg): string
     {
+        $msg = new RawBytes($msg);
         return $this->rpc->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/crypto_sign',
             [
@@ -77,16 +80,20 @@ class CryptoProxy extends AbstractCrypto
     /**
      * @inheritDoc
      */
-    public function cryptoVerify(string $signerVk, string $msg, string $signature): bool
+    public function cryptoVerify(string $signerVk, string $msg, $signature): bool
     {
-        return $this->rpc->remoteCall(
-            'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/crypto_verify',
-            [
-                'signer_vk' => $signerVk,
-                'msg' => $msg,
-                'signature' => $signature
-            ]
-        );
+        if (Parsing::is_binary($signature)) {
+            return $this->rpc->remoteCall(
+                'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/crypto_verify',
+                [
+                    'signer_vk' => $signerVk,
+                    'msg' => new RawBytes($msg),
+                    'signature' => $signature
+                ]
+            );
+        } else {
+            throw new SiriusFieldTypeError('signature', 'binary', gettype($signature));
+        }
     }
 
     /**

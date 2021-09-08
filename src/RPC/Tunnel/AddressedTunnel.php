@@ -107,7 +107,6 @@ class AddressedTunnel
      */
     public function post(Message $message, bool $encrypt = true)
     {
-        error_log(json_encode($message->payload));
         if ($encrypt) {
             $payload = $this->p2p->pack($message->payload);
         } else {

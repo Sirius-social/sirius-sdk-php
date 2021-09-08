@@ -12,12 +12,11 @@ use Volatile;
 
 class SecondTask extends Threaded
 {
-    private $shared;
+    protected $protocol;
 
-    public function __construct($protocol)
+    public function __construct(AbstractCoProtocolTransport $protocol)
     {
-        $this->shared = new Volatile();
-        $this->shared['protocol'] = $protocol;
+        $this->protocol = $protocol;
     }
 
     public function work()
@@ -37,7 +36,7 @@ class SecondTask extends Threaded
 
     protected function getProtocol()
     {
-        $protocol = $this->shared['protocol'];
+        $protocol = $this->protocol;
         $protocol->rpc->reopen();
         return $protocol;
     }

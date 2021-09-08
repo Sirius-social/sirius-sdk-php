@@ -2,6 +2,7 @@
 
 namespace Siruis\Tests;
 
+use Exception;
 use PHPUnit\Framework\TestCase;
 use Siruis\Agent\AriesRFC\feature_0048_trust_ping\Ping;
 use Siruis\Agent\Pairwise\Me;
@@ -41,14 +42,14 @@ class Test0048TrustPing extends TestCase
             $event = $listener2->get_one();
             $recv = $event->getMessage();
             self::assertInstanceOf(Ping::class, $recv);
-            self::assertEquals($ping->comment, $recv->comment);
+            self::assertEquals($ping->getComment(), $recv->getComment());
 
             // Check ERR
             $to = new Pairwise(
                 new Me($did1, $verkey1),
                 new Their($did2, 'Agent3', $endpoint_address_3, $verkey2)
             );
-            self::expectException(BaseSiriusException::class);
+            self::expectException(Exception::class);
             $agent1->send_to($ping, $to);
         } finally {
             $agent1->close();

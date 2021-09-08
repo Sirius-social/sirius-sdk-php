@@ -76,6 +76,11 @@ class Conftest
         return static::get_suite_singleton();
     }
 
+    public static function indy_agent(): IndyAgent
+    {
+        return self::get_indy_agent_singleton();
+    }
+
     public static function agent1(): Agent
     {
         return self::get_agent('agent1');

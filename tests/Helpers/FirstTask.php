@@ -12,10 +12,7 @@ use Volatile;
 
 class FirstTask extends Volatile
 {
-    /**
-     * @var AbstractCoProtocolTransport
-     */
-    private $protocol;
+    protected $protocol;
 
     public function __construct(AbstractCoProtocolTransport $protocol)
     {
@@ -24,7 +21,7 @@ class FirstTask extends Volatile
 
     public function work()
     {
-        $protocol = $this->protocol;
+        $protocol = $this->getProtocol();
         $first_req = new Message([
             '@type' => CoprotocolsTest::$TEST_MSG_TYPES[0],
             'content' => 'Request1'
@@ -39,5 +36,12 @@ class FirstTask extends Volatile
         ]));
         CoprotocolsTest::assertTrue($ok);
         array_push(CoprotocolsTest::$MSG_LOG, $resp2);
+    }
+
+    public function getProtocol()
+    {
+        $protocol = $this->protocol;
+        $protocol->rpc->reopen();
+        return $protocol;
     }
 }

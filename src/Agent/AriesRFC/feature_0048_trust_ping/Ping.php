@@ -8,16 +8,15 @@ use Siruis\Agent\Base\AriesProtocolMessage;
 use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
 use Siruis\Errors\Exceptions\SiriusInvalidType;
 use Siruis\Errors\Exceptions\SiriusValidationError;
+use Siruis\Messaging\Message;
 
 class Ping extends AriesProtocolMessage
 {
     public $PROTOCOL = 'trust_ping';
     public $NAME = 'ping';
 
-    /**
-     * @var string|null
-     */
-    public $comment;
+    public const PROTOCOL = 'trust_ping';
+    public const NAME = 'ping';
 
     /**
      * @var bool|null
@@ -47,15 +46,16 @@ class Ping extends AriesProtocolMessage
     {
         parent::__construct($payload, $id_, $version, $doc_uri);
         if (key_exists('comment', $payload)) {
-            $this->comment = $payload['comment'];
+            $this->payload['comment'] = $payload['comment'];
         } elseif ($comment) {
-            $this->comment = $comment;
+            $this->payload['comment'] = $comment;
         }
         if (key_exists('response_requested', $payload)) {
             $this->response_requested = $payload['response_requested'];
         } elseif ($response_requested) {
             $this->response_requested = $response_requested;
         }
+        Message::registerMessageClass(Ping::class, $this->PROTOCOL, $this->NAME);
     }
 
     /**
@@ -63,7 +63,7 @@ class Ping extends AriesProtocolMessage
      */
     public function getComment(): ?string
     {
-        return $this->comment;
+        return $this->payload['comment'];
     }
 
     /**

@@ -66,31 +66,13 @@ class Utils
      */
     public static function verify_signed(AbstractCrypto $crypto, array $signed)
     {
-
-        $signature_bytes = self::urlsafe_b64decode(mb_convert_encoding($signed['signature'], 'ascii'));
-        $sig_data_bytes = self::urlsafe_b64decode(mb_convert_encoding($signed['sig_data'], 'ascii'));
+        $signature_bytes = Encryption::b64_to_bytes(mb_convert_encoding($signed['signature'], 'ascii'), true);
+        $sig_data_bytes = Encryption::b64_to_bytes(mb_convert_encoding($signed['sig_data'], 'ascii'), true);
         $sig_verified = $crypto->cryptoVerify($signed['signer'], $sig_data_bytes, $signature_bytes);
         $field_json = substr($sig_data_bytes, 8);
         return [
             json_decode($field_json),
             $sig_verified
         ];
-    }
-
-    public static function urlsafe_b64encode($string)
-    {
-        $data = base64_encode($string);
-        $data = str_replace(array('+','/','='),array('-','_',''),$data);
-        return $data;
-    }
-
-    public static function urlsafe_b64decode($string)
-    {
-        $data = str_replace(array('-','_'),array('+','/'),$string);
-        $mod4 = strlen($data) % 4;
-        if ($mod4) {
-            $data .= substr('====', $mod4);
-        }
-        return base64_decode($data);
     }
 }

@@ -77,9 +77,9 @@ class BaseInitLedgerMessage extends SimpleConsensusMessage
         }
         $signatures = [];
         if ($participant == 'ALL') {
-            $signatures = $this->signatures;
+            $signatures = $this->getSignatures();
         } else {
-            foreach ($this->signatures as $signature) {
+            foreach ($this->getSignatures() as $signature) {
                 if ($signature['participant'] == $participant) {
                     array_push($signatures, $signature);
                 }

@@ -29,6 +29,7 @@ abstract class AbstractPairwiseList
                 $collection = $array[1];
                 if ($success) {
                     foreach ($collection as $p) {
+                        yield [$cur, $p];
                         $cur += 1;
                     }
                 } else {

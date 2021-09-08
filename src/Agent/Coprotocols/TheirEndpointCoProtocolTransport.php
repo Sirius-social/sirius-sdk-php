@@ -25,7 +25,7 @@ class TheirEndpointCoProtocolTransport extends AbstractCoProtocolTransport
         );
     }
 
-    public function start(array $protocols, int $time_to_live = null)
+    public function start(array $protocols = null, int $time_to_live = null)
     {
         parent::start($protocols, $time_to_live);
         $this->rpc->start_protocol_for_p2p(

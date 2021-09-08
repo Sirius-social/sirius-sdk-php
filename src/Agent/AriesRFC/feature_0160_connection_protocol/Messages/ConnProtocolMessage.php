@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Siruis\Agent\AriesRFC\feature_0160_connection_protocol;
+namespace Siruis\Agent\AriesRFC\feature_0160_connection_protocol\Messages;
 
 
 use Siruis\Agent\AriesRFC\DIDDoc;
@@ -9,11 +9,20 @@ use Siruis\Agent\AriesRFC\Utils;
 use Siruis\Agent\Base\AriesProtocolMessage;
 use Siruis\Agent\Wallet\Abstracts\AbstractCrypto;
 use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
+use Siruis\Messaging\Message;
 use SodiumException;
 
 class ConnProtocolMessage extends AriesProtocolMessage
 {
-    const PROTOCOL = 'connections';
+    public $PROTOCOL = 'connections';
+
+    public const PROTOCOL = 'connections';
+
+    public function __construct(array $payload, ...$args)
+    {
+        parent::__construct($payload, ...$args);
+        Message::registerMessageClass(ConnProtocolMessage::class, $this->PROTOCOL, $this->NAME);
+    }
 
     /**
      * @param AbstractCrypto $crypto

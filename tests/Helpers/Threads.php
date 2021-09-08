@@ -24,7 +24,7 @@ class Threads
 
         /** @var Thread $thread */
         foreach ($threads as $thread) {
-            $thread->run() && $thread->join();
+            $thread->start() && $thread->join();
         }
     }
 

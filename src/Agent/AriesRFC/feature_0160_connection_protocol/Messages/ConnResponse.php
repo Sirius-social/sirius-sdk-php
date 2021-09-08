@@ -1,15 +1,16 @@
 <?php
 
 
-namespace Siruis\Agent\AriesRFC\feature_0160_connection_protocol;
+namespace Siruis\Agent\AriesRFC\feature_0160_connection_protocol\Messages;
 
 
 use Siruis\Agent\Wallet\Abstracts\AbstractCrypto;
+use Siruis\Messaging\Message;
 use Siruis\Messaging\Validators;
 
 class ConnResponse extends ConnProtocolMessage
 {
-    const NAME = 'response';
+    public $NAME = 'response';
 
     public function __construct(array $payload,
                                 string $did = null,
@@ -28,6 +29,7 @@ class ConnResponse extends ConnProtocolMessage
                 'DIDDoc' => self::build_did_doc($did, $verkey, $endpoint, $extra),
             ];
         }
+        Message::registerMessageClass(ConnResponse::class, $this->PROTOCOL, $this->NAME);
     }
 
     public function validate()
