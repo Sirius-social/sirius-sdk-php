@@ -95,7 +95,7 @@ class Question extends AriesProtocolMessage
 
     public function setTtl(int $seconds)
     {
-        $expire_at = date("Y-m-d H:i:s.up", time() + $this->timeout);
+        $expire_at = date("Y-m-d H:i:s.up", time() + $seconds);
         $timing = ArrayHelper::getValueWithKeyFromArray('~timing', $this->payload, []);
         $timing['expires_time'] = $expire_at;
         $this->payload['~timing'] = $timing;

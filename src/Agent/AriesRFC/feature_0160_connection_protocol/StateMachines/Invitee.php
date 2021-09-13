@@ -88,6 +88,11 @@ class Invitee extends BaseConnectionStateMachine
                         list($their_did, $their_vk, $their_endpoint_address, $their_routing_keys) = $response->extractTheirInfo();
                         Init::DID()->store_their_did($their_did, $their_vk);
 
+                        $actual_endpoint = new TheirEndpoint(
+                            $their_endpoint_address,
+                            $their_vk
+                        );
+                        $co = $this->coprotocol($actual_endpoint);
                         // Step 4: Send ack to Inviter
                         if ($response->getPleaseAck()) {
                             $ack = new Ack([], null, null,  null, $response->getAckMessageId(), Status::OK);
