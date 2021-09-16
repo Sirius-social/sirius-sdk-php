@@ -76,6 +76,11 @@ class Conftest
         return static::get_suite_singleton();
     }
 
+    public static function prover_master_secret_name(): string
+    {
+        return 'prover_master_secret_name';
+    }
+
     public static function indy_agent(): IndyAgent
     {
         return self::get_indy_agent_singleton();

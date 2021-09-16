@@ -44,10 +44,11 @@ class Invitee extends BaseConnectionStateMachine
         try {
             $invitation->validate();
         } catch (SiriusValidationError $err) {
-            $this->log([
-                'progress' => 100, 'message' => 'Terminated with error',
-                'problem_code' => self::REQUEST_NOT_ACCEPTED, 'explain' => $err->getMessage()
-            ]);
+            throw new StateMachineTerminatedWithError(
+                self::REQUEST_PROCESSING_ERROR,
+                'Invitation error: '.$err->getMessage(),
+                true
+            );
         }
         $this->log(['progress' => 20, 'message' => 'Invitation validation OK']);
 
@@ -80,7 +81,11 @@ class Invitee extends BaseConnectionStateMachine
                     try {
                         $response->validate();
                     } catch (SiriusValidationError $err) {
-                        throw new StateMachineTerminatedWithError(self::RESPONSE_NOT_ACCEPTED, $err->getMessage());
+                        throw new StateMachineTerminatedWithError(
+                            self::RESPONSE_NOT_ACCEPTED,
+                            $err->getMessage(),
+                            true
+                        );
                     }
                     if ($success && $response->payload['connection~sig']['signer'] == $connection_key) {
                         // Step 3: extract Inviter info and store did

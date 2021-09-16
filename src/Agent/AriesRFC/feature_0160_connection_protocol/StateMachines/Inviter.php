@@ -6,6 +6,7 @@ namespace Siruis\Agent\AriesRFC\feature_0160_connection_protocol\StateMachines;
 
 use Siruis\Agent\AriesRFC\feature_0015_acks\Ack;
 use Siruis\Agent\AriesRFC\feature_0048_trust_ping\Ping;
+use Siruis\Agent\AriesRFC\feature_0048_trust_ping\Pong;
 use Siruis\Agent\AriesRFC\feature_0160_connection_protocol\Messages\ConnProblemReport;
 use Siruis\Agent\AriesRFC\feature_0160_connection_protocol\Messages\ConnRequest;
 use Siruis\Agent\AriesRFC\feature_0160_connection_protocol\Messages\ConnResponse;
@@ -43,10 +44,11 @@ class Inviter extends BaseConnectionStateMachine
         try {
             $request->validate();
         } catch (SiriusValidationError $err) {
-            $this->log([
-                'progress' => 100, 'message' => 'Terminated with error',
-                'problem_code' => self::REQUEST_NOT_ACCEPTED, 'explaint' => $err->getMessage()
-            ]);
+            throw new StateMachineTerminatedWithError(
+                self::REQUEST_PROCESSING_ERROR,
+                $err->getMessage(),
+                true
+            );
         }
         $this->log(['progress' => 20, 'message' => 'Request validation OK']);
 
@@ -74,6 +76,8 @@ class Inviter extends BaseConnectionStateMachine
             );
             if ($request->getPleaseAck()) {
                 $response->setThreadId($request->getAckMessageId());
+            } else {
+                $response->setThreadId($request->getId());
             }
             $my_did_doc = $response->getDidDoc();
             $response->sign_connection(Init::Crypto(), $this->connection_key);
@@ -114,11 +118,16 @@ class Inviter extends BaseConnectionStateMachine
                     $pairwise = new Pairwise($this->me, $their, $metadata);
                     $pairwise->me->did_doc = $my_did_doc;
                     $pairwise->their->did_doc = $their_did_doc;
+                    if ($ack instanceof Ping) {
+                        if ($ack->getResponseRequested()) {
+                            $co->send(new Pong([], null, null, null, $ack->getId()));
+                        }
+                    }
                     $this->log(['progress' => 100, 'message' => 'Pairwise established', 'payload' => $metadata]);
                     return [true, $pairwise];
-                } elseif ($response instanceof ConnProblemReport) {
-                    $this->problem_report = $response;
-                    error_log('Code: '.$response->problemCode().' Explain: '.$response->explain());
+                } elseif ($ack instanceof ConnProblemReport) {
+                    $this->problem_report = $ack;
+                    error_log('Code: '.$ack->problemCode().' Explain: '.$ack->explain());
                     $this->log(['progress' => 100, 'message' => 'Terminated with error',
                         'problem_code' => $this->problem_report->problemCode(), 'explain' => $this->problem_report->explain()
                     ]);

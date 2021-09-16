@@ -128,6 +128,10 @@ class Agent extends TransportLayers
 
     }
 
+    /**
+     * @param string $name
+     * @return Ledger|null
+     */
     public function ledger(string $name)
     {
         $this->__check_is_open();

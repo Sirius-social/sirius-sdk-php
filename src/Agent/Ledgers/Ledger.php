@@ -175,10 +175,9 @@ class Ledger
         CredentialDefinition $cred_def, string $submitter_did, array $tags = null
     ): array
     {
-        $storeCredDef = $this->issuer->issuer_create_and_store_credential_def(
+        list($cred_def_id, $body) = $this->issuer->issuer_create_and_store_credential_def(
             $submitter_did, $cred_def->schema->body, $cred_def->tag, null, $cred_def->config->serialize()
         );
-        $body = $storeCredDef[1];
         $build_request = $this->api->build_cred_def_request(
             $submitter_did, $body
         );

@@ -31,7 +31,7 @@ class PresentationMessage extends BasePresentProofMessage
                     '@id' => 'libindy-presentation-'.$presentation_id,
                     'mime-type' => 'application/json',
                     'data' => [
-                        'base64' => Encryption::bytes_to_b64(json_decode($proof))
+                        'base64' => Encryption::bytes_to_b64(json_encode($proof))
                     ]
                 ]
             ];
