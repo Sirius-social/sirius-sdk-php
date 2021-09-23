@@ -96,7 +96,7 @@ class Invitation extends ConnProtocolMessage
 
     public function getInvitationUrl()
     {
-        $b64_invite = Encryption::b64_to_bytes($this->serialize());
+        $b64_invite = Encryption::bytes_to_b64($this->serialize(), true);
         return '?c_i=' . $b64_invite;
     }
 

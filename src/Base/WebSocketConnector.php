@@ -4,14 +4,10 @@ namespace Siruis\Base;
 
 
 
-use Exception;
 use Siruis\Errors\Exceptions\SiriusConnectionClosed;
 use Siruis\Errors\Exceptions\SiriusIOError;
 use Siruis\Messaging\Message;
-use WebSocket\BadOpcodeException;
 use WebSocket\Client;
-use WebSocket\TimeoutException;
-use function Ratchet\Client\connect;
 
 
 class WebSocketConnector extends BaseConnector

@@ -24,13 +24,13 @@ class CryptoProxy extends AbstractCrypto
     /**
      * @inheritDoc
      */
-    public function createKey(string $seed = null, string $cryptoType = null): string
+    public function create_key(string $seed = null, string $crypto_type = null): string
     {
         return $this->rpc->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/create_key',
             [
                 'seed' => $seed,
-                'crypto_type' => $cryptoType
+                'crypto_type' => $crypto_type
             ]
         );
     }
@@ -38,7 +38,7 @@ class CryptoProxy extends AbstractCrypto
     /**
      * @inheritDoc
      */
-    public function setKeyMetadata(string $verkey, array $metadata)
+    public function set_key_metadata(string $verkey, array $metadata)
     {
         return $this->rpc->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/set_key_metadata',
@@ -52,7 +52,7 @@ class CryptoProxy extends AbstractCrypto
     /**
      * @inheritDoc
      */
-    public function getKeyMetadata(string $verkey): ?array
+    public function get_key_metadata(string $verkey): ?array
     {
         return $this->rpc->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/get_key_metadata',
@@ -65,13 +65,13 @@ class CryptoProxy extends AbstractCrypto
     /**
      * @inheritDoc
      */
-    public function cryptoSign(string $signerVk, string $msg): string
+    public function crypto_sign(string $signer_vk, string $msg): string
     {
         $msg = new RawBytes($msg);
         return $this->rpc->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/crypto_sign',
             [
-                'signer_vk' => $signerVk,
+                'signer_vk' => $signer_vk,
                 'msg' => $msg
             ]
         );
@@ -80,13 +80,13 @@ class CryptoProxy extends AbstractCrypto
     /**
      * @inheritDoc
      */
-    public function cryptoVerify(string $signerVk, string $msg, $signature): bool
+    public function crypto_verify(string $signer_vk, string $msg, $signature): bool
     {
         if (Parsing::is_binary($signature)) {
             return $this->rpc->remoteCall(
                 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/crypto_verify',
                 [
-                    'signer_vk' => $signerVk,
+                    'signer_vk' => $signer_vk,
                     'msg' => new RawBytes($msg),
                     'signature' => $signature
                 ]
@@ -99,12 +99,12 @@ class CryptoProxy extends AbstractCrypto
     /**
      * @inheritDoc
      */
-    public function anonCrypt(string $recipientVk, string $msg): string
+    public function anon_crypt(string $recipient_vk, string $msg): string
     {
         return $this->rpc->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/anon_crypt',
             [
-                'recipient_vk' => $recipientVk,
+                'recipient_vk' => $recipient_vk,
                 'msg' => $msg
             ]
         );
@@ -113,7 +113,7 @@ class CryptoProxy extends AbstractCrypto
     /**
      * @inheritDoc
      */
-    public function anonDecrypt(string $recipient_vk, string $encrypted_msg): string
+    public function anon_decrypt(string $recipient_vk, string $encrypted_msg): string
     {
         return $this->rpc->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/anon_decrypt',
@@ -127,12 +127,12 @@ class CryptoProxy extends AbstractCrypto
     /**
      * @inheritDoc
      */
-    public function pack_message($message, array $recipientVerkeys, string $sender_verkey = null): string
+    public function pack_message($message, array $recipient_verkeys, string $sender_verkey = null): string
     {
         return $this->rpc->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/pack_message',
             [
-                'recipient_verkeys' => $recipientVerkeys,
+                'recipient_verkeys' => $recipient_verkeys,
                 'message' => $message,
                 'sender_verkey' => $sender_verkey
             ]
@@ -142,7 +142,7 @@ class CryptoProxy extends AbstractCrypto
     /**
      * @inheritDoc
      */
-    public function unpackMessage(string $jwe): array
+    public function unpack_message(string $jwe): array
     {
         return $this->rpc->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/unpack_message',

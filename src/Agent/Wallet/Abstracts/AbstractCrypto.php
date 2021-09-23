@@ -14,7 +14,7 @@ abstract class AbstractCrypto
      *
      * @return string Ver key of generated key pair, also used as key identifier
      */
-    public abstract function createKey(string $seed = null, string $cryptoType = null): string;
+    public abstract function create_key(string $seed = null, string $cryptoType = null): string;
 
     /**
      * Saves/replaces the meta information for the giving key in the wallet.
@@ -24,7 +24,7 @@ abstract class AbstractCrypto
      *
      * @return null
      */
-    public abstract function setKeyMetadata(string $verkey, array $metadata);
+    public abstract function set_key_metadata(string $verkey, array $metadata);
 
     /**
      * Retrieves the meta information for the giving key in the wallet.
@@ -33,7 +33,7 @@ abstract class AbstractCrypto
      *
      * @return array|null The meta information stored with the key; Can be null if no metadata was saved for this key.
      */
-    public abstract function getKeyMetadata(string $verkey);
+    public abstract function get_key_metadata(string $verkey);
 
     /**
      * Signs a message with a key.
@@ -45,7 +45,7 @@ abstract class AbstractCrypto
      *
      * @return string a signature string
      */
-    public abstract function cryptoSign(string $signerVk, string $msg): string;
+    public abstract function crypto_sign(string $signerVk, string $msg): string;
 
     /**
      * Verify a signature with a verkey.
@@ -58,7 +58,7 @@ abstract class AbstractCrypto
      *
      * @return bool true - if signature is valid, false - otherwise
      */
-    public abstract function cryptoVerify(string $signerVk, string $msg, string $signature): bool;
+    public abstract function crypto_verify(string $signerVk, string $msg, string $signature): bool;
 
     /**
      * Encrypts a message by anonymous-encryption scheme.
@@ -76,7 +76,7 @@ abstract class AbstractCrypto
      * @param string $msg a message to be signed
      * @return string an encrypted message as an array of bytes
      */
-    public abstract function anonCrypt(string $recipientVk, string $msg): string;
+    public abstract function anon_crypt(string $recipientVk, string $msg): string;
 
     /**
      * Decrypts a message by anonymous-encryption scheme.
@@ -95,7 +95,7 @@ abstract class AbstractCrypto
      * @param string $encrypted_msg encrypted message
      * @return string  decrypted message as an array of bytes
      */
-    public abstract function anonDecrypt(string $recipient_vk, string $encrypted_msg): string;
+    public abstract function anon_decrypt(string $recipient_vk, string $encrypted_msg): string;
 
     /**
      * Packs a message by encrypting the message and serializes it in a JWE-like format (Experimental)
@@ -132,5 +132,5 @@ abstract class AbstractCrypto
      * @param string $jwe
      * @return array
      */
-    public abstract function unpackMessage(string $jwe): array;
+    public abstract function unpack_message(string $jwe): array;
 }

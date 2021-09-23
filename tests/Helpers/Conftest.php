@@ -207,9 +207,8 @@ class Conftest
         foreach ([
             [$me, $me_entity, $their_entity, $their_label, $their_endpoint_address],
             [$their, $their_entity, $me_entity, $me_label, $me_endpoint_address]
-        ] as $items) {
+        ] as list($agent, $entity_me, $entity_their, $label_their, $endpoint_their)) {
             /** @var Agent $agent */
-            list($agent, $entity_me, $entity_their, $label_their, $endpoint_their) = $items;
             $pairwise = $agent->pairwise_list->load_for_did($their_entity['did']);
             $is_filled = $pairwise && $pairwise->metadata;
             if (!$is_filled) {
@@ -236,7 +235,7 @@ class Conftest
                 $agent->wallet->did->store_their_did($entity_their['did'], $entity_their['verkey']);
                 $agent->pairwise_list->ensure_exists($pairwise);
             }
-            return $me->pairwise_list->load_for_did($their_entity['did']);
         }
+        return $me->pairwise_list->load_for_did($their_entity['did']);
     }
 }

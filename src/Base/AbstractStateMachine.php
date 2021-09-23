@@ -51,4 +51,15 @@ abstract class AbstractStateMachine
             }
         }
     }
+
+    protected function __instances($resp, array $classes)
+    {
+        $instances = [];
+        foreach ($classes as $class) {
+            if ($resp instanceof $class) {
+                array_push($instances, $class);
+            }
+        }
+        return count($instances) == count($classes);
+    }
 }
