@@ -69,7 +69,7 @@ class ConnProtocolMessage extends AriesProtocolMessage
                 'id' => 'did:peer:'. $did . ';indy',
                 'type' => 'IndyAgent',
                 'priority' => 0,
-                'recipientKeys' => [$key_id],
+                'recipientKeys' => [$verkey],
                 'serviceEndpoint' => $endpoint
             ]],
         ];

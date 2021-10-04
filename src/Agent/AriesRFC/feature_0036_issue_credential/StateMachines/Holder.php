@@ -28,7 +28,9 @@ class Holder extends BaseIssuingStateMachine
         $this->issuer = $issuer;
     }
 
-    public function accept()
+    public function accept(
+
+    )
     {
 
     }

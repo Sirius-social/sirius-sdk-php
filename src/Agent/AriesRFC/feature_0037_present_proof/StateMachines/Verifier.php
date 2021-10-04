@@ -8,6 +8,7 @@ use Siruis\Agent\AriesRFC\feature_0015_acks\Ack;
 use Siruis\Agent\AriesRFC\feature_0015_acks\Status;
 use Siruis\Agent\AriesRFC\feature_0037_present_proof\Messages\AttribTranslation;
 use Siruis\Agent\AriesRFC\feature_0037_present_proof\Messages\BasePresentProofMessage;
+use Siruis\Agent\AriesRFC\feature_0037_present_proof\Messages\PresentationAck;
 use Siruis\Agent\AriesRFC\feature_0037_present_proof\Messages\PresentationMessage;
 use Siruis\Agent\AriesRFC\feature_0037_present_proof\Messages\PresentProofProblemReport;
 use Siruis\Agent\AriesRFC\feature_0037_present_proof\Messages\RequestPresentationMessage;
@@ -30,6 +31,7 @@ class Verifier extends BaseVerifyStateMachine
     public $prover;
     public $pool_name;
     public $requested_proof;
+    protected $__revealed_attrs;
 
     public function __construct(Pairwise $prover, Ledger $ledger, int $time_to_live = 60, $logger = null)
     {
@@ -37,6 +39,17 @@ class Verifier extends BaseVerifyStateMachine
         $this->prover = $prover;
         $this->pool_name = $ledger->name;
         $this->requested_proof = null;
+        $this->__revealed_attrs = null;
+    }
+
+    public function getRequestedProof()
+    {
+        return $this->requested_proof;
+    }
+
+    public function getRevealedAttrs()
+    {
+        return $this->__revealed_attrs;
     }
 
     /**
@@ -115,8 +128,31 @@ class Verifier extends BaseVerifyStateMachine
             );
             if ($success) {
                 $this->requested_proof = $presentation->getProof()['requested_proof'];
+                // Parse response and fill revealed attrs
+                $revealed_attrs = [];
+                foreach ($this->requested_proof['self_attested_attrs'] as $ref_id => $value) {
+                    if (key_exists($ref_id, $proof_request['requested_attributes'])) {
+                        if (key_exists('name', $proof_request['requested_attributes'][$ref_id])) {
+                            $attr_name = $proof_request['requested_attributes'][$ref_id]['name'];
+                            $revealed_attrs[$attr_name] = $value;
+                        }
+                    }
+                }
+                foreach ($this->requested_proof['revealed_attrs'] as $ref_id => $data) {
+                    if (key_exists($ref_id, $proof_request['requested_attributes'])) {
+                        if (key_exists('name', $proof_request['requested_attributes'][$ref_id])) {
+                            $attr_name = $proof_request['requested_attributes'][$ref_id]['name'];
+                            $revealed_attrs[$attr_name] = $data['raw'];
+                        }
+                    }
+                }
+                if ($revealed_attrs) {
+                    $this->__revealed_attrs = $revealed_attrs;
+                }
+
+                // Send Ack
                 $thread_id = $presentation->getPleaseAck() ? $presentation->getAckMessageId() : $presentation->getId();
-                $ack = new Ack(
+                $ack = new PresentationAck(
                     [], null, null,  null, $thread_id, Status::OK
                 );
                 $this->log(['progress' => 100, 'message' => 'Verifying terminated successfully']);

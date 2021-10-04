@@ -76,6 +76,8 @@ class Prover extends BaseVerifyStateMachine
                 $presentation_msg->setPleaseAck(true);
                 if ($request->getPleaseAck()) {
                     $presentation_msg->setThreadId($request->getAckMessageId());
+                } else {
+                    $presentation_msg->setThreadId($request->getId());
                 }
 
                 // Step-3: Wait ACK
