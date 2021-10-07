@@ -41,4 +41,9 @@ class SelfAttestedAttribute
     {
         return $this->name;
     }
+
+    public function getValue()
+    {
+        return $this->value;
+    }
 }

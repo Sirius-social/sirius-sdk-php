@@ -9,17 +9,17 @@ use Siruis\Hub\Init;
 class SelfIdentity
 {
     /**
-     * @var string[]|SelfAttestedAttribute
+     * @var string[]|SelfAttestedAttribute[]
      */
-    protected $self_attested_attributes;
+    public $self_attested_attributes;
     /**
      * @var string[]|CredAttribute[]
      */
-    protected $requested_attributes;
+    public $requested_attributes;
     /**
      * @var string[]|CredAttribute[]
      */
-    protected $requested_predicates;
+    public $requested_predicates;
     /**
      * @var array
      */
@@ -77,16 +77,35 @@ class SelfIdentity
         );
         // Stage-3: fill requested attributes
         foreach ($proof_response['requested_attributes'] as $referent_id => $cred_infos) {
-            if (strlen($cred_infos) > $limit_referents) {
-                $cred_infos = substr($cred_infos, 0, $limit_referents);
+            if (count($cred_infos) > $limit_referents) {
+                $cred_infos = array_slice($cred_infos, 0, $limit_referents);
             }
             if (!key_exists($referent_id, $this->self_attested_attributes)) {
                 if ($cred_infos) {
                     $attr_name = $proof_request['requested_attributes']['name'];
-
+                    $attr_variants = $this->requested_attributes[$referent_id];
+                    foreach (array_values($cred_infos) as $i => $item) {
+                        $attr_value = $item['attrs'][$attr_name];
+                        $cred_attrib = new CredAttribute(
+                            "{$referent_id}:{$i}", $item['cred_info'], true, $attr_name, call_user_func('__on_cred_attrib_select'),
+                        );
+                        if (!$attr_variants) {
+                            $cred_attrib->setSelected(true);
+                        }
+                        array_push($attr_variants, $referent_id);
+                        $this->requested_predicates[$referent_id] = $attr_variants;
+                    }
+                } else {
+                    array_push($this->non_processed, $referent_id);
                 }
             }
         }
+        return $this->getIsFilled();
+    }
+
+    public function getIsFilled()
+    {
+        return count($this->non_processed) == 0;
     }
 
     public function __on_cred_attrib_select(CredAttribute $emitter)
