@@ -6,8 +6,10 @@ namespace Siruis\Base;
 
 use Siruis\Errors\Exceptions\SiriusConnectionClosed;
 use Siruis\Errors\Exceptions\SiriusIOError;
+use Siruis\Errors\Exceptions\SiriusTimeoutIO;
 use Siruis\Messaging\Message;
 use WebSocket\Client;
+use WebSocket\TimeoutException;
 
 
 class WebSocketConnector extends BaseConnector
@@ -93,13 +95,18 @@ class WebSocketConnector extends BaseConnector
      * @return string
      * @throws SiriusConnectionClosed
      * @throws SiriusIOError
+     * @throws SiriusTimeoutIO
      */
     public function read($timeout = null): string
     {
         if ($timeout) {
             $this->session->setTimeout($timeout);
         }
-        $msg = $this->session->receive();
+        try {
+            $msg = $this->session->receive();
+        } catch (TimeoutException $exception) {
+            throw new SiriusTimeoutIO($exception->getMessage(), $exception->getCode(), $exception->getPrevious());
+        }
         $lastOpcode = $this->session->getLastOpcode();
         if (in_array($lastOpcode, ['close'])) {
             throw new SiriusConnectionClosed();

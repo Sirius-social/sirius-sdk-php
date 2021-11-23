@@ -268,8 +268,11 @@ class TestAgent extends TestCase
             $agent2->close();
         }
     }
-    
-    /** @test */
+
+    /**
+     * @test
+     * @throws \Siruis\Errors\Exceptions\SiriusFieldTypeError
+     */
     public function test_agents_crypto()
     {
         $test_suite = Conftest::test_suite();
@@ -295,14 +298,14 @@ class TestAgent extends TestCase
             $msg = b'message';
             // 1. Check sign
             $expected_signature = 'QRHbNQxHLEhBuYKbe3ReTUCNRDnGDYMJvABJFEuUSFU8EzS6orRzWjMf3fR4PSgM2Z5gqfsc1kg6vYpQCCb4bjB';
-            $signature = $agent1->wallet->crypto->cryptoSign($verkey_signer, $msg);
+            $signature = $agent1->wallet->crypto->crypto_sign($verkey_signer, $msg);
             self::assertEquals($expected_signature, Encryption::bytes_to_b58($signature));
             // 2. Check verify
-            $success = $agent2->wallet->crypto->cryptoVerify($verkey_signer, $msg, $signature);
+            $success = $agent2->wallet->crypto->crypto_verify($verkey_signer, $msg, $signature);
             self::assertTrue($success);
             // 3. Check verify with error
             $other_msg = 'other-message';
-            $success = $agent2->wallet->crypto->cryptoVerify($verkey_signer, $other_msg, $signature);
+            $success = $agent2->wallet->crypto->crypto_verify($verkey_signer, $other_msg, $signature);
             self::assertFalse($success);
         } finally {
             $agent1->close();
