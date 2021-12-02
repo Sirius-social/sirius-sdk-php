@@ -10,10 +10,14 @@ use Siruis\Agent\Wallet\Abstracts\AbstractPairwise;
 class PairwiseProxy extends AbstractPairwise
 {
     /**
-     * @var AgentRPC
+     * @var \Siruis\Agent\Connections\AgentRPC
      */
     private $rpc;
 
+    /**
+     * PairwiseProxy constructor.
+     * @param \Siruis\Agent\Connections\AgentRPC $rpc
+     */
     public function __construct(AgentRPC $rpc)
     {
         $this->rpc = $rpc;

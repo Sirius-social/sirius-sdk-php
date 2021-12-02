@@ -11,10 +11,14 @@ use Siruis\Agent\Wallet\Abstracts\Ledger\NYMRole;
 class LedgerProxy extends AbstractLedger
 {
     /**
-     * @var AgentRPC
+     * @var \Siruis\Agent\Connections\AgentRPC
      */
     private $rpc;
 
+    /**
+     * LedgerProxy constructor.
+     * @param \Siruis\Agent\Connections\AgentRPC $rpc
+     */
     public function __construct(AgentRPC $rpc)
     {
         $this->rpc = $rpc;

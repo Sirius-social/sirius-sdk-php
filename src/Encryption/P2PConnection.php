@@ -3,8 +3,8 @@
 namespace Siruis\Encryption;
 
 
+use Exception;
 use Siruis\Errors\Exceptions\SiriusCryptoError;
-use SodiumException;
 
 class P2PConnection
 {
@@ -12,7 +12,6 @@ class P2PConnection
      * @var array
      */
     protected $my_keys;
-
     /**
      * @var string
      */
@@ -34,17 +33,17 @@ class P2PConnection
      * Encrypt message
      *
      * @param array $message
-     *
      * @return string
-     * @throws SiriusCryptoError|SodiumException
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
+     * @throws \SodiumException
      */
-    public function pack(array $message)
+    public function pack(array $message): string
     {
         $to_verkeys = [$this->their_verkey];
-        $from_verkey = $this->my_keys[0];
-        $from_sigkey = $this->my_keys[1];
+        [$from_verkey, $from_sigkey] = $this->my_keys;
         return Ed25519::pack_message(
-            json_encode($message),
+            json_encode($message, JSON_THROW_ON_ERROR),
             $to_verkeys,
             $from_verkey,
             $from_sigkey
@@ -55,18 +54,17 @@ class P2PConnection
      * Decrypt message
      *
      * @param $enc_message
-     *
      * @return mixed
-     * @throws SiriusCryptoError
+     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
      */
     public function unpack($enc_message)
     {
         try {
             if (is_array($enc_message)) {
-                $enc_message = json_encode($enc_message, JSON_UNESCAPED_SLASHES);
+                $enc_message = json_encode($enc_message, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
             }
             $unpacked = Ed25519::unpack_message($enc_message, $this->my_keys[0], $this->my_keys[1]);
-        } catch (\Exception $exception) {
+        } catch (Exception $exception) {
             throw new SiriusCryptoError($exception->getMessage());
         }
         return $unpacked[0];

@@ -13,10 +13,10 @@ class Semver extends Version
 
     /**
      * @param string $version_str
-     * @return Semver
+     * @return \PHLAK\SemVer\Version
      * @throws InvalidVersionException
      */
-    public static function fromString(string $version_str)
+    public static function fromString(string $version_str): Version
     {
 //        preg_match(self::SEMVER_RE, $version_str, $matches);
 //        if ($matches) {

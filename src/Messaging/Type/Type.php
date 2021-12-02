@@ -9,7 +9,7 @@ use Siruis\Errors\Exceptions\SiriusInvalidType;
 
 class Type
 {
-    CONST MULTI_RE = '/(.*?)([a-z0-9._-]+)\/(\d[^\/]*)\/([a-z0-9._-]+)$/';
+    public CONST MULTI_RE = '/(.*?)([a-z0-9._-]+)\/(\d[^\/]*)\/([a-z0-9._-]+)$/';
     public $doc_uri;
     public $protocol;
     public $version;
@@ -22,9 +22,9 @@ class Type
      * Type constructor.
      * @param string $doc_uri
      * @param string $protocol
-     * @param Semver|string $version
+     * @param \Siruis\Messaging\Type\Semver|string $version
      * @param string $name
-     * @throws SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      */
     public function __construct(string $doc_uri, string $protocol, $version, string $name)
     {
@@ -37,7 +37,7 @@ class Type
             $this->version = $version;
         } elseif ($version instanceof Semver) {
             $this->version_info = $version;
-            settype($version, 'string');
+            $version = (string)$version;
             $this->version = $version;
         } else {
             throw new SiriusInvalidType('`version` must be instance of str or Semver, got '.gettype($version));
@@ -60,10 +60,10 @@ class Type
 
     /**
      * @param $type_str
-     * @return Type
-     * @throws SiriusInvalidType
+     * @return \Siruis\Messaging\Type\Type
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      */
-    public static function fromString($type_str)
+    public static function fromString($type_str): Type
     {
         if (!preg_match(self::MULTI_RE, $type_str, $matches)) {
             throw new SiriusInvalidType('Invalid message type');

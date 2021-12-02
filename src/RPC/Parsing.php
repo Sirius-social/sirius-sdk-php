@@ -49,7 +49,7 @@ class Parsing
         } elseif ($var instanceof RetrieveRecordOptions) {
             return [$revert[RetrieveRecordOptions::class], $var->serialize()];
         } elseif ($var instanceof NYMRole) {
-            return [$revert[NYMRole::class], $var->serialize()];
+            return [$revert[NYMRole::class], $var->jsonSerialize()];
         } elseif ($var instanceof PoolAction) {
             return [$revert[PoolAction::class], $var->serialize()];
         } elseif ($var instanceof KeyDerivationMethod) {

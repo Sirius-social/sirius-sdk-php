@@ -6,9 +6,7 @@ namespace Siruis\Messaging;
 
 use ArrayObject;
 use Exception;
-use JsonException;
 use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
-use Siruis\Errors\Exceptions\SiriusInvalidType;
 use Siruis\Messaging\Type\Semver;
 use Siruis\Messaging\Type\Type;
 
@@ -42,19 +40,16 @@ class Message extends ArrayObject
     /**
      * Message constructor.
      * @param array $payload
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      */
     public function __construct(array $payload)
     {
         parent::__construct();
-        if (!key_exists('@type', $payload)) {
+        if (!array_key_exists('@type', $payload)) {
             throw new SiriusInvalidMessageClass('No @type in message');
-        } else {
-            $this->type = $payload['@type'];
         }
-
-        if (!key_exists('@id', $payload)) {
+        if (!array_key_exists('@id', $payload)) {
             $payload['@id'] = self::generate_id();
             $this->id = $payload['@id'];
         } elseif (!is_string($payload['@id'])) {
@@ -70,31 +65,44 @@ class Message extends ArrayObject
             $this->_type = Type::fromString($payload['@type']);
         }
         $this->payload = $payload;
+        $this->type = $payload['@type'];
+    }
+
+    /**
+     * @param string $key
+     * @return false|mixed
+     */
+    public function getAttribute(string $key)
+    {
+        if (array_key_exists($key, $this->payload)) {
+            return $this->payload[$key];
+        }
+
+        return false;
     }
 
     /**
      * Serialize a message into a json string.
      *
      * @return false|string
+     * @throws \JsonException
      */
     public function serialize()
     {
-        return json_encode($this->payload, JSON_UNESCAPED_SLASHES);
+        return json_encode($this->payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
     }
 
     /**
      * Deserialize a message from a json string.
      *
      * @param string $serialized
-     *
-     * @return Message|void
-     *
-     * @throws SiriusInvalidMessageClass
+     * @return \Siruis\Messaging\Message
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      */
     public static function deserialize(string $serialized): Message
     {
         try {
-            return new Message(json_decode($serialized, true));
+            return new Message(json_decode($serialized, true, 512, JSON_THROW_ON_ERROR));
         } catch (Exception $exception) {
             throw new SiriusInvalidMessageClass('Could not serialize message'. $exception);
         }
@@ -105,13 +113,13 @@ class Message extends ArrayObject
      *
      * @return string
      */
-    public static function generate_id()
+    public static function generate_id(): string
     {
-        return uniqid();
+        return uniqid('', true);
     }
 
     /**
-     * @return Type|string
+     * @return mixed|\Siruis\Messaging\Type\Type|string
      */
     public function getType()
     {
@@ -119,7 +127,7 @@ class Message extends ArrayObject
     }
 
     /**
-     * @param Type|string $type
+     * @param \Siruis\Messaging\Type\Type|string $type
      */
     public function setType($type): void
     {
@@ -147,7 +155,7 @@ class Message extends ArrayObject
      *
      * @return string
      */
-    public function getDocUri()
+    public function getDocUri(): string
     {
         return $this->_type->doc_uri;
     }
@@ -157,7 +165,7 @@ class Message extends ArrayObject
      *
      * @return string
      */
-    public function getProtocol()
+    public function getProtocol(): string
     {
         return $this->_type->protocol;
     }
@@ -165,9 +173,9 @@ class Message extends ArrayObject
     /**
      * Get version from the $_type variable
      *
-     * @return Type|Semver|string
+     * @return string
      */
-    public function getVersion()
+    public function getVersion(): string
     {
         return $this->_type->version;
     }
@@ -175,9 +183,9 @@ class Message extends ArrayObject
     /**
      * Get version_info from the $_type variable
      *
-     * @return Semver
+     * @return \Siruis\Messaging\Type\Semver
      */
-    public function getVersionInfo()
+    public function getVersionInfo(): Semver
     {
         return $this->_type->version_info;
     }
@@ -187,7 +195,7 @@ class Message extends ArrayObject
      *
      * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->_type->name;
     }
@@ -195,26 +203,25 @@ class Message extends ArrayObject
     /**
      * Get normalized version from the $_type variable
      *
-     * @return Semver
+     * @return string
      */
-    public function getNormalizedVersion()
+    public function getNormalizedVersion(): string
     {
         $version_info = $this->_type->version_info;
-        settype($version_info, 'string');
-        return $version_info;
+        return (string)$version_info;
     }
 
     /**
      * @param $class
      * @param $protocol
      * @param null $name
-     * 
-     * @throws SiriusInvalidMessageClass
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      */
-    public static function registerMessageClass($class, $protocol, $name = null)
+    public static function registerMessageClass($class, $protocol, $name = null): void
     {
-        if (is_subclass_of($class, 'Siruis\Messaging\Message')) {
-            $descriptor = isset(self::$msgRegistry[$protocol]) ? self::$msgRegistry[$protocol] : [];
+        if (is_subclass_of($class, self::class)) {
+            $descriptor = self::$msgRegistry[$protocol] ?? [];
             if ($name) {
                 $descriptor[$name] = $class;
             } else {
@@ -228,21 +235,19 @@ class Message extends ArrayObject
 
     /**
      * @param array $payload
-     *
      * @return array
-     *
-     * @throws SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      */
-    public static function restoreMessageInstance(array $payload)
+    public static function restoreMessageInstance(array $payload): array
     {
-        if (key_exists('@type', $payload)) {
+        if (array_key_exists('@type', $payload)) {
             $typ = Type::fromString($payload['@type']);
-            $descriptor = isset(self::$msgRegistry[$typ->protocol]) ? self::$msgRegistry[$typ->protocol] : null;
+            $descriptor = self::$msgRegistry[$typ->protocol] ?? null;
 
             if ($descriptor) {
-                if (key_exists($typ->name, $descriptor)) {
+                if (array_key_exists($typ->name, $descriptor)) {
                     $cls = $descriptor[$typ->name];
-                } elseif (key_exists('*', $descriptor)) {
+                } elseif (array_key_exists('*', $descriptor)) {
                     $cls = $descriptor['*'];
                 } else {
                     $cls = null;
@@ -252,21 +257,46 @@ class Message extends ArrayObject
             }
 
             if ($cls) {
-                return [
-                    true,
-                    new $cls($payload)
-                ];
-            } else {
-                return [
-                    false,
-                    null
-                ];
+                return [true, new $cls($payload)];
             }
-        } else {
-            return [
-                false,
-                null
-            ];
+
+            return [false, null];
         }
+
+        return [false, null];
+    }
+
+    /**
+     * Dynamically retrieve attributes on the message.
+     *
+     * @param $name
+     * @return false|mixed
+     */
+    public function __get($name)
+    {
+        return $this->getAttribute($name);
+    }
+
+    /**
+     * Dynamically set attributes on the model.
+     *
+     * @param $name
+     * @param $value
+     * @return void
+     */
+    public function __set($name, $value): void
+    {
+        $this->payload[$name] = $value;
+    }
+
+    /**
+     * Determine if an attribute exists on the message.
+     *
+     * @param $name
+     * @return bool
+     */
+    public function __isset($name)
+    {
+        return isset($this->payload[$name]);
     }
 }

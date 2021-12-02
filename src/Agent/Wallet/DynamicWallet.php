@@ -15,48 +15,48 @@ use Siruis\Errors\Exceptions\SiriusConnectionClosed;
 class DynamicWallet
 {
     /**
-     * @var AgentRPC
+     * @var \Siruis\Agent\Connections\AgentRPC
      */
     public $rpc;
 
     /**
-     * @var DIDProxy
+     * @var \Siruis\Agent\Wallet\Impl\DIDProxy
      */
     public $did;
 
     /**
-     * @var CryptoProxy
+     * @var \Siruis\Agent\Wallet\Impl\CryptoProxy
      */
     public $crypto;
 
     /**
-     * @var CacheProxy
+     * @var \Siruis\Agent\Wallet\Impl\CacheProxy
      */
     public $cache;
 
     /**
-     * @var PairwiseProxy
+     * @var \Siruis\Agent\Wallet\Impl\PairwiseProxy
      */
     public $pairwise;
 
     /**
-     * @var NonSecretsProxy
+     * @var \Siruis\Agent\Wallet\Impl\NonSecretsProxy
      */
     public $non_secrets;
 
     /**
-     * @var LedgerProxy
+     * @var \Siruis\Agent\Wallet\Impl\LedgerProxy
      */
     public $ledger;
 
     /**
-     * @var AnonCredsProxy
+     * @var \Siruis\Agent\Wallet\Impl\AnonCredsProxy
      */
     public $anoncreds;
 
     /**
      * DynamicWallet constructor.
-     * @param AgentRPC $rpc
+     * @param \Siruis\Agent\Connections\AgentRPC $rpc
      */
     public function __construct(AgentRPC $rpc)
     {
@@ -75,7 +75,10 @@ class DynamicWallet
      *
      * @param string|null $seed
      * @return string
-     * @throws SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function generate_wallet_key(string $seed = null): string
     {

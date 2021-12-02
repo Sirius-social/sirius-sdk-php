@@ -6,45 +6,45 @@ namespace Siruis\Agent\Microledgers;
 
 abstract class AbstractMicroledger
 {
-    public abstract function getName(): string;
+    abstract public function getName(): string;
 
-    public abstract function getSize(): int;
+    abstract public function getSize(): int;
 
-    public abstract function getUncommittedSize(): int;
+    abstract public function getUncommittedSize(): int;
 
-    public abstract function getRootHash(): string;
+    abstract public function getRootHash(): string;
 
-    public abstract function getUncommittedRootHash(): string;
+    abstract public function getUncommittedRootHash(): string;
 
-    public abstract function getSeqNo(): int;
+    abstract public function getSeqNo(): int;
 
-    public abstract function reload();
+    abstract public function reload();
 
-    public abstract function rename(string $new_name);
+    abstract public function rename(string $new_name);
 
-    public abstract function init(array $genesis);
+    abstract public function init(array $genesis);
 
-    public abstract function append(array $transactions, $txn_time = null);
+    abstract public function append(array $transactions, $txn_time = null);
 
-    public abstract function commit(int $count);
+    abstract public function commit(int $count);
 
-    public abstract function discard(int $count);
+    abstract public function discard(int $count);
 
-    public abstract function merkle_info(int $seq_no): MerkleInfo;
+    abstract public function merkle_info(int $seq_no): MerkleInfo;
 
-    public abstract function audit_proof(int $seq_no): AuditProof;
+    abstract public function audit_proof(int $seq_no): AuditProof;
 
-    public abstract function reset_uncommitted();
+    abstract public function reset_uncommitted();
 
-    public abstract function get_transaction(int $seq_no): Transaction;
+    abstract public function get_transaction(int $seq_no): Transaction;
 
-    public abstract function get_uncommitted_transaction(int $seq_no): Transaction;
+    abstract public function get_uncommitted_transaction(int $seq_no): Transaction;
 
-    public abstract function get_last_transaction(): Transaction;
+    abstract public function get_last_transaction(): Transaction;
 
-    public abstract function get_last_committed_transaction(): Transaction;
+    abstract public function get_last_committed_transaction(): Transaction;
 
-    public abstract function get_all_transactions(): array;
+    abstract public function get_all_transactions(): array;
 
-    public abstract function get_uncommitted_transactions(): array;
+    abstract public function get_uncommitted_transactions(): array;
 }

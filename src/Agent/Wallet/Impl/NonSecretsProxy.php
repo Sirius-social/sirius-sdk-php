@@ -11,10 +11,14 @@ use Siruis\Agent\Wallet\Abstracts\NonSecrets\RetrieveRecordOptions;
 class NonSecretsProxy extends AbstractNonSecrets
 {
     /**
-     * @var AgentRPC
+     * @var \Siruis\Agent\Connections\AgentRPC
      */
     private static $rpc;
 
+    /**
+     * NonSecretsProxy constructor.
+     * @param \Siruis\Agent\Connections\AgentRPC $rpc
+     */
     public function __construct(AgentRPC $rpc)
     {
         self::$rpc = $rpc;

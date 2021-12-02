@@ -7,12 +7,18 @@ namespace Siruis\Agent\Wallet\Impl;
 use Siruis\Agent\Connections\AgentRPC;
 use Siruis\Agent\Wallet\Abstracts\Anoncreds\AbstractAnonCreds;
 use Siruis\Agent\Wallet\Abstracts\Anoncreds\AnonCredSchema;
-use Siruis\Errors\Exceptions\SiriusValidationError;
 
 class AnonCredsProxy extends AbstractAnonCreds
 {
+    /**
+     * @var \Siruis\Agent\Connections\AgentRPC
+     */
     protected $rpc;
 
+    /**
+     * AnonCredsProxy constructor.
+     * @param \Siruis\Agent\Connections\AgentRPC $rpc
+     */
     public function __construct(AgentRPC $rpc)
     {
         $this->rpc = $rpc;
@@ -20,11 +26,10 @@ class AnonCredsProxy extends AbstractAnonCreds
 
     /**
      * @inheritDoc
-     * @throws SiriusValidationError
      */
-    public function issuer_create_schema(string $issuer_did, string $name, string $version, array $attrs)
+    public function issuer_create_schema(string $issuer_did, string $name, string $version, array $attrs): array
     {
-        $remote_call_result = $this->rpc->remoteCall(
+        [$schema_id, $body] = $this->rpc->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/issuer_create_schema',
             [
                 'issuer_did' => $issuer_did,
@@ -33,8 +38,6 @@ class AnonCredsProxy extends AbstractAnonCreds
                 'attrs' => $attrs
             ]
         );
-        $schema_id = $remote_call_result[0];
-        $body = $remote_call_result[1];
         return [$schema_id, new AnonCredSchema($body)];
     }
 
@@ -126,6 +129,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function issuer_revoke_credential(int $blob_storage_reader_handle, string $rev_reg_id, string $cred_revoc_id): array
     {
         return  $this->rpc->remoteCall(
@@ -138,6 +144,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function issuer_merge_revocation_registry_deltas(array $rev_reg_delta, array $other_rev_reg_delta): array
     {
         return $this->rpc->remoteCall(
@@ -149,6 +158,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function prover_create_master_secret(string $master_secret_name = null): string
     {
         return $this->rpc->remoteCall(
@@ -157,7 +169,10 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
-    public function prover_create_credential_req(string $provider_did, array $cred_offer, array $cred_def, string $master_secret_id): string
+    /**
+     * @inheritDoc
+     */
+    public function prover_create_credential_req(string $provider_did, array $cred_offer, array $cred_def, string $master_secret_id): array
     {
         return $this->rpc->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/prover_create_credential_req',
@@ -170,6 +185,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function prover_set_credential_attr_tag_policy(string $cred_def_id, ?array $tag_attrs, bool $retroactive)
     {
         return $this->rpc->remoteCall(
@@ -182,6 +200,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function prover_get_credential_attr_tag_policy(string $cred_def_id): array
     {
         return $this->rpc->remoteCall(
@@ -192,6 +213,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function prover_store_credential(?string $cred_id, array $cred_req_metadata, array $cred, array $cred_def, array $rev_reg_def = null): string
     {
         return $this->rpc->remoteCall(
@@ -206,6 +230,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function prover_get_credential(string $cred_id): array
     {
         return $this->rpc->remoteCall(
@@ -216,6 +243,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function prover_delete_credential(string $cred_id)
     {
         return $this->rpc->remoteCall(
@@ -226,6 +256,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function prover_get_credentials(array $filters): array
     {
         return $this->rpc->remoteCall(
@@ -236,6 +269,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function prover_search_credentials(array $query): array
     {
         return $this->rpc->remoteCall(
@@ -246,6 +282,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function prover_get_credentials_for_proof_req(array $proof_request): array
     {
         return $this->rpc->remoteCall(
@@ -256,6 +295,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function prover_search_credentials_for_proof_req(array $proof_request, array $extra_query = null, int $limit_referents = 1): array
     {
         return $this->rpc->remoteCall(
@@ -268,6 +310,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function prover_create_proof(array $proof_req, array $requested_credentials, string $master_secret_name, array $schemas, array $credential_defs, array $rev_states): array
     {
         return $this->rpc->remoteCall(
@@ -283,6 +328,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function verifier_verify_proof(array $proof_request, array $proof, array $schemas, array $credential_defs, array $rev_reg_defs, array $rev_regs): bool
     {
         return $this->rpc->remoteCall(
@@ -298,6 +346,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function create_revocation_state(int $blob_storage_reader_handle, array $rev_reg_def, array $rev_reg_delta, int $timestamp, string $cred_rev_id): array
     {
         return $this->rpc->remoteCall(
@@ -312,6 +363,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function update_revocation_state(int $blob_storage_reader_handle, array $rev_state, array $rev_reg_def, array $rev_reg_delta, int $timestamp, string $cred_rev_id): array
     {
         return $this->rpc->remoteCall(
@@ -327,6 +381,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function generate_nonce(): string
     {
         return $this->rpc->remoteCall(
@@ -334,6 +391,9 @@ class AnonCredsProxy extends AbstractAnonCreds
         );
     }
 
+    /**
+     * @inheritDoc
+     */
     public function to_unqualified(string $entity): string
     {
         return $this->rpc->remoteCall(

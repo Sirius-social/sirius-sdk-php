@@ -10,8 +10,10 @@ use Siruis\Tests\Helpers\Conftest;
 
 class TestLedgers extends TestCase
 {
-    /** @test */
-    public function test_nym_ops()
+    /**
+     * @return void
+     */
+    public function test_nym_ops(): void
     {
         $agent1 = Conftest::agent1();
         $agent2 = Conftest::agent2();
@@ -20,24 +22,23 @@ class TestLedgers extends TestCase
         $agent2->open();
         try {
             $seed = '000000000000000000000000Steward1';
-            list($did_steward, $verkey_steward) = $steward->wallet->did->create_and_store_my_did(null, $seed);
+            [$did_steward, $verkey_steward] = $steward->wallet->did->create_and_store_my_did(null, $seed);
             // check-1: read ops sane
             /** @var Ledger $dkms */
             $dkms = $steward->ledger('default');
-            list($ok, $resp) = $dkms->read_nym($did_steward, $did_steward);
+            [$ok, $resp] = $dkms->read_nym($did_steward, $did_steward);
             self::assertTrue($ok);
-            print_r('#');
-            list($did_test, $verkey_test) = $agent2->wallet->did->create_and_store_my_did();
+            [$did_test, $verkey_test] = $agent2->wallet->did->create_and_store_my_did();
             // check-2: read nym operation for unknown DID
             $dkms = $agent2->ledger('default');
-            list($ok, $resp) = $dkms->read_nym($did_test, $did_test);
+            [$ok, $resp] = $dkms->read_nym($did_test, $did_test);
             self::assertFalse($ok);
             // check-3: read nym for known DID
-            list($ok, $resp) = $dkms->read_nym($did_test, $did_steward);
+            [$ok, $resp] = $dkms->read_nym($did_test, $did_steward);
             self::assertTrue($ok);
             // check-4: write Nym
             $dkms = $steward->ledger('default');
-            list($ok, $resp) = $dkms->write_nym($did_steward, $did_test, $verkey_test, 'Test Alias');
+            [$ok, $resp] = $dkms->write_nym($did_steward, $did_test, $verkey_test, 'Test Alias');
             self::assertTrue($ok);
         } finally {
             $steward->close();
@@ -45,24 +46,27 @@ class TestLedgers extends TestCase
         }
     }
 
-    /** @test */
-    public function test_schema_registration()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     */
+    public function test_schema_registration(): void
     {
         $agent1 = Conftest::agent1();
         $agent1->open();
         try {
             $seed = '000000000000000000000000Steward1';
-            list($did, $verkey) = $agent1->wallet->did->create_and_store_my_did(null, $seed);
-            $schema_name = 'schema_' . uniqid();
-            list($schema_id, $anoncred_schema) = $agent1->wallet->anoncreds->issuer_create_schema($did, $schema_name, '1.0', ['attr1', 'attr2', 'attr3']);
+            [$did, $verkey] = $agent1->wallet->did->create_and_store_my_did(null, $seed);
+            $schema_name = 'schema_' . uniqid('', true);
+            [$schema_id, $anoncred_schema] = $agent1->wallet->anoncreds->issuer_create_schema($did, $schema_name, '1.0', ['attr1', 'attr2', 'attr3']);
             /** @var Ledger $ledger */
             $ledger = $agent1->ledger('default');
 
-            list($ok, $schema) = $ledger->register_schema($anoncred_schema, $did);
+            [$ok, $schema] = $ledger->register_schema($anoncred_schema, $did);
             self::assertTrue($ok);
             self::assertGreaterThan(0, $schema->getSeqNo());
 
-            list($ok, $_) = $ledger->register_schema($anoncred_schema, $did);
+            [$ok, $_] = $ledger->register_schema($anoncred_schema, $did);
             self::assertFalse($ok);
 
             $restored_schema = $ledger->ensure_schema_exists($anoncred_schema, $did);
@@ -72,7 +76,11 @@ class TestLedgers extends TestCase
         }
     }
 
-    public function test_schema_loading()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     */
+    public function test_schema_loading(): void
     {
         $agent1 = Conftest::agent1();
         $agent2 = Conftest::agent2();
@@ -80,19 +88,19 @@ class TestLedgers extends TestCase
         $agent2->open();
         try {
             $seed1 = '000000000000000000000000Steward1';
-            list($did1, $verkey1) = $agent1->wallet->did->create_and_store_my_did(null, $seed1);
-            $schema_name = 'schema_' . uniqid();
-            list($schema_id, $anoncred_schema) = $agent1->wallet->anoncreds->issuer_create_schema(
+            [$did1, $verkey1] = $agent1->wallet->did->create_and_store_my_did(null, $seed1);
+            $schema_name = 'schema_' . uniqid('', true);
+            [$schema_id, $anoncred_schema] = $agent1->wallet->anoncreds->issuer_create_schema(
                 $did1, $schema_name, '1.0', ['attr1', 'attr2', 'attr3']
             );
             $ledger1 = $agent1->ledger('default');
 
-            list($ok, $schema) = $ledger1->register_schema($anoncred_schema, $did1);
+            [$ok, $schema] = $ledger1->register_schema($anoncred_schema, $did1);
             self::assertTrue($ok);
             self::assertGreaterThan(0, $schema->getSeqNo());
 
             $seed2 = '000000000000000000000000Trustee0';
-            list($did2, $verkey2) = $agent2->wallet->did->create_and_store_my_did(null, $seed2);
+            [$did2, $verkey2] = $agent2->wallet->did->create_and_store_my_did(null, $seed2);
             /** @var Ledger $ledger2 */
             $ledger2 = $agent2->ledger('default');
 
@@ -106,21 +114,25 @@ class TestLedgers extends TestCase
         }
     }
 
-    public function test_schema_fetching()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     */
+    public function test_schema_fetching(): void
     {
         $agent1 = Conftest::agent1();
         $agent1->open();
         try {
             $seed = '000000000000000000000000Steward1';
-            list($did, $verkey) = $agent1->wallet->did->create_and_store_my_did(null, $seed);
-            $schema_name = 'schema_' . uniqid();
-            list($schema_id, $anoncred_schema) = $agent1->wallet->anoncreds->issuer_create_schema(
+            [$did, $verkey] = $agent1->wallet->did->create_and_store_my_did(null, $seed);
+            $schema_name = 'schema_' . uniqid('', true);
+            [$schema_id, $anoncred_schema] = $agent1->wallet->anoncreds->issuer_create_schema(
                 $did, $schema_name, '1.0', ['attr1', 'attr2', 'attr3']
             );
             /** @var Ledger $ledger */
             $ledger = $agent1->ledger('default');
 
-            list($ok, $resp) = $ledger->register_schema($anoncred_schema, $did);
+            [$ok, $resp] = $ledger->register_schema($anoncred_schema, $did);
             self::assertTrue($ok);
 
             $fetches = $ledger->fetch_schemas(null, $schema_name);
@@ -131,33 +143,38 @@ class TestLedgers extends TestCase
         }
     }
 
-    public function test_register_cred_def()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     */
+    public function test_register_cred_def(): void
     {
         $agent1 = Conftest::agent1();
         $agent1->open();
         try {
             $seed = '000000000000000000000000Steward1';
-            list($did, $verkey) = $agent1->wallet->did->create_and_store_my_did(null, $seed);
-            $schema_name = 'schema_' . uniqid();
-            list($schema_id, $anoncred_schema) = $agent1->wallet->anoncreds->issuer_create_schema(
+            [$did, $verkey] = $agent1->wallet->did->create_and_store_my_did(null, $seed);
+            $schema_name = 'schema_' . uniqid('', true);
+            [$schema_id, $anoncred_schema] = $agent1->wallet->anoncreds->issuer_create_schema(
                 $did, $schema_name, '1.0', ['attr1', 'attr2', 'attr3']
             );
             /** @var Ledger $ledger */
             $ledger = $agent1->ledger('default');
 
-            list($ok, $schema) = $ledger->register_schema($anoncred_schema, $did);
+            [$ok, $schema] = $ledger->register_schema($anoncred_schema, $did);
             self::assertTrue($ok);
 
             $cred_def = new CredentialDefinition('Test Tag', $schema);
             self::assertNull($cred_def->body);
-            list($ok, $ledger_cred_def) = $ledger->register_cred_def($cred_def, $did);
+            [$ok, $ledger_cred_def] = $ledger->register_cred_def($cred_def, $did);
             self::assertTrue($ok);
             self::assertNotNull($ledger_cred_def->body);
             self::assertGreaterThan(0, $ledger_cred_def->seq_no);
             self::assertEquals($did, $ledger_cred_def->getSubmitterDid());
-            $my_value = 'my-value'.uniqid();
+            $my_value = 'my-value'.uniqid('', true);
 
-            list($ok, $ledger_cred_def2) = $ledger->register_cred_def($cred_def, $did, ['my-tag' => $my_value]);
+            [$ok, $ledger_cred_def2] = $ledger->register_cred_def($cred_def, $did, ['my-tag' => $my_value]);
             self::assertTrue($ok);
             self::assertEquals($ledger_cred_def->body, $ledger_cred_def2->body);
             self::assertGreaterThan($ledger_cred_def->seq_no, $ledger_cred_def2->seq_no);
@@ -175,7 +192,6 @@ class TestLedgers extends TestCase
             self::assertCount(1, $results);
 
             $parts = explode(':', $ledger_cred_def->id);
-            print_r((string)$parts);
 
             $opts = new CacheOptions();
             foreach (range(0, 3) as $n) {

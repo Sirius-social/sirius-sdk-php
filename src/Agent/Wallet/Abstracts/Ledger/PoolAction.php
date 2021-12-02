@@ -10,19 +10,22 @@ class PoolAction extends Enum
     public const POOL_RESTART = 'POOL_RESTART';
     public const GET_VALIDATOR_INFO = 'GET_VALIDATOR_INFO';
 
-    public function serialize()
+    /**
+     * Deserialize from the given buffer.
+     *
+     * @param string $buffer
+     * @return string
+     */
+    public static function deserialize(string $buffer): string
     {
-        return $this->getValue();
-    }
-
-    public static function deserialize(string $buffer)
-    {
-        if ($buffer == 'POOL_RESTART') {
+        if ($buffer === 'POOL_RESTART') {
             return self::POOL_RESTART;
-        } elseif ($buffer == 'GET_VALIDATOR_INFO') {
-            return self::GET_VALIDATOR_INFO;
-        } else {
-            throw new RuntimeException('Unexpected value ' . $buffer);
         }
+
+        if ($buffer === 'GET_VALIDATOR_INFO') {
+            return self::GET_VALIDATOR_INFO;
+        }
+
+        throw new RuntimeException('Unexpected value ' . $buffer);
     }
 }

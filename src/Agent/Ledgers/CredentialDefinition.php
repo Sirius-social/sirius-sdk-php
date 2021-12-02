@@ -6,7 +6,6 @@ namespace Siruis\Agent\Ledgers;
 
 use RuntimeException;
 use Siruis\Base\JsonSerializable;
-use Siruis\Errors\Exceptions\SiriusValidationError;
 use Siruis\Helpers\ArrayHelper;
 
 class CredentialDefinition implements JsonSerializable
@@ -32,6 +31,15 @@ class CredentialDefinition implements JsonSerializable
      */
     public $seq_no;
 
+    /**
+     * CredentialDefinition constructor.
+     *
+     * @param string $tag
+     * @param \Siruis\Agent\Ledgers\Schema $schema
+     * @param \Siruis\Agent\Ledgers\Config|null $config
+     * @param array|null $body
+     * @param int|null $seq_no
+     */
     public function __construct(
         string $tag, Schema $schema, Config $config = null,
         array $body = null, int $seq_no = null
@@ -39,30 +47,45 @@ class CredentialDefinition implements JsonSerializable
     {
         $this->tag = $tag;
         $this->schema = $schema;
-        $this->config = $config ? $config : new Config();
+        $this->config = $config ?: new Config();
         $this->body = $body;
         $this->seq_no = $seq_no;
     }
 
+    /**
+     * Get id attribute.
+     *
+     * @return string|null
+     */
     public function getId(): ?string
     {
         if ($this->body) {
             return ArrayHelper::getValueWithKeyFromArray('id', $this->body);
-        } else {
-            return null;
         }
+
+        return null;
     }
 
+    /**
+     * Get submitter_did attribute.
+     *
+     * @return string|null
+     */
     public function getSubmitterDid(): ?string
     {
         if ($this->getId()) {
             $parts = explode(':', $this->getId());
             return $parts[0];
-        } else {
-            return null;
         }
+
+        return null;
     }
 
+    /**
+     * Serialize attributes.
+     *
+     * @return array
+     */
     public function serialize(): array
     {
         return [
@@ -74,20 +97,24 @@ class CredentialDefinition implements JsonSerializable
     }
 
     /**
-     * @inheritDoc
-     * @throws SiriusValidationError
+     * Deserialize from the given buffer.
+     *
+     * @param array|string $buffer
+     * @return \Siruis\Agent\Ledgers\CredentialDefinition
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      */
     public function deserialize($buffer): CredentialDefinition
     {
         if (is_string($buffer)) {
-            $data = json_decode($buffer);
+            $data = json_decode($buffer, false, 512, JSON_THROW_ON_ERROR);
         } elseif (is_array($buffer)) {
             $data = $buffer;
         } else {
             throw new RuntimeException('Unexpected buffer type');
         }
-        $schema = (new Schema)->deserialize($data['schema']);
-        $config = (new Config)->deserialize($data['config']);
+        $schema = Schema::deserialize($data['schema']);
+        $config = Config::deserialize($data['config']);
         $seq_no = $data['seq_no'];
         $body = $data['body'];
         return new CredentialDefinition($body['tag'], $schema, $config, $body, $seq_no);

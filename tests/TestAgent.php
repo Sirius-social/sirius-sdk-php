@@ -11,8 +11,10 @@ use Siruis\Tests\Helpers\TrustPingMessageUnderTest;
 
 class TestAgent extends TestCase
 {
-    /** @test */
-    public function test__all_agents_ping()
+    /**
+     * @return void
+     */
+    public function test__all_agents_ping(): void
     {
         $test_suite = Conftest::test_suite();
         foreach (['agent1', 'agent2', 'agent3', 'agent4'] as $name) {
@@ -33,8 +35,10 @@ class TestAgent extends TestCase
         }
     }
 
-    /** @test */
-    public function test_agents_wallet()
+    /**
+     * @return void
+     */
+    public function test_agents_wallet(): void
     {
         $test_suite = Conftest::test_suite();
         $params = $test_suite->get_agent_params('agent1');
@@ -47,7 +51,7 @@ class TestAgent extends TestCase
         $agent->open();
         try {
             // Check wallet calls is ok.
-            list($did, $verkey) = $agent->wallet->did->create_and_store_my_did();
+            [$did, $verkey] = $agent->wallet->did->create_and_store_my_did();
             self::assertNotNull($did);
             self::assertNotNull($verkey);
             // Check reopen is ok.
@@ -57,8 +61,19 @@ class TestAgent extends TestCase
         }
     }
 
-    /** @test */
-    public function test_agents_communications()
+    /**
+     * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusRPCError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     */
+    public function test_agents_communications(): void
     {
         $test_suite = Conftest::test_suite();
         $agent1_params = $test_suite->get_agent_params('agent1');
@@ -99,7 +114,7 @@ class TestAgent extends TestCase
             }
             // Prepare message.
             $trust_ping = new Message([
-                '@id' => 'trust-ping-message-'. uniqid(),
+                '@id' => 'trust-ping-message-'. uniqid('', true),
                 '@type' => 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping',
                 'comment' => 'Hi. Are you listening?',
                 'response_requested' => true
@@ -121,8 +136,18 @@ class TestAgent extends TestCase
         }
     }
 
-    /** @test */
-    public function test_listener_restore_message()
+    /**
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusRPCError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     */
+    public function test_listener_restore_message(): void
     {
         $test_suite = Conftest::test_suite();
         $agent1_params = $test_suite->get_agent_params('agent1');
@@ -159,7 +184,7 @@ class TestAgent extends TestCase
             }
             Message::registerMessageClass(TrustPingMessageUnderTest::class, 'trust_ping_test');
             $trust_ping = new Message([
-                '@id' => 'trust-ping-message-' . uniqid(),
+                '@id' => 'trust-ping-message-' . uniqid('', true),
                 '@type' => 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping_test/1.0/ping',
                 'comment' => 'Hi. Are you listening?',
                 'response_requested' => true
@@ -173,15 +198,26 @@ class TestAgent extends TestCase
             );
             $event = $agent2_listener->get_one(5);
             $msg = $event->payload['message'];
-            self::assertInstanceOf(TrustPingMessageUnderTest::class, $msg, 'Unexpected msg type: ' . (string)gettype($msg));
+            self::assertInstanceOf(TrustPingMessageUnderTest::class, $msg, 'Unexpected msg type: ' . gettype($msg));
         } finally {
             $agent1->close();
             $agent2->close();
         }
     }
 
-    /** @test */
-    public function test_agents_trust_ping()
+    /**
+     * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusRPCError
+     */
+    public function test_agents_trust_ping(): void
     {
         $test_suite = Conftest::test_suite();
         $agent1_params = $test_suite->get_agent_params('agent1');
@@ -221,7 +257,7 @@ class TestAgent extends TestCase
             }
             // Prepare message
             $trust_ping = new Message([
-                '@id' => 'trust-ping-message-' . uniqid(),
+                '@id' => 'trust-ping-message-' . uniqid('', true),
                 '@type' => 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/trust_ping/1.0/ping',
                 'comment' => 'Hi. Are you listening?',
                 'response_requested' => true
@@ -270,10 +306,10 @@ class TestAgent extends TestCase
     }
 
     /**
-     * @test
+     * @return void
      * @throws \Siruis\Errors\Exceptions\SiriusFieldTypeError
      */
-    public function test_agents_crypto()
+    public function test_agents_crypto(): void
     {
         $test_suite = Conftest::test_suite();
         $agent1_params = $test_suite->get_agent_params('agent1');
@@ -293,7 +329,6 @@ class TestAgent extends TestCase
         $agent1->open();
         $agent2->open();
         try {
-            $did_signer = 'Th7MpTaRZVRYnPiabds81Y';
             $verkey_signer = 'FYmoFw55GeQH7SRFa37dkx1d2dZ3zUF8ckg7wmL7ofN4';
             $msg = b'message';
             // 1. Check sign

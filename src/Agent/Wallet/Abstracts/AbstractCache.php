@@ -31,8 +31,12 @@ abstract class AbstractCache
      *      version: Schema's version string
      *      ver: Version of the Schema json
      * }
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function get_schema(string $pool_name, string $submitter_did, string $id, CacheOptions $options): array;
+    abstract public function get_schema(string $pool_name, string $submitter_did, string $id, CacheOptions $options): array;
 
     /**
      * Gets credential definition json data for specified credential definition id.
@@ -63,8 +67,12 @@ abstract class AbstractCache
      *      },
      *      ver: Version of the Credential Definition json
      * }
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function get_cred_def(string $pool_name, string $submitter_did, string $id, CacheOptions $options): array;
+    abstract public function get_cred_def(string $pool_name, string $submitter_did, string $id, CacheOptions $options): array;
 
     /**
      * Purge schema cache.
@@ -76,8 +84,12 @@ abstract class AbstractCache
      *      maxAge: (int, optional, -1 by default) Purge cached data if older than this many seconds. -1 means purge all.
      * }
      * @return mixed
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function purge_schema_cache(PurgeOptions $options);
+    abstract public function purge_schema_cache(PurgeOptions $options);
 
     /**
      * Purge credential definition cache.
@@ -89,7 +101,11 @@ abstract class AbstractCache
      *      maxAge: (int, optional, -1 by default) Purge cached data if older than this many seconds. -1 means purge all.
      * }
      * @return mixed
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function purge_cred_def_cache(PurgeOptions $options);
+    abstract public function purge_cred_def_cache(PurgeOptions $options);
 
 }

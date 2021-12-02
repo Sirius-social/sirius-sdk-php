@@ -11,7 +11,6 @@ use Siruis\Agent\Wallet\Abstracts\CacheOptions;
 use Siruis\Agent\Wallet\Abstracts\Ledger\AbstractLedger;
 use Siruis\Agent\Wallet\Abstracts\Ledger\NYMRole;
 use Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure;
-use Siruis\Errors\Exceptions\SiriusValidationError;
 use Siruis\Errors\IndyExceptions\LedgerNotFound;
 use Siruis\Helpers\ArrayHelper;
 use Siruis\Storage\Abstracts\AbstractImmutableCollection;
@@ -23,19 +22,19 @@ class Ledger
      */
     public $name;
     /**
-     * @var AbstractLedger
+     * @var \Siruis\Agent\Wallet\Abstracts\Ledger\AbstractLedger
      */
     public $api;
     /**
-     * @var AbstractAnonCreds
+     * @var \Siruis\Agent\Wallet\Abstracts\Anoncreds\AbstractAnonCreds
      */
     public $issuer;
     /**
-     * @var AbstractCache
+     * @var \Siruis\Agent\Wallet\Abstracts\AbstractCache
      */
     public $cache;
     /**
-     * @var AbstractImmutableCollection
+     * @var \Siruis\Storage\Abstracts\AbstractImmutableCollection
      */
     public $storage;
     /**
@@ -46,10 +45,10 @@ class Ledger
     /**
      * Ledger constructor.
      * @param string $name
-     * @param AbstractLedger $api
-     * @param AbstractAnonCreds $issuer
-     * @param AbstractCache $cache
-     * @param AbstractImmutableCollection $storage
+     * @param \Siruis\Agent\Wallet\Abstracts\Ledger\AbstractLedger $api
+     * @param \Siruis\Agent\Wallet\Abstracts\Anoncreds\AbstractAnonCreds $issuer
+     * @param \Siruis\Agent\Wallet\Abstracts\AbstractCache $cache
+     * @param \Siruis\Storage\Abstracts\AbstractImmutableCollection $storage
      */
     public function __construct(
         string $name, AbstractLedger $api, AbstractAnonCreds $issuer,
@@ -64,25 +63,43 @@ class Ledger
         $this->db = 'ledger_storage_' . $name;
     }
 
+    /**
+     * @param string $submitter_did
+     * @param string $target_did
+     * @return array
+     */
     public function read_nym(string $submitter_did, string $target_did): array
     {
         return $this->api->read_nym($this->name, $submitter_did, $target_did);
     }
 
+    /**
+     * @param string $submitter_did
+     * @param string $target_did
+     * @param string|null $ver_key
+     * @param string|null $alias
+     * @param null $role
+     * @return array
+     */
     public function write_nym(
         string $submitter_did, string $target_did,
         string $ver_key = null, string $alias = null, $role = null): array
     {
         return $this->api->write_nym(
-            $this->name, $submitter_did, $target_did, $ver_key, $alias, $role ?? NYMRole::COMMON_USER
+            $this->name,
+            $submitter_did,
+            $target_did,
+            $ver_key,
+            $alias,
+            $role ?: NYMRole::COMMON_USER()
         );
     }
 
     /**
      * @param string $id
      * @param string $submitter_did
-     * @return Schema
-     * @throws SiriusValidationError
+     * @return \Siruis\Agent\Ledgers\Schema
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      */
     public function load_schema(string $id, string $submitter_did): Schema
     {
@@ -95,9 +112,9 @@ class Ledger
     /**
      * @param string $id
      * @param string $submitter_did
-     * @return CredentialDefinition
-     * @throws SiriusInvalidPayloadStructure
-     * @throws SiriusValidationError
+     * @return \Siruis\Agent\Ledgers\CredentialDefinition
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      */
     public function load_cred_def(string $id, string $submitter_did): CredentialDefinition
     {
@@ -116,7 +133,7 @@ class Ledger
             $submitter_did,
             $txn_request
         );
-        if ($resp['op'] == 'REPLY') {
+        if ($resp['op'] === 'REPLY') {
             $txn_data = $resp['result']['data'];
             $schema_body = [
                 'name' => $txn_data['txn']['data']['data']['name'],
@@ -130,43 +147,41 @@ class Ledger
             return new CredentialDefinition(
                 $tag, $schema, null, $cred_def_body, $cred_def_seq_no
             );
-        } else {
-            throw new SiriusInvalidPayloadStructure();
         }
+
+        throw new SiriusInvalidPayloadStructure();
     }
 
     /**
-     * @param AnonCredSchema $schema
+     * @param \Siruis\Agent\Wallet\Abstracts\Anoncreds\AnonCredSchema $schema
      * @param string $submitter_did
      * @return array
-     * @throws SiriusValidationError
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      */
     public function register_schema(AnonCredSchema $schema, string $submitter_did): array
     {
-        $apiRegisterSchema = $this->api->register_schema(
+        [$success, $txn_response] = $this->api->register_schema(
             $this->name,
             $submitter_did,
             $schema->body
         );
-        $success = $apiRegisterSchema[0];
-        $txn_response = $apiRegisterSchema[1];
-        if ($success && $txn_response['op'] == 'REPLY') {
+        if ($success && $txn_response['op'] === 'REPLY') {
             $body = $schema->body;
             $body['seqNo'] = $txn_response['result']['txnMetadata']['seqNo'];
             $schema_in_ledger = new Schema($body);
             $this->ensure_exists_in_storage($schema_in_ledger, $submitter_did);
             return [true, $schema_in_ledger];
-        } else {
-            $reason = ArrayHelper::getValueWithKeyFromArray('reason', $txn_response);
-            if ($reason) {
-                error_log($reason);
-            }
-            return [false, null];
         }
+
+        $reason = ArrayHelper::getValueWithKeyFromArray('reason', $txn_response);
+        if ($reason) {
+            printf($reason);
+        }
+        return [false, null];
     }
 
     /**
-     * @param CredentialDefinition $cred_def
+     * @param \Siruis\Agent\Ledgers\CredentialDefinition $cred_def
      * @param string $submitter_did
      * @param array|null $tags
      * @return array
@@ -175,7 +190,7 @@ class Ledger
         CredentialDefinition $cred_def, string $submitter_did, array $tags = null
     ): array
     {
-        list($cred_def_id, $body) = $this->issuer->issuer_create_and_store_credential_def(
+        [$cred_def_id, $body] = $this->issuer->issuer_create_and_store_credential_def(
             $submitter_did, $cred_def->schema->body, $cred_def->tag, null, $cred_def->config->serialize()
         );
         $build_request = $this->api->build_cred_def_request(
@@ -183,7 +198,7 @@ class Ledger
         );
         $signed_request = $this->api->sign_request($this->name, $build_request);
         $resp = $this->api->submit_request($this->name, $signed_request);
-        $success = ArrayHelper::getValueWithKeyFromArray('op', $resp) == 'REPLY';
+        $success = ArrayHelper::getValueWithKeyFromArray('op', $resp) === 'REPLY';
         if ($success) {
             $txn_response = $resp;
             $ledger_cred_def = new CredentialDefinition(
@@ -192,16 +207,16 @@ class Ledger
             );
             $this->ensure_exists_in_storage($ledger_cred_def, $submitter_did, $tags);
             return [true, $ledger_cred_def];
-        } else {
-            return [false, null];
         }
+
+        return [false, null];
     }
 
     /**
-     * @param AnonCredSchema $schema
+     * @param \Siruis\Agent\Wallet\Abstracts\Anoncreds\AnonCredSchema $schema
      * @param string $submitter_did
-     * @return Schema|null
-     * @throws SiriusValidationError
+     * @return \Siruis\Agent\Ledgers\Schema|null
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      */
     public function ensure_schema_exists(AnonCredSchema $schema, string $submitter_did): ?Schema
     {
@@ -215,12 +230,12 @@ class Ledger
         } catch (LedgerNotFound $e) {
             echo $e;
         }
-        $registerSchema = $this->register_schema($schema, $submitter_did);
-        if ($registerSchema[0]) {
-            return $registerSchema[1];
-        } else {
-            return null;
+        [$ok, $ledger_schema] = $this->register_schema($schema, $submitter_did);
+        if ($ok) {
+            return $ledger_schema;
         }
+
+        return null;
     }
 
     /**
@@ -229,7 +244,7 @@ class Ledger
      * @param string|null $version
      * @param string|null $submitter_did
      * @return array
-     * @throws SiriusValidationError
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      */
     public function fetch_schemas(
         string $id = null, string $name = null, string $version = null, string $submitter_did = null
@@ -252,7 +267,7 @@ class Ledger
         $storageFetch = $this->storage->fetch($filters->tags);
         $schemas = [];
         foreach ($storageFetch[0] as $item) {
-            array_push($schemas, (new Schema)->deserialize($item));
+            $schemas[] = (new Schema)->deserialize($item);
         }
         return $schemas;
     }
@@ -265,12 +280,13 @@ class Ledger
      * @param int|null $seq_no
      * @param array|null $extras
      * @return array
-     * @throws SiriusValidationError
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      */
     public function fetch_cred_defs(
         string $tag = null, string $id = null, string $submitter_did = null,
         string $schema_id = null, int $seq_no = null, array $extras = null
-    )
+    ): array
     {
         $filters = new CredentialDefinitionFilters();
         if ($tag) {
@@ -293,7 +309,7 @@ class Ledger
         $storageFetch = $this->storage->fetch($filters->tags);
         $cred_defs = [];
         foreach ($storageFetch[0] as $item) {
-            array_push($cred_defs, (new CredentialDefinition)->deserialize($item));
+            $cred_defs[] = CredentialDefinition::deserialize($item);
         }
         return $cred_defs;
     }
@@ -302,8 +318,9 @@ class Ledger
      * @param Schema|CredentialDefinition $entity
      * @param string $submitter_did
      * @param array|null $search_tags
+     * @return void
      */
-    protected function ensure_exists_in_storage($entity, string $submitter_did, array $search_tags = null)
+    protected function ensure_exists_in_storage($entity, string $submitter_did, array $search_tags = null): void
     {
         $this->storage->select_db($this->db);
         if ($entity instanceof Schema) {
@@ -313,7 +330,7 @@ class Ledger
                 'category' => 'schema'
             ];
             $storageFetch = $this->storage->fetch($tags);
-            if ($storageFetch[1] == 0) {
+            if ($storageFetch[1] === 0) {
                 array_merge($tags, [
                     'id' => $schema->getId(),
                     'name' => $schema->getName(),
@@ -331,7 +348,7 @@ class Ledger
                 'submitter_did' => $cred_def->getSubmitterDid()
             ];
             if ($search_tags) {
-                array_push($tags, $search_tags);
+                $tags[] = $search_tags;
             }
             $this->storage->add($cred_def->serialize(), $tags);
         }

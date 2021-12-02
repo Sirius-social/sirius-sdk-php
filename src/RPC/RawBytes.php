@@ -11,7 +11,7 @@ class RawBytes
         $this->payload = $payload;
     }
 
-    public function toBytes()
+    public function toBytes(): string
     {
         return utf8_encode($this->payload);
     }

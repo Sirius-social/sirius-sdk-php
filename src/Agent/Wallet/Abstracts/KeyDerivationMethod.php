@@ -11,21 +11,26 @@ class KeyDerivationMethod extends Enum
     public const FAST = 'ARGON2I_INT';
     public const RAW = 'RAW';
 
-    public function serialize()
+    /**
+     * Deserialize from the given buffer.
+     *
+     * @param string $buffer
+     * @return string
+     */
+    public static function deserialize(string $buffer): string
     {
-        return $this->getValue();
-    }
-
-    public static function deserialize(string $buffer)
-    {
-        if ($buffer == 'ARGON2I_MOD') {
+        if ($buffer === 'ARGON2I_MOD') {
             return self::DEFAULT;
-        } elseif ($buffer == 'ARGON2I_INT') {
-            return self::FAST;
-        } elseif ($buffer == 'RAW') {
-            return self::RAW;
-        } else {
-            throw new RuntimeException('Unexpected value ' . $buffer);
         }
+
+        if ($buffer === 'ARGON2I_INT') {
+            return self::FAST;
+        }
+
+        if ($buffer === 'RAW') {
+            return self::RAW;
+        }
+
+        throw new RuntimeException('Unexpected value ' . $buffer);
     }
 }

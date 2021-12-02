@@ -7,45 +7,52 @@ namespace Siruis\Agent\Ledgers;
 use RuntimeException;
 use Siruis\Agent\Wallet\Abstracts\Anoncreds\AnonCredSchema;
 use Siruis\Base\JsonSerializable;
-use Siruis\Errors\Exceptions\SiriusValidationError;
 
 class Schema extends AnonCredSchema implements JsonSerializable
 {
     /**
-     * Schema constructor.
-     * @param array|null $args
-     * @throws SiriusValidationError
+     * Get seq_no attribute.
+     *
+     * @return int
      */
-    public function __construct(array $args = null)
-    {
-        parent::__construct($args);
-    }
-
     public function getSeqNo(): int
     {
         return $this->body['seqNo'];
     }
 
+    /**
+     * Get issuer_did attribute.
+     *
+     * @return string
+     */
     public function getIssuerDid(): string
     {
         $parts = explode(':', $this->getId());
         return $parts[0];
     }
 
+    /**
+     * Serialize attributes.
+     *
+     * @return array|null
+     */
     public function serialize(): ?array
     {
         return $this->body;
     }
 
     /**
+     * Deserialize from the given buffer.
+     *
      * @param array|string $buffer
-     * @return Schema
-     * @throws SiriusValidationError
+     * @return \Siruis\Agent\Ledgers\Schema
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      */
     public function deserialize($buffer): Schema
     {
         if (is_string($buffer)) {
-            $kwargs = json_decode($buffer);
+            $kwargs = json_decode($buffer, false, 512, JSON_THROW_ON_ERROR);
         } elseif (is_array($buffer)) {
             $kwargs = $buffer;
         } else {

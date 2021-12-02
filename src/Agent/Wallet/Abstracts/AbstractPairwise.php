@@ -11,8 +11,12 @@ abstract class AbstractPairwise
      *
      * @param string $their_did encoded Did.
      * @return bool true - if pairwise is exists, false - otherwise
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function is_pairwise_exists(string $their_did): bool;
+    abstract public function is_pairwise_exists(string $their_did): bool;
 
     /**
      * Creates pairwise.
@@ -22,8 +26,12 @@ abstract class AbstractPairwise
      * @param array|null $metadata (Optional) extra information for pairwise
      * @param array|null $tags tags for searching operations
      * @return mixed Error code
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function create_pairwise(string $their_did,
+    abstract public function create_pairwise(string $their_did,
                                              string $my_did,
                                              array $metadata = null,
                                              array $tags = null);
@@ -32,16 +40,24 @@ abstract class AbstractPairwise
      * Get list of saved pairwise.
      *
      * @return array list of saved pairwise
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function list_pairwise(): array;
+    abstract public function list_pairwise(): array;
 
     /**
      * Gets pairwise information for specific their_did.
      *
      * @param string $their_did encoded Did
      * @return array|null did info associated with their did
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function get_pairwise(string $their_did): ?array;
+    abstract public function get_pairwise(string $their_did): ?array;
 
     /**
      * Save some data in the Wallet for pairwise associated with Did.
@@ -50,8 +66,12 @@ abstract class AbstractPairwise
      * @param array|null $metadata some extra information for pairwise
      * @param array|null $tags  tags for searching operation
      * @return mixed
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function set_pairwise_metadata(string $their_did, array $metadata = null, array $tags = null);
+    abstract public function set_pairwise_metadata(string $their_did, array $metadata = null, array $tags = null);
 
     /**
      * Search Pairwises
@@ -59,6 +79,10 @@ abstract class AbstractPairwise
      * @param array $tags tags based query
      * @param int|null $limit max items count
      * @return mixed Results, TotalCount
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function search(array $tags, int $limit = null);
+    abstract public function search(array $tags, int $limit = null);
 }

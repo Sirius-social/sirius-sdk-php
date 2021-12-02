@@ -29,7 +29,7 @@ class TestTimeouts extends TestCase
         try {
             $context = $conn_with_global_setting->read();
             self::assertNotNull($context);
-            self::expectException(SiriusTimeoutIO::class);
+            $this->expectException(SiriusTimeoutIO::class);
             $conn_with_global_setting->read();
         } finally {
             $conn_with_global_setting->close();
@@ -86,7 +86,7 @@ class TestTimeouts extends TestCase
                 'content' => 'Request'
             ]);
             $stamp1 = new DateTime();
-            list($ok, $resp) = $co->switch($msg);
+            [$ok, $resp] = $co->switch($msg);
             self::assertFalse($ok);
             $this->expectException(SiriusTimeoutIO::class);
             $co->get_one();

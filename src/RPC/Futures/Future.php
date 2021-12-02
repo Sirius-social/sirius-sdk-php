@@ -56,7 +56,7 @@ class Future
      */
     public function __construct(AddressedTunnel $tunnel, DateTime $expiration_time = null)
     {
-        $this->id = uniqid();
+        $this->id = uniqid('', true);
         $this->value = null;
         $this->read_ok = false;
         $this->tunnel = $tunnel;
@@ -67,7 +67,7 @@ class Future
     /**
      * @return array
      */
-    public function getPromise()
+    public function getPromise(): array
     {
         return [
             'id' => $this->id,
@@ -86,7 +86,7 @@ class Future
      * @throws SodiumException
      * @throws Exception
      */
-    public function wait(int $timeout = null)
+    public function wait(int $timeout = null): bool
     {
         if ($this->read_ok) {
             return true;
@@ -99,7 +99,7 @@ class Future
             }
             if ($this->expiration_time != null) {
                 $expires_time = $this->expiration_time;
-            } elseif ($timeout != null) {
+            } elseif ($timeout !== null) {
                 $expires_time = DateTime::createFromFormat('Y-m-d h:i:s', date('Y-m-d h:i:s', time() + $timeout), $timezone);
             } else {
                 $expires_time = DateTime::createFromFormat('Y-m-d h:i:s', date('Y-m-d h:i:s', time() + 365), $timezone);
@@ -110,12 +110,12 @@ class Future
                 $payload = $this->tunnel->receive($timeout);
                 $payload = $payload->payload;
                 if (
-                    key_exists('@type', $payload) &&
-                    $payload['@type'] == self::MSG_TYPE &&
-                    key_exists('~thread', $payload) &&
-                    $payload['~thread']['thid'] == $this->id
+                    array_key_exists('@type', $payload) &&
+                    $payload['@type'] === self::MSG_TYPE &&
+                    array_key_exists('~thread', $payload) &&
+                    $payload['~thread']['thid'] === $this->id
                 ) {
-                    if (key_exists('exception', $payload) && $payload['exception']) {
+                    if (array_key_exists('exception', $payload) && $payload['exception']) {
                         $this->exception = $payload['exception'];
                     } else {
                         $value = $payload['value'];
@@ -138,7 +138,7 @@ class Future
     }
 
     /**
-     * @return null
+     * @return mixed
      * @throws SiriusPendingOperation
      */
     public function getValue()
@@ -158,7 +158,7 @@ class Future
         if (!$this->read_ok) {
             throw new SiriusPendingOperation();
         }
-        return $this->exception != null;
+        return $this->exception !== null;
     }
 
     /**
@@ -168,7 +168,7 @@ class Future
     public function getException()
     {
         if ($this->hasException()) {
-            if (key_exists('indy', $this->exception) && $this->exception['indy']) {
+            if (array_key_exists('indy', $this->exception) && $this->exception['indy']) {
                 $indy_exc = $this->exception['indy'];
                 $exc_class = ErrorCodeToException::parse($indy_exc['error_code']);
                 return new $exc_class(
@@ -177,28 +177,29 @@ class Future
                         'message' => $indy_exc['message'],
                         'indy_backtrace' => null
                     ]);
-            } else {
-                return new SiriusPromiseContextException(
-                    $this->exception['class_name'],
-                    $this->exception['printable']
-                );
             }
-        } else {
-            return null;
+
+            return new SiriusPromiseContextException(
+                $this->exception['class_name'],
+                $this->exception['printable']
+            );
         }
+
+        return null;
     }
 
     /**
+     * @return void
      * @throws SiriusPendingOperation
      * @throws SiriusPromiseContextException
      * @throws SiriusValueEmpty
      */
-    public function throwException()
+    public function throwException(): void
     {
         if ($this->hasException()) {
             throw $this->getException();
-        } else {
-            throw new SiriusValueEmpty();
         }
+
+        throw new SiriusValueEmpty();
     }
 }

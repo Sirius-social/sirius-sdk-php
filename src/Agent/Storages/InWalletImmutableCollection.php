@@ -9,13 +9,12 @@ use Siruis\Storage\Abstracts\AbstractImmutableCollection;
 
 class InWalletImmutableCollection extends AbstractImmutableCollection
 {
-    const DEFAULT_FETCH_LIMIT = 1000;
+    public const DEFAULT_FETCH_LIMIT = 1000;
 
     /**
      * @var AbstractNonSecrets
      */
     public $storage;
-
     /**
      * @var string
      */
@@ -23,6 +22,7 @@ class InWalletImmutableCollection extends AbstractImmutableCollection
 
     /**
      * InWalletImmutableCollection constructor.
+     *
      * @param AbstractNonSecrets $in_wallet_storage
      * @return void
      */
@@ -32,38 +32,54 @@ class InWalletImmutableCollection extends AbstractImmutableCollection
         $this->selected_db = '';
     }
 
-    public function select_db(string $db_name)
+    /**
+     * @param string $db_name
+     * @return void
+     */
+    public function select_db(string $db_name): void
     {
         $this->selected_db = $db_name;
     }
 
-    public function add($value, array $tags)
+    /**
+     * @param $value
+     * @param array $tags
+     * @return void
+     * @throws \JsonException
+     */
+    public function add($value, array $tags): void
     {
-        $payload = json_encode($value, JSON_UNESCAPED_SLASHES);
-        $this->storage->add_wallet_record(
+        $payload = json_encode($value, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+        $this->storage::add_wallet_record(
             $this->selected_db,
-            uniqid(),
+            uniqid('', true),
             $payload,
             $tags
         );
     }
 
+    /**
+     * @param array $tags
+     * @param int|null $limit
+     * @return array
+     * @throws \JsonException
+     */
     public function fetch(array $tags, int $limit = null): array
     {
-        list($collection, $total_count) = $this->storage->wallet_search(
+        [$collection, $total_count] = $this->storage::wallet_search(
             $this->selected_db,
             $tags,
             new RetrieveRecordOptions(true),
-            $limit ? $limit : self::DEFAULT_FETCH_LIMIT
+            $limit ?: self::DEFAULT_FETCH_LIMIT
         );
         if ($collection) {
             $values = [];
             foreach ($collection as $item) {
-                array_push($values, json_decode($item['value'], true));
+                $values[] = json_decode($item['value'], true, 512, JSON_THROW_ON_ERROR);
             }
             return [$values, $total_count];
-        } else {
-            return [[], $total_count];
         }
+
+        return [[], $total_count];
     }
 }

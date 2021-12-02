@@ -13,8 +13,12 @@ abstract class AbstractLedger
      * @param string|null $submitter_did (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
      * @param string $target_did Target DID as base58-encoded string for 16 or 32 bit DID value.
      * @return array result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function read_nym(string $pool_name, ?string $submitter_did, string $target_did): array;
+    abstract public function read_nym(string $pool_name, ?string $submitter_did, string $target_did): array;
 
     /**
      * Builds a GET_ATTRIB request. Request to get information about an Attribute for the specified DID.
@@ -24,8 +28,12 @@ abstract class AbstractLedger
      * @param string $target_did Target DID as base58-encoded string for 16 or 32 bit DID value.
      * @param string $name attribute name.
      * @return array
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function read_attribute(string $pool_name, ?string $submitter_did, string $target_did, string $name): array;
+    abstract public function read_attribute(string $pool_name, ?string $submitter_did, string $target_did, string $name): array;
 
     /**
      * Builds a NYM request.
@@ -45,8 +53,12 @@ abstract class AbstractLedger
      *                           NETWORK_MONITOR
      *                           empty string to reset role
      * @return array success, result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function write_nym(
+    abstract public function write_nym(
         string $pool_name, string $submitter_did, string $target_did,
         string $ver_key = null, string $alias = null, $role = null
     ): array;
@@ -66,8 +78,12 @@ abstract class AbstractLedger
      *      ver: version of the Schema json
      * }
      * @return array success, Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function register_schema(string $pool_name, string $submitter_did, array $data): array;
+    abstract public function register_schema(string $pool_name, string $submitter_did, array $data): array;
 
     /**
      * Builds an CRED_DEF request. Request to add a credential definition (in particular, public key),
@@ -89,8 +105,12 @@ abstract class AbstractLedger
      *                          ver: Version of the CredDef json
      *                      }
      * @return array success, Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function register_cred_def(string $pool_name, string $submitter_did, array $data): array;
+    abstract public function register_cred_def(string $pool_name, string $submitter_did, array $data): array;
 
     /**
      * Builds an ATTRIB request. Request to add attribute to a NYM record.
@@ -102,8 +122,12 @@ abstract class AbstractLedger
      * @param string $name attribute name
      * @param mixed $value attribute value
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function write_attribute(
+    abstract public function write_attribute(
         string $pool_name, ?string $submitter_did, string $target_did, string $name, $value
     ): array;
 
@@ -118,8 +142,12 @@ abstract class AbstractLedger
      * @param string $submitter_did Id of Identity stored in secured Wallet.
      * @param array $request Request data json.
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function sign_and_submit_request(string $pool_name, string $submitter_did, array $request): array;
+    abstract public function sign_and_submit_request(string $pool_name, string $submitter_did, array $request): array;
 
     /**
      * Send action to particular nodes of validator pool.
@@ -136,8 +164,12 @@ abstract class AbstractLedger
      *                            ["Node1", "Node2", .... "NodeN"]
      * @param int|null $timeout (Optional) Time to wait respond from nodes (override the default timeout) (in sec).
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function submit_request(
+    abstract public function submit_request(
         string $pool_name, array $request, array $nodes = null, int $timeout = null
     ): array;
 
@@ -156,8 +188,12 @@ abstract class AbstractLedger
      *                          ["Node1", "Node2",...."NodeN"]
      * @param int|null $timeout (Optional) Time to wait respond from nodes (override the default timeout) (in sec).
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function submit_action(string $pool_name, array $request, array $nodes = null, int $timeout = null): array;
+    abstract public function submit_action(string $pool_name, array $request, array $nodes = null, int $timeout = null): array;
 
     /**
      * Signs request message.
@@ -168,8 +204,12 @@ abstract class AbstractLedger
      * @param string $submitter_did Id of Identity stored in secured Wallet.
      * @param array $request Request data json.
      * @return array Signed request json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function sign_request(string $submitter_did, array $request): array;
+    abstract public function sign_request(string $submitter_did, array $request): array;
 
     /**
      * Multi signs request message.
@@ -180,8 +220,12 @@ abstract class AbstractLedger
      * @param string $submitter_did Id of Identity stored in secured Wallet.
      * @param array $request Request data json.
      * @return array Signed request json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function multi_sign_request(string $submitter_did, array $request): array;
+    abstract public function multi_sign_request(string $submitter_did, array $request): array;
 
     /**
      * Builds a request to get a DDO.
@@ -189,8 +233,12 @@ abstract class AbstractLedger
      * @param string|null $submitter_did  (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
      * @param string $target_did Id of Identity stored in secured Wallet.
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_get_ddo_request(?string $submitter_did, string $target_did): array;
+    abstract public function build_get_ddo_request(?string $submitter_did, string $target_did): array;
 
     /**
      * Builds a NYM request.
@@ -209,8 +257,12 @@ abstract class AbstractLedger
      *                                          NETWORK_MONITOR
      *                                          empty string to reset role
      * @return array
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_nym_request(
+    abstract public function build_nym_request(
         string $submitter_did, string $target_did, string $ver_key = null,
         string $alias = null, NYMRole $role = null
     ): array;
@@ -225,8 +277,12 @@ abstract class AbstractLedger
      * @param array|null $raw (Optional) Json, where key is attribute name and value is attribute value.
      * @param string|null $enc (Optional) Encrypted value attribute data.
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_attrib_request(
+    abstract public function build_attrib_request(
         string $submitter_did, string $target_did, string $xhash = null,
         array $raw = null, string $enc = null
     ): array;
@@ -240,8 +296,12 @@ abstract class AbstractLedger
      * @param string|null $xhash (Optional) Requested attribute hash.
      * @param string|null $enc (Optional) Requested attribute encrypted value.
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_get_attrib_request(
+    abstract public function build_get_attrib_request(
         ?string $submitter_did, string $target_did, string $raw = null,
         string $xhash = null, string $enc = null
     ): array;
@@ -252,8 +312,12 @@ abstract class AbstractLedger
      * @param string|null $submitter_did (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
      * @param string $target_did Target DID as base58-encoded string for 16 or 32 bit DID value.
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_get_nym_request(
+    abstract public function build_get_nym_request(
         ?string $submitter_did, string $target_did
     ): array;
 
@@ -273,8 +337,12 @@ abstract class AbstractLedger
      *                              101 - ENDORSER - equal to TRUST_ANCHOR that will be removed soon
      *                              201 - NETWORK_MONITOR
      * }
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function parse_get_nym_response($response): array;
+    abstract public function parse_get_nym_response($response): array;
 
     /**
      * Builds a SCHEMA request. Request to add Credential's schema.
@@ -290,8 +358,12 @@ abstract class AbstractLedger
      *                          ver: Version of the Schema json
      *                      }
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_schema_request(string $submitter_did, array $data): array;
+    abstract public function build_schema_request(string $submitter_did, array $data): array;
 
     /**
      * Builds a GET_SCHEMA request. Request to get Credential's Schema.
@@ -299,8 +371,12 @@ abstract class AbstractLedger
      * @param string|null $submitter_did (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
      * @param string $id Schema Id in ledger
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_get_schema_request(?string $submitter_did, string $id): array;
+    abstract public function build_get_schema_request(?string $submitter_did, string $id): array;
 
     /**
      * Parse a GET_SCHEMA response to get Schema in the format compatible with Anoncreds API
@@ -314,8 +390,12 @@ abstract class AbstractLedger
      *      version: Schema's version string
      *      ver: Version of the Schema json
      *  }
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function parse_get_schema_response(array $get_schema_response): array;
+    abstract public function parse_get_schema_response(array $get_schema_response): array;
 
     /**
      * Builds an CRED_DEF request. Request to add a credential definition (in particular, public key),
@@ -336,8 +416,12 @@ abstract class AbstractLedger
      *                          ver: Version of the CredDef json
      *                      }
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_cred_def_request(string $submitter_did, array $data): array;
+    abstract public function build_cred_def_request(string $submitter_did, array $data): array;
 
     /**
      * Builds a GET_CRED_DEF request. Request to get a credential definition (in particular, public key),
@@ -346,8 +430,12 @@ abstract class AbstractLedger
      * @param string|null $submitter_did (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
      * @param string $id Credential Definition Id in ledger.
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_get_cred_def_request(?string $submitter_did, string $id): array;
+    abstract public function build_get_cred_def_request(?string $submitter_did, string $id): array;
 
     /**
      * Parse a GET_CRED_DEF response to get Credential Definition in the format compatible with Anoncreds API.
@@ -365,8 +453,12 @@ abstract class AbstractLedger
      *      },
      *      ver: Version of the Credential Definition json
      *  }
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function parse_get_cred_def_response(array $get_cred_def_response): array;
+    abstract public function parse_get_cred_def_response(array $get_cred_def_response): array;
 
     /**
      * Builds a NODE request. Request to add a new node to the pool, or updates existing in the pool.
@@ -386,16 +478,24 @@ abstract class AbstractLedger
      *      services: array<string> - (Optional) The service of the Node. VALIDATOR is the only supported one now.
      *  }
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_node_request(string $submitter_did, string $target_did, array $data): array;
+    abstract public function build_node_request(string $submitter_did, string $target_did, array $data): array;
 
     /**
      * Builds a GET_VALIDATOR_INFO request.
      *
      * @param string $submitter_did Id of Identity stored in secured Wallet.
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_get_validator_info_request(string $submitter_did): array;
+    abstract public function build_get_validator_info_request(string $submitter_did): array;
 
     /**
     Builds a GET_TXN request. Request to get any transaction by its seq_no.
@@ -408,8 +508,12 @@ abstract class AbstractLedger
      *      any number
      * @param int $seq_no requested transaction sequence number as it's stored on Ledger.
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_get_txn_request(?string $submitter_did, ?string $ledger_type, int $seq_no): array;
+    abstract public function build_get_txn_request(?string $submitter_did, ?string $ledger_type, int $seq_no): array;
 
     /**
      * Builds a POOL_CONFIG request. Request to change Pool's configuration.
@@ -421,8 +525,12 @@ abstract class AbstractLedger
      * @param bool $force Whether we should apply transaction (for example, move pool to read-only state)
      *                      without waiting for consensus of this transaction
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_pool_config_request(string $submitter_did, bool $writes, bool $force): array;
+    abstract public function build_pool_config_request(string $submitter_did, bool $writes, bool $force): array;
 
     /**
      * Builds a POOL_RESTART request
@@ -433,8 +541,12 @@ abstract class AbstractLedger
      *                       Can be "start" or "cancel"
      * @param string $datetime Time when pool must be restarted.
      * @return array
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_pool_restart_request(string $submitter_did, string $action, string $datetime): array;
+    abstract public function build_pool_restart_request(string $submitter_did, string $action, string $datetime): array;
 
     /**
      * Builds a POOL_UPGRADE request. Request to upgrade the Pool (sent by Trustee).
@@ -455,8 +567,12 @@ abstract class AbstractLedger
      *                    for consensus of this transaction.
      * @param string|null $package (Optional) Package to be upgraded.
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_pool_upgrade_request(
+    abstract public function build_pool_upgrade_request(
         string $submitter_did, string $name, string $version, string $action, string $_sha256, ?int $_timeout,
         ?string $schedule, ?string $justification, bool $reinstall, bool $force, ?string $package
     ): array;
@@ -483,8 +599,12 @@ abstract class AbstractLedger
      *      "ver": string - version of revocation registry definition json.
      *  }
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_revoc_reg_def_request(string $submitter_did, string $data): array;
+    abstract public function build_revoc_reg_def_request(string $submitter_did, string $data): array;
 
     /**
      * Builds a GET_REVOC_REG_DEF request. Request to get a revocation registry definition,
@@ -493,8 +613,12 @@ abstract class AbstractLedger
      * @param string|null $submitter_did (Optional) DID of the read request sender (if not provided then default Libindy DID will be used).
      * @param string $rev_reg_def_id ID of Revocation Registry Definition in ledger.
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_get_revoc_reg_def_request(?string $submitter_did, string $rev_reg_def_id): array;
+    abstract public function build_get_revoc_reg_def_request(?string $submitter_did, string $rev_reg_def_id): array;
 
     /**
      * Parse a GET_REVOC_REG_DEF response to get Revocation Registry Definition in the format compatible with Anoncreds API.
@@ -515,8 +639,12 @@ abstract class AbstractLedger
      *      },
      *      "ver": string - version of revocation registry definition json.
      *  }
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function parse_get_revoc_reg_def_response(array $get_revoc_ref_def_response): array;
+    abstract public function parse_get_revoc_reg_def_response(array $get_revoc_ref_def_response): array;
 
     /**
      * Builds a REVOC_REG_ENTRY request.  Request to add the RevocReg entry containing
@@ -538,8 +666,12 @@ abstract class AbstractLedger
      *      ver: string - version revocation registry entry json
      *  }
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_revoc_reg_entry_request(
+    abstract public function build_revoc_reg_entry_request(
         string $submitter_did, string $revoc_reg_def_id, string $rev_def_type, array $value
     ): array;
 
@@ -551,8 +683,12 @@ abstract class AbstractLedger
      * @param string $revoc_reg_def_id ID of the corresponding Revocation Registry Definition in ledger.
      * @param int $timestamp Requested time represented as a total number of seconds from Unix Epoch
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_get_revoc_reg_request(?string $submitter_did, string $revoc_reg_def_id, int $timestamp): array;
+    abstract public function build_get_revoc_reg_request(?string $submitter_did, string $revoc_reg_def_id, int $timestamp): array;
 
     /**
      * Parse a GET_REVOC_REG response to get Revocation Registry in the format compatible with Anoncreds API.
@@ -565,8 +701,12 @@ abstract class AbstractLedger
      *      },
      *      "ver": string - version revocation registry json
      *  }
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function parse_get_revoc_reg_response(array $get_revoc_reg_response): array;
+    abstract public function parse_get_revoc_reg_response(array $get_revoc_reg_response): array;
 
     /**
      * Parse a GET_REVOC_REG_DELTA response to get Revocation Registry Delta in the format compatible with Anoncreds API.
@@ -582,8 +722,12 @@ abstract class AbstractLedger
      *      },
      *      "ver": string
      *  }
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_get_revoc_reg_delta_request(array $get_revoc_reg_delta_response): array;
+    abstract public function build_get_revoc_reg_delta_request(array $get_revoc_reg_delta_response): array;
 
     /**
      * Parse transaction response to fetch metadata.
@@ -611,8 +755,12 @@ abstract class AbstractLedger
      *      "lastSeqNo": Option<u64> - the latest transaction seqNo for particular Node,
      *      "lastTxnTime": Option<u64> - the latest transaction ordering time for particular Node
      *  }
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function get_response_metadata(array $response): array;
+    abstract public function get_response_metadata(array $response): array;
 
     /**
      * Builds a AUTH_RULE request. Request to change authentication rules for a ledger transaction.
@@ -647,8 +795,12 @@ abstract class AbstractLedger
      * More about AUTH_RULE request: https://github.com/hyperledger/indy-node/blob/master/docs/source/requests.md#auth_rule
      *
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_auth_rule_request(
+    abstract public function build_auth_rule_request(
         string $submitter_did, string $txn_type, string $action, string $field,
         ?string $old_value, ?string $new_value, array $constraint
     ): array;
@@ -673,8 +825,12 @@ abstract class AbstractLedger
      * More about AUTH_RULE request: https://github.com/hyperledger/indy-node/blob/master/docs/source/requests.md#auth_rules
      *
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_auth_rules_request(string $submitter_did, array $data): array;
+    abstract public function build_auth_rules_request(string $submitter_did, array $data): array;
 
     /**
      * Builds a GET_AUTH_RULE request. Request to get authentication rules for a ledger transaction.
@@ -690,8 +846,12 @@ abstract class AbstractLedger
      * @param string|null $old_value (Optional) old value of field, which can be changed to a new_value (must be specified for EDIT action).
      * @param string|null $new_value (Optional) new value that can be used to fill the field.
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_get_auth_rule_request(
+    abstract public function build_get_auth_rule_request(
         ?string $submitter_did, ?string $txn_type, ?string $action,
         ?string $field, ?string $old_value, ?string $new_value
     ): array;
@@ -726,8 +886,12 @@ abstract class AbstractLedger
      * Note: Use `build_disable_all_txn_author_agreements_request` to disable all TAA's on the ledger.
      *
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_txn_author_agreement_request(
+    abstract public function build_txn_author_agreement_request(
         string $submitter_did, ?string $text, string $version,
         int $ratification_ts = null, int $retirement_ts = null
     ): array;
@@ -741,8 +905,12 @@ abstract class AbstractLedger
      *                              Actual request sender may differ if Endorser is used (look at `append_request_endorser`)
      *
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_disable_all_txn_author_agreements_request(string $submitter_did): array;
+    abstract public function build_disable_all_txn_author_agreements_request(string $submitter_did): array;
 
     /**
      * Builds a GET_TXN_AUTHR_AGRMT request. Request to get a specific Transaction Author Agreement from the ledger.
@@ -760,8 +928,12 @@ abstract class AbstractLedger
      * Null data or empty JSON are acceptable here. In this case, ledger will return the latest version of TAA.
      *
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_get_txn_author_agreement_request(?string $submitter_did, array $data = null): array;
+    abstract public function build_get_txn_author_agreement_request(?string $submitter_did, array $data = null): array;
 
     /**
      * Builds a SET_TXN_AUTHR_AGRMT_AML request. Request to add a new list of acceptance mechanisms for transaction author agreement.
@@ -780,8 +952,12 @@ abstract class AbstractLedger
      * @param string $version a version of new acceptance mechanisms. (Note: unique on the Ledger)
      * @param string|null $aml_context (Optional) common context information about acceptance mechanisms (may be a URL to external resource).
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_acceptance_mechanisms_request(string $submitter_did, array $aml, string $version, ?string $aml_context): array;
+    abstract public function build_acceptance_mechanisms_request(string $submitter_did, array $aml, string $version, ?string $aml_context): array;
 
     /**
      * Builds a GET_TXN_AUTHR_AGRMT_AML request. Request to get a list of  acceptance mechanisms from the ledger
@@ -796,8 +972,12 @@ abstract class AbstractLedger
      * NOTE: timestamp and version cannot be specified together.
      *
      * @return array Request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function build_get_acceptance_mechanisms_request(?string $submitter_did, ?int $timestamp, ?string $version): array;
+    abstract public function build_get_acceptance_mechanisms_request(?string $submitter_did, ?int $timestamp, ?string $version): array;
 
     /**
      * Append transaction author agreement acceptance data to a request.
@@ -820,8 +1000,12 @@ abstract class AbstractLedger
      * @param string $mechanism mechanism how user has accepted the TAA
      * @param int $time UTC timestamp when user has accepted the TAA. Note that the time portion will be discarded to avoid a privacy risk.
      * @return array Updated request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function append_txn_author_agreement_acceptance_to_request(
+    abstract public function append_txn_author_agreement_acceptance_to_request(
         array $request, ?string $text, ?string $version,
         ?string $taa_digest, string $mechanism, int $time
     ): array;
@@ -841,7 +1025,11 @@ abstract class AbstractLedger
      * @param string $endorser_did DID of the Endorser that will submit the transaction.
      * The Endorser's DID must be present on the ledger.
      * @return array Updated request result as json.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function append_request_endorser(array $request, string $endorser_did): array;
+    abstract public function append_request_endorser(array $request, string $endorser_did): array;
 
 }

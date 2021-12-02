@@ -19,8 +19,12 @@ abstract class AbstractNonSecrets
      *      "~tagName3": <str>, // string tag (will be stored un-encrypted)
      *      "~tagName4": <str>, // string tag (will be stored un-encrypted)
      *  }
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public static abstract function add_wallet_record(string $type_, string $id_, string $value, array $tags = null);
+    abstract public static function add_wallet_record(string $type_, string $id_, string $value, array $tags = null);
 
     /**
      * Update a non-secret wallet record value
@@ -28,8 +32,12 @@ abstract class AbstractNonSecrets
      * @param string $type_ allows to separate different record types collections
      * @param string $id_ the id of record
      * @param string $value the value of record
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public static abstract function update_wallet_record_value(string $type_, string $id_, string $value);
+    abstract public static function update_wallet_record_value(string $type_, string $id_, string $value);
 
     /**
      * Add new tags to the wallet record
@@ -43,8 +51,12 @@ abstract class AbstractNonSecrets
      *      "~tagName3": <str>, // string tag (will be stored un-encrypted)
      *      "~tagName4": <str>, // string tag (will be stored un-encrypted)
      *  }
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public static abstract function update_wallet_record_tags(string $type_, string $id_, array $tags);
+    abstract public static function update_wallet_record_tags(string $type_, string $id_, array $tags);
 
     /**
      * Add new tags to the wallet record
@@ -59,8 +71,12 @@ abstract class AbstractNonSecrets
      *      "~tagName4": <str>, // string tag (will be stored un-encrypted)
      *  }
      * @return mixed
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public static abstract function add_wallet_record_tags(string $type_, string $id_, array $tags);
+    abstract public static function add_wallet_record_tags(string $type_, string $id_, array $tags);
 
     /**
      * Delete an existing wallet record tags in the wallet
@@ -68,16 +84,26 @@ abstract class AbstractNonSecrets
      * @param string $type_ allows to separate different record types collections
      * @param string $id_ the id of record
      * @param array $tag_names the list of tag names to remove from the record as json array: ["tagName1", "tagName2", ...]
+     * @return mixed
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public static abstract function delete_wallet_record_tags(string $type_, string $id_, array $tag_names);
+    abstract public static function delete_wallet_record_tags(string $type_, string $id_, array $tag_names);
 
     /**
      * Delete an existing wallet record in the wallet
      *
      * @param string $type_ allows to separate different record types collections
      * @param string $id_ the id of record
+     * @return mixed
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public static abstract function delete_wallet_record(string $type_, string $id_);
+    abstract public static function delete_wallet_record(string $type_, string $id_);
 
     /**
      * Get an wallet record by id
@@ -97,8 +123,12 @@ abstract class AbstractNonSecrets
      *      value: "Some value", // present only if retrieveValue set to true
      *      tags: <tags json>, // present only if retrieveTags set to true
      *  }
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public static abstract function get_wallet_record(string $type_, string $id_, RetrieveRecordOptions $options): ?array;
+    abstract public static function get_wallet_record(string $type_, string $id_, RetrieveRecordOptions $options): ?array;
 
     /**
      * Search for wallet records
@@ -131,7 +161,11 @@ abstract class AbstractNonSecrets
      *          tags: <tags json>, // present only if retrieveTags set to true
      *      }],
      *  }
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public static abstract function wallet_search(string $type_, array $query, RetrieveRecordOptions $options, int $limit = 1): array;
+    abstract public static function wallet_search(string $type_, array $query, RetrieveRecordOptions $options, int $limit = 1): array;
 
 }

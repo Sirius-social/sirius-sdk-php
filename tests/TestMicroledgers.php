@@ -18,6 +18,10 @@ use stdClass;
 
 class TestMicroledgers extends TestCase
 {
+    /**
+     * @param \Siruis\Agent\Microledgers\AbstractMicroledger $ledger
+     * @return array
+     */
     public function get_state(AbstractMicroledger $ledger): array
     {
         return [
@@ -30,7 +34,11 @@ class TestMicroledgers extends TestCase
         ];
     }
 
-    public function test_init_ledger()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     */
+    public function test_init_ledger(): void
     {
         $ledger_name = Conftest::ledger_name();
         $agent = Conftest::agent4();
@@ -49,7 +57,10 @@ class TestMicroledgers extends TestCase
         }
     }
 
-    public function test_merkle_info()
+    /**
+     * @return void
+     */
+    public function test_merkle_info(): void
     {
         $agent = Conftest::agent4();
         $ledger_name = Conftest::ledger_name();
@@ -72,7 +83,10 @@ class TestMicroledgers extends TestCase
         }
     }
 
-    public function test_append_operations()
+    /**
+     * @return void
+     */
+    public function test_append_operations(): void
     {
         $agent = Conftest::agent4();
         $ledger_name = Conftest::ledger_name();
@@ -86,7 +100,7 @@ class TestMicroledgers extends TestCase
                 ['reqId' => 2, 'identifier' => '2btLJAAb1S3x6hZYdVyAePjqtQYi2ZBSRGy4569RZu8h', 'op' => 'op2'],
                 ['reqId' => 3, 'identifier' => 'CECeGXDi6EHuhpwz19uyjjEnsRGNXodFYqCRgdLmLRkt', 'op' => 'op3'],
             ];
-            $txn_time = (string)date('Y-m-d h:i:s', time());
+            $txn_time = (string)date('Y-m-d h:i:s');
             [$start, $end, $appended_transactions] = $ledger->append($txns, $txn_time);
             self::assertEquals(3, $end);
             self::assertEquals(2, $start);
@@ -95,7 +109,15 @@ class TestMicroledgers extends TestCase
         }
     }
 
-    public function test_commit_discard()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function test_commit_discard(): void
     {
         $agent = Conftest::agent4();
         $ledger_name = Conftest::ledger_name();
@@ -110,7 +132,7 @@ class TestMicroledgers extends TestCase
                 ['reqId' => 2, 'identifier' => '2btLJAAb1S3x6hZYdVyAePjqtQYi2ZBSRGy4569RZu8h', 'op' => 'op2'],
                 ['reqId' => 3, 'identifier' => 'CECeGXDi6EHuhpwz19uyjjEnsRGNXodFYqCRgdLmLRkt', 'op' => 'op3'],
             ];
-            $txn_time = (string)date('Y-m-d h:i:s', time());
+            $txn_time = (string)date('Y-m-d h:i:s');
 
             self::assertEquals($ledger->getUncommittedRootHash(), $ledger->getRootHash());
             $ledger->append($txns, $txn_time);
@@ -134,7 +156,15 @@ class TestMicroledgers extends TestCase
         }
     }
 
-    public function test_reset_uncommitted()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function test_reset_uncommitted(): void
     {
         $agent = Conftest::agent4();
         $ledger_name = Conftest::ledger_name();
@@ -161,7 +191,16 @@ class TestMicroledgers extends TestCase
         }
     }
 
-    public function test_get_operations()
+    /**
+     * @return void
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function test_get_operations(): void
     {
         $agent = Conftest::agent4();
         $ledger_name = Conftest::ledger_name();
@@ -211,7 +250,10 @@ class TestMicroledgers extends TestCase
         }
     }
 
-    public function test_reset()
+    /**
+     * @return void
+     */
+    public function test_reset(): void
     {
         $agent = Conftest::agent4();
         $ledger_name = Conftest::ledger_name();
@@ -238,7 +280,10 @@ class TestMicroledgers extends TestCase
         }
     }
 
-    public function test_list()
+    /**
+     * @return void
+     */
+    public function test_list(): void
     {
         $agent = Conftest::agent4();
         $ledger_name = Conftest::ledger_name();
@@ -272,7 +317,15 @@ class TestMicroledgers extends TestCase
         }
     }
 
-    public function test_get_all_txns()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function test_get_all_txns(): void
     {
         $agent = Conftest::agent4();
         $ledger_name = Conftest::ledger_name();
@@ -301,7 +354,15 @@ class TestMicroledgers extends TestCase
         }
     }
 
-    public function test_audit_proof()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function test_audit_proof(): void
     {
         $agent = Conftest::agent4();
         $ledger_name = Conftest::ledger_name();
@@ -329,14 +390,14 @@ class TestMicroledgers extends TestCase
                 $audit_proof = $ledger->audit_proof($seq_no);
                 self::assertEquals('3eDS4j8HgpAyRnuvfFG624KKvQBuNXKBenhqHmHtUgeq', $audit_proof->root_hash);
                 self::assertEquals(6, $audit_proof->ledger_size);
-                array_push($audit_paths, $audit_proof->audit_path);
+                $audit_paths[] = $audit_proof->audit_path;
             }
 
             foreach ([7, 8, 9] as $seq_no) {
                 $audit_proof = $ledger->audit_proof($seq_no);
                 self::assertEquals('3eDS4j8HgpAyRnuvfFG624KKvQBuNXKBenhqHmHtUgeq', $audit_proof->root_hash);
                 self::assertEquals(6, $audit_proof->ledger_size);
-                array_push($audit_paths, $audit_proof->audit_path);
+                $audit_paths[] = $audit_proof->audit_path;
                 self::assertEquals('Dkoca8Af15uMLBHAqbddwqmpiqsaDEtKDoFVfNRXt44g', $ledger->getUncommittedRootHash());
             }
             printf('@');
@@ -345,7 +406,10 @@ class TestMicroledgers extends TestCase
         }
     }
 
-    public function test_leaf_hash()
+    /**
+     * @return void
+     */
+    public function test_leaf_hash(): void
     {
         $agent = Conftest::agent4();
         $ledger_name = Conftest::ledger_name();
@@ -366,7 +430,14 @@ class TestMicroledgers extends TestCase
         }
     }
 
-    public function test_rename()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function test_rename(): void
     {
         $agent = Conftest::agent4();
         $ledger_name = Conftest::ledger_name();
@@ -378,7 +449,7 @@ class TestMicroledgers extends TestCase
             /** @var Microledger $ledger */
             [$ledger, $_] = $agent->microledgers->create($ledger_name, $genesis_txns);
 
-            $new_name = 'new_name_'.uniqid();
+            $new_name = 'new_name_'.uniqid('', true);
             $ledger->rename($new_name);
             self::assertEquals($new_name, $ledger->name);
 
@@ -391,7 +462,14 @@ class TestMicroledgers extends TestCase
         }
     }
 
-    public function test_batched_ops()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function test_batched_ops(): void
     {
         $agent = Conftest::agent4();
         $ledger_names = Conftest::ledger_names();
@@ -406,7 +484,7 @@ class TestMicroledgers extends TestCase
             $commit_txns = [
                 ['reqId' => 3, 'identifier' => '5rArie7XKukPCaEwq5XGQJnM9Fc5aZE3M9HAPVfMU2xC', 'op' => 'op3', 'txnMetadata' => new stdClass()],
             ];
-            $txn_time = (string)date('Y-m-d h:i:s', time());
+            $txn_time = (string)date('Y-m-d h:i:s');
             foreach ($ledger_names as $ledger_name) {
                 $agent->microledgers->create($ledger_name, $genesis_txns);
             }
@@ -415,8 +493,11 @@ class TestMicroledgers extends TestCase
             $batched = $agent->microledgers->batched();
             $ledgers = $batched->open($ledger_names);
             try {
+                foreach ($ledgers as $ledger) {
+                    self::assertContains($ledger->name, $ledger_names);
+                }
                 // Fetch states
-                $ledger = $batched->states();
+                $ledgers = $batched->states();
                 $states_before = [];
                 foreach ($ledgers as $ledger) {
                     $states_before[$ledger->name] = $this->get_state($ledger);
@@ -485,7 +566,10 @@ class TestMicroledgers extends TestCase
         }
     }
 
-    public function test_batched_ops_perfomance()
+    /**
+     * @return void
+     */
+    public function test_batched_ops_perfomance(): void
     {
         $agent = Conftest::agent4();
         $genesis_txns = [
@@ -506,15 +590,15 @@ class TestMicroledgers extends TestCase
             try {
                 $stamp1 = new DateTime();
                 $batched->append($commit_txns);
-                $ledgers = $batched->commit();
+                $batched->commit();
                 $stamp2 = new DateTime();
             } finally {
                 $batched->close();
             }
             $seconds_for_2 = date_diff($stamp2, $stamp1)->f;
-            error_log('========== Timeout for 2 Ledgers =======');
-            error_log("Seconds: $seconds_for_2");
-            error_log('========================================');
+            printf('========== Timeout for 2 Ledgers =======');
+            printf("Seconds: $seconds_for_2");
+            printf('========================================');
             // Calc timeout for ledgers count = 100
             $ledger_names = Conftest::ledger_names(100);
             foreach ($ledger_names as $ledger_name) {
@@ -531,15 +615,15 @@ class TestMicroledgers extends TestCase
                 $batched->close();
             }
             $seconds_for_100 = date_diff($stamp2, $stamp1)->f;
-            error_log('========== Timeout for 100 Ledgers =======');
-            error_log("Seconds: $seconds_for_100");
-            error_log('========================================');
+            printf('========== Timeout for 100 Ledgers =======');
+            printf("Seconds: $seconds_for_100");
+            printf('========================================');
             self::assertGreaterThan($seconds_for_100, 50 * $seconds_for_2);
             $ledger_names = Conftest::ledger_names(100);
             $ledgers = [];
             foreach ($ledger_names as $ledger_name) {
-                [$ledger, $txns] = $agent->microledgers->create($ledger_name, $genesis_txns);
-                array_push($ledgers, $ledger);
+                [$ledger] = $agent->microledgers->create($ledger_name, $genesis_txns);
+                $ledgers[] = $ledger;
             }
             $stamp1 = new DateTime();
             foreach ($ledgers as $ledger) {
@@ -548,16 +632,19 @@ class TestMicroledgers extends TestCase
             }
             $stamp2 = new DateTime();
             $seconds_for_100_non_parallel = date_diff($stamp2, $stamp1)->f;
-            error_log('========== Timeout for 100 Ledgers Non-parallel mode =======');
-            error_log("Seconds: $seconds_for_100_non_parallel");
-            error_log('========================================');
-            self::assertGreaterThan($seconds_for_100, $seconds_for_100_non_parallel / 2);
+            printf('========== Timeout for 100 Ledgers Non-parallel mode =======');
+            printf("Seconds: $seconds_for_100_non_parallel");
+            printf('========================================');
+            self::assertGreaterThan($seconds_for_100_non_parallel / 2, $seconds_for_100);
         } finally {
             $agent->close();
         }
     }
 
-    public function test_microledgers_in_same_context_space_1()
+    /**
+     * @return void
+     */
+    public function test_microledgers_in_same_context_space_1(): void
     {
         $agent = Conftest::agent4();
         $ledger_name = Conftest::ledger_name();
@@ -591,7 +678,14 @@ class TestMicroledgers extends TestCase
         }
     }
 
-    public function test_microledgers_in_same_context_space_2()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function test_microledgers_in_same_context_space_2(): void
     {
         $agent = Conftest::agent4();
         $ledger_name = Conftest::ledger_name();
@@ -633,11 +727,12 @@ class TestMicroledgers extends TestCase
         }
     }
 
-    /** @test */
-    public function test_batched_ops_errors()
+    /**
+     * @return void
+     */
+    public function test_batched_ops_errors(): void
     {
         $agent = Conftest::agent4();
-        $ledger_names = Conftest::ledger_names();
         $agent->open();
         try {
             $api = $agent->microledgers->batched();

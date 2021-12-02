@@ -10,13 +10,13 @@ use Siruis\Agent\Wallet\Abstracts\AbstractDID;
 class DIDProxy extends AbstractDID
 {
     /**
-     * @var AgentRPC
+     * @var \Siruis\Agent\Connections\AgentRPC
      */
     private $rpc;
 
     /**
      * DIDProxy constructor.
-     * @param AgentRPC $rpc
+     * @param \Siruis\Agent\Connections\AgentRPC $rpc
      */
     public function __construct(AgentRPC $rpc)
     {

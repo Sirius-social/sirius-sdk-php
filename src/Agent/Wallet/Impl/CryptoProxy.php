@@ -12,14 +12,19 @@ use Siruis\RPC\RawBytes;
 class CryptoProxy extends AbstractCrypto
 {
     /**
-     * @var AgentRPC
+     * @var \Siruis\Agent\Connections\AgentRPC
      */
     private $rpc;
 
+    /**
+     * CryptoProxy constructor.
+     * @param \Siruis\Agent\Connections\AgentRPC $rpc
+     */
     public function __construct(AgentRPC $rpc)
     {
         $this->rpc = $rpc;
     }
+
 
     /**
      * @inheritDoc
@@ -35,6 +40,7 @@ class CryptoProxy extends AbstractCrypto
         );
     }
 
+
     /**
      * @inheritDoc
      */
@@ -49,6 +55,7 @@ class CryptoProxy extends AbstractCrypto
         );
     }
 
+
     /**
      * @inheritDoc
      */
@@ -62,17 +69,17 @@ class CryptoProxy extends AbstractCrypto
         );
     }
 
+
     /**
      * @inheritDoc
      */
     public function crypto_sign(string $signer_vk, string $msg): string
     {
-        $msg = new RawBytes($msg);
         return $this->rpc->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/crypto_sign',
             [
                 'signer_vk' => $signer_vk,
-                'msg' => $msg
+                'msg' => new RawBytes($msg)
             ]
         );
     }
@@ -80,7 +87,7 @@ class CryptoProxy extends AbstractCrypto
     /**
      * @inheritDoc
      */
-    public function crypto_verify(string $signer_vk, string $msg, $signature): bool
+    public function crypto_verify(string $signer_vk, string $msg, string $signature): bool
     {
         if (Parsing::is_binary($signature)) {
             return $this->rpc->remoteCall(
@@ -91,10 +98,11 @@ class CryptoProxy extends AbstractCrypto
                     'signature' => $signature
                 ]
             );
-        } else {
-            throw new SiriusFieldTypeError('signature', 'binary', gettype($signature));
         }
+
+        throw new SiriusFieldTypeError('signature', 'binary', gettype($signature));
     }
+
 
     /**
      * @inheritDoc
@@ -110,6 +118,7 @@ class CryptoProxy extends AbstractCrypto
         );
     }
 
+
     /**
      * @inheritDoc
      */
@@ -123,6 +132,7 @@ class CryptoProxy extends AbstractCrypto
             ]
         );
     }
+
 
     /**
      * @inheritDoc
@@ -138,6 +148,7 @@ class CryptoProxy extends AbstractCrypto
             ]
         );
     }
+
 
     /**
      * @inheritDoc

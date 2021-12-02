@@ -12,18 +12,19 @@ use Siruis\Agent\Wallet\Abstracts\PurgeOptions;
 class CacheProxy extends AbstractCache
 {
     /**
-     * @var AgentRPC
+     * @var \Siruis\Agent\Connections\AgentRPC
      */
     private $rpc;
 
     /**
      * CacheProxy constructor.
-     * @param AgentRPC $rpc
+     * @param \Siruis\Agent\Connections\AgentRPC $rpc
      */
     public function __construct(AgentRPC $rpc)
     {
         $this->rpc = $rpc;
     }
+
 
     /**
      * @inheritDoc
@@ -41,6 +42,7 @@ class CacheProxy extends AbstractCache
         );
     }
 
+
     /**
      * @inheritDoc
      */
@@ -57,6 +59,7 @@ class CacheProxy extends AbstractCache
         );
     }
 
+
     /**
      * @inheritDoc
      */
@@ -69,6 +72,7 @@ class CacheProxy extends AbstractCache
             ]
         );
     }
+
 
     /**
      * @inheritDoc

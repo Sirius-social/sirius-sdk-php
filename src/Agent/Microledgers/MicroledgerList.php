@@ -5,14 +5,13 @@ namespace Siruis\Agent\Microledgers;
 
 use RuntimeException;
 use Siruis\Agent\Connections\AgentRPC;
-use Siruis\Encryption\Encryption;
 use Siruis\Errors\Exceptions\SiriusContextError;
 use Siruis\RPC\RawBytes;
 
 
 class MicroledgerList extends AbstractMicroledgerList
 {
-    const TTL = 60*60;
+    public const TTL = 60*60;
     /**
      * @var AgentRPC
      */
@@ -26,6 +25,10 @@ class MicroledgerList extends AbstractMicroledgerList
      */
     public $batched_api;
 
+    /**
+     * MicroledgerList constructor.
+     * @param \Siruis\Agent\Connections\AgentRPC $api
+     */
     public function __construct(AgentRPC $api)
     {
         $this->api = $api;
@@ -33,6 +36,9 @@ class MicroledgerList extends AbstractMicroledgerList
         $this->batched_api = new BatchedAPI($api, $this->instances);
     }
 
+    /**
+     * @return \Siruis\Agent\Microledgers\AbstractBatchedAPI
+     */
     public function batched(): AbstractBatchedAPI
     {
         return $this->batched_api;
@@ -42,17 +48,21 @@ class MicroledgerList extends AbstractMicroledgerList
      * @param string $name
      * @param array $genesis
      * @return array
-     * @throws SiriusContextError
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function create(string $name, array $genesis): array
     {
         $genesis_txns = [];
         foreach ($genesis as $txn) {
             if ($txn instanceof Transaction) {
-                array_push($genesis_txns, $txn->as_object());
+                $genesis_txns[] = $txn->as_object();
             } elseif (is_array($txn)) {
                 $txn = Transaction::create($txn);
-                array_push($genesis_txns, $txn->as_object());
+                $genesis_txns[] = $txn->as_object();
             } else {
                 throw new RuntimeException('Unexpected transaction type');
             }
@@ -65,13 +75,17 @@ class MicroledgerList extends AbstractMicroledgerList
 
     /**
      * @param string $name
-     * @return AbstractMicroledger
-     * @throws SiriusContextError
+     * @return \Siruis\Agent\Microledgers\AbstractMicroledger
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function ledger(string $name): AbstractMicroledger
     {
         if (!$this->instances->is_exists($name)) {
-            $this->__check_is_exists($name);
+            $this->check_is_exists($name);
             $instance = new Microledger($name, $this->api);
             $this->instances->set($name, $instance);
         }
@@ -80,11 +94,16 @@ class MicroledgerList extends AbstractMicroledgerList
 
     /**
      * @param string $name
-     * @throws SiriusContextError
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public function reset(string $name)
+    public function reset(string $name): void
     {
-        $this->__check_is_exists($name);
+        $this->check_is_exists($name);
         $this->api->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/microledgers/1.0/reset',
             [
@@ -96,6 +115,14 @@ class MicroledgerList extends AbstractMicroledgerList
         }
     }
 
+    /**
+     * @param string $name
+     * @return bool
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
     public function is_exists(string $name): bool
     {
         return $this->api->remoteCall(
@@ -106,25 +133,38 @@ class MicroledgerList extends AbstractMicroledgerList
         );
     }
 
+    /**
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \JsonException
+     */
     public function leaf_hash($txn)
     {
         if ($txn instanceof Transaction) {
-            $data = mb_convert_encoding(json_encode($txn->payload, JSON_UNESCAPED_SLASHES | JSON_FORCE_OBJECT), 'utf-8');
+            $data = mb_convert_encoding(json_encode($txn->payload, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES | JSON_FORCE_OBJECT), 'utf-8');
         } elseif (is_string($txn)) {
             $data = $txn;
         } else {
             throw new RuntimeException('Unexpected transaction type');
         }
-        $resp = $this->api->remoteCall(
+        return $this->api->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/microledgers/1.0/leaf_hash',
             [
                 'data' => new RawBytes($data)
             ]
         );
-        return $resp;
     }
 
-    public function list()
+    /**
+     * @return array
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function list(): array
     {
         $collection = $this->api->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/microledgers/1.0/list',
@@ -134,16 +174,21 @@ class MicroledgerList extends AbstractMicroledgerList
         );
         $metas = [];
         foreach ($collection as $item) {
-            array_push($metas, new LedgerMeta($item['name'], $item['uid'], $item['created']));
+            $metas[] = new LedgerMeta($item['name'], $item['uid'], $item['created']);
         }
         return $metas;
     }
 
     /**
      * @param string $name
-     * @throws SiriusContextError
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    protected function __check_is_exists(string $name)
+    protected function check_is_exists(string $name): void
     {
         if (!$this->instances->is_exists($name)) {
             $is_exists = $this->is_exists($name);

@@ -6,15 +6,15 @@ namespace Siruis\Agent\Connections;
 use JsonException;
 use Siruis\Encryption\P2PConnection;
 use Siruis\Errors\Exceptions\SiriusConnectionClosed;
-use Siruis\Errors\Exceptions\SiriusCryptoError;
-use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
+use Siruis\Errors\Exceptions\SiriusContextError;
 use Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure;
-use Siruis\Errors\Exceptions\SiriusInvalidType;
+use Siruis\Errors\Exceptions\SiriusIOError;
+use Siruis\Errors\Exceptions\SiriusTimeoutIO;
 use Siruis\Messaging\Message;
 
 class AgentEvents extends BaseAgentConnection
 {
-    const RECONNECT_TRY_COUNT = 2;
+    public const RECONNECT_TRY_COUNT = 2;
     protected $tunnel;
     public $balancingGroup;
 
@@ -40,14 +40,18 @@ class AgentEvents extends BaseAgentConnection
 
     /**
      * @param int|null $timeout
-     * @return Message
-     * @throws SiriusConnectionClosed
-     * @throws SiriusInvalidPayloadStructure
-     * @throws SiriusCryptoError
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidType
+     * @return \Siruis\Messaging\Message
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public function pull(int $timeout = null)
+    public function pull(int $timeout = null): Message
     {
         if (!$this->connector->isOpen()) {
             throw new SiriusConnectionClosed('Open agent connection at first');
@@ -56,8 +60,7 @@ class AgentEvents extends BaseAgentConnection
         for ($n = 0; $n < self::RECONNECT_TRY_COUNT; $n++) {
             try {
                 $data = $this->connector->read($timeout);
-                break;
-            } catch (SiriusConnectionClosed $exception) {
+            } catch (SiriusConnectionClosed | SiriusIOError | SiriusTimeoutIO $exception) {
                 $this->reopen();
             }
         }
@@ -65,16 +68,16 @@ class AgentEvents extends BaseAgentConnection
             throw new SiriusConnectionClosed('agent unreachable');
         }
         try {
-            $payload = json_decode(mb_convert_encoding($data, $this->connector->enc), true);
+            $payload = json_decode(mb_convert_encoding($data, $this->connector->enc), true, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException $exception) {
             throw new SiriusInvalidPayloadStructure();
         }
-        if (key_exists('protected', $payload)) {
+        if (array_key_exists('protected', $payload)) {
             $message = $this->p2p->unpack($payload);
-            return new Message(json_decode($message, true));
-        } else {
-            return new Message($payload);
+            return new Message(json_decode($message, true, 512, JSON_THROW_ON_ERROR));
         }
+
+        return new Message($payload);
     }
 
     /**
@@ -86,26 +89,38 @@ class AgentEvents extends BaseAgentConnection
     }
 
     /**
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidType
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
      */
-    protected function reopen()
+    protected function reopen(): void
     {
         $this->connector->reconnect();
-        $payload = $this->connector->read(1);
-        $context = new Message($payload);
-        $this->setup($context);
+        try {
+            $payload = $this->connector->read(1);
+        } catch (SiriusConnectionClosed | SiriusIOError | SiriusTimeoutIO $e) {
+            throw $e;
+        }
+        $context = Message::deserialize($payload);
+        if ($context !== null) {
+            $this->setup($context);
+        }
+
+        throw new SiriusContextError();
     }
 
     /**
      * @param Message $context
+     * @return void
      */
-    public function setup(Message $context)
+    public function setup(Message $context): void
     {
-        $context = $context->payload;
-        $balancing = $context['~balancing'] ? $context['~balancing'] : [];
+        $balancing = $context->payload['~balancing'] ?: [];
         foreach ($balancing as $balance) {
-            if ($balance['id'] == 'kafka') {
+            if ($balance['id'] === 'kafka') {
                 $this->balancingGroup = $balance['data']['json']['group_id'];
             }
         }

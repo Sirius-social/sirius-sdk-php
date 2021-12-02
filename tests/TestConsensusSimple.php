@@ -14,13 +14,20 @@ use Siruis\Agent\Consensus\Messages\PreCommitParallelTransactionsMessage;
 use Siruis\Agent\Consensus\Messages\PreCommitTransactionsMessage;
 use Siruis\Agent\Consensus\Messages\ProposeParallelTransactionsMessage;
 use Siruis\Agent\Consensus\Messages\ProposeTransactionsMessage;
-use Siruis\Agent\Microledgers\AbstractMicroledger;
 use Siruis\Agent\Microledgers\Transaction;
 use Siruis\Tests\Helpers\Conftest;
 
 class TestConsensusSimple extends TestCase
 {
-    public function test_init_ledger_messaging()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     * @throws \SodiumException
+     */
+    public function test_init_ledger_messaging(): void
     {
         $A = Conftest::A();
         $B = Conftest::B();
@@ -66,10 +73,7 @@ class TestConsensusSimple extends TestCase
             $payload2 = $response->payload;
             self::assertNotEquals($payload1, $payload2);
 
-            unset($payload1['@id']);
-            unset($payload1['@type']);
-            unset($payload2['@id']);
-            unset($payload2['@type']);
+            unset($payload1['@id'], $payload1['@type'], $payload2['@id'], $payload2['@type']);
             self::assertEquals($payload1, $payload2);
         } finally {
             $A->close();
@@ -77,7 +81,15 @@ class TestConsensusSimple extends TestCase
         }
     }
 
-    public function test_transaction_messaging()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     * @throws \SodiumException
+     */
+    public function test_transaction_messaging(): void
     {
         $A = Conftest::A();
         $B = Conftest::B();
@@ -93,13 +105,13 @@ class TestConsensusSimple extends TestCase
             $genesis_txns = [
                 new Transaction($payload)
             ];
-            list($ledger_for_a, $txns) = $A->microledgers->create($ledger_name, $genesis_txns);
-            list($ledger_for_b, $txns) = $B->microledgers->create($ledger_name, $genesis_txns);
+            [$ledger_for_a, $txns] = $A->microledgers->create($ledger_name, $genesis_txns);
+            [$ledger_for_b, $txns] = $B->microledgers->create($ledger_name, $genesis_txns);
 
             $txn1 = ["reqId" => 2, "identifier" => "5rArie7XKukPCaEwq5XGQJnM9Fc5aZE3M9HAPVfMU2xC", "op" => "op2"];
             $txn2 = ["reqId" => 3, "identifier" => "5rArie7XKukPCaEwq5XGQJnM9Fc5aZE3M9HAPVfMU2xC", "op" => "op3"];
             $new_transactions = [new Transaction($txn1), new Transaction($txn2)];
-            list($pos1, $pos2, $new_txns) = $ledger_for_a->append($new_transactions);
+            [$pos1, $pos2, $new_txns] = $ledger_for_a->append($new_transactions);
             // A -> B
             $state = new MicroLedgerState(
                 [
@@ -134,7 +146,7 @@ class TestConsensusSimple extends TestCase
             );
             $pre_commit->sign_state($B->wallet->crypto, $b2a->me);
             $pre_commit->validate();
-            list($ok, $loaded_state_hash) = $pre_commit->verify_state($A->wallet->crypto, $a2b->their->verkey);
+            [$ok, $loaded_state_hash] = $pre_commit->verify_state($A->wallet->crypto, $a2b->their->verkey);
             self::assertTrue($ok);
             self::assertEquals($state->getHash(), $loaded_state_hash);
             // A -> B
@@ -156,7 +168,15 @@ class TestConsensusSimple extends TestCase
         }
     }
 
-    public function test_parallel_transactions_messaging()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     * @throws \JsonException
+     */
+    public function test_parallel_transactions_messaging(): void
     {
         $A = Conftest::A();
         $B = Conftest::B();
@@ -164,7 +184,7 @@ class TestConsensusSimple extends TestCase
         $A->open();
         $B->open();
         try {
-            $txn_time = (string)date('Y-m-d h:i:s', time());
+            $txn_time = (string)date('Y-m-d h:i:s');
             $a2b = Conftest::get_pairwise($A, $B);
             $b2a = Conftest::get_pairwise($B, $A);
             $a2b->me->did = 'did:peer:'.$a2b->me->did;
@@ -176,10 +196,10 @@ class TestConsensusSimple extends TestCase
             $ledgers_for_a = [];
             $ledgers_for_b = [];
             foreach ($ledger_names as $n) {
-                list($l_for_a, $_) = $A->microledgers->create($n, $genesis_txns);
-                list($l_for_b, $_) = $B->microledgers->create($n, $genesis_txns);
-                array_push($ledgers_for_a, $l_for_a);
-                array_push($ledgers_for_b, $l_for_b);
+                [$l_for_a, $_] = $A->microledgers->create($n, $genesis_txns);
+                [$l_for_b, $_] = $B->microledgers->create($n, $genesis_txns);
+                $ledgers_for_a[] = $l_for_a;
+                $ledgers_for_b[] = $l_for_b;
             }
 
             $txn1 = ["reqId" => 2, "identifier" => "5rArie7XKukPCaEwq5XGQJnM9Fc5aZE3M9HAPVfMU2xC", "op" => "op2"];
@@ -191,9 +211,9 @@ class TestConsensusSimple extends TestCase
             // A -> B
             $states_for_a = [];
             foreach ($ledgers_for_a as $ledger_for_a) {
-                list($pos1, $pos2, $new_txns) = $ledger_for_a->append($new_transactions);
+                [$pos1, $pos2, $new_txns] = $ledger_for_a->append($new_transactions);
                 $state = MicroLedgerState::from_ledger($ledger_for_a);
-                array_push($states_for_a, $state);
+                $states_for_a[] = $state;
             }
             $propose = new ProposeParallelTransactionsMessage([], $new_transactions, $states_for_a);
             $propose->validate();
@@ -201,8 +221,8 @@ class TestConsensusSimple extends TestCase
             $states_for_b = [];
             foreach ($propose->getLedgers() as $ledger_name) {
                 $ledger_for_b = $B->microledgers->ledger($ledger_name);
-                list($pos1, $pos2, $new_txns) = $ledger_for_b->append($propose->getTransactions());
-                array_push($states_for_b, MicroLedgerState::from_ledger($ledger_for_b));
+                [$pos1, $pos2, $new_txns] = $ledger_for_b->append($propose->getTransactions());
+                $states_for_b[] = MicroLedgerState::from_ledger($ledger_for_b);
             }
             $pre_commit = new PreCommitParallelTransactionsMessage(
                 [],
@@ -211,7 +231,7 @@ class TestConsensusSimple extends TestCase
             );
             $pre_commit->sign_states($B->wallet->crypto, $b2a->me);
             $pre_commit->validate();
-            list($ok, $state_hash_for_b) = $pre_commit->verify_state($A->wallet->crypto, $a2b->their->verkey);
+            [$ok, $state_hash_for_b] = $pre_commit->verify_state($A->wallet->crypto, $a2b->their->verkey);
 //            self::assertTrue($ok);
             self::assertEquals($propose->getHash(), $state_hash_for_b);
             // A -> B
@@ -219,8 +239,8 @@ class TestConsensusSimple extends TestCase
             $commit->add_pre_commit($a2b->their->did, $pre_commit);
             $commit->validate();
             $states = $commit->verify_pre_commits($A->wallet->crypto, $propose->getHash());
-            self::assertStringContainsString($a2b->their->did, json_encode($states));
-            self::assertStringContainsString($a2b->their->verkey, json_encode($states));
+            self::assertStringContainsString($a2b->their->did, json_encode($states, JSON_THROW_ON_ERROR));
+            self::assertStringContainsString($a2b->their->verkey, json_encode($states, JSON_THROW_ON_ERROR));
             // B -> A (post-commit)
             $post_commit = new PostCommitParallelTransactionsMessage([]);
             $post_commit->add_commit_sign($B->wallet->crypto, $commit, $b2a->me);
@@ -233,9 +253,17 @@ class TestConsensusSimple extends TestCase
         }
     }
 
-    public function test_parallel_batching_api_messaging()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     * @throws \JsonException
+     */
+    public function test_parallel_batching_api_messaging(): void
     {
-        $txn_time = (string)date('Y-m-d h:i:s', time());
+        $txn_time = (string)date('Y-m-d h:i:s');
         $A = Conftest::A();
         $B = Conftest::B();
         $ledger_names = Conftest::ledger_names();
@@ -253,10 +281,10 @@ class TestConsensusSimple extends TestCase
             $ledgers_for_a = [];
             $ledgers_for_b = [];
             foreach ($ledger_names as $n) {
-                list($l_for_a, $_) = $A->microledgers->create($n, $genesis_txns);
-                list($l_for_b, $_) = $B->microledgers->create($n, $genesis_txns);
-                array_push($ledgers_for_a, $l_for_a);
-                array_push($ledgers_for_b, $l_for_b);
+                [$l_for_a, $_] = $A->microledgers->create($n, $genesis_txns);
+                [$l_for_b, $_] = $B->microledgers->create($n, $genesis_txns);
+                $ledgers_for_a[] = $l_for_a;
+                $ledgers_for_b[] = $l_for_b;
             }
             $txn1 = ["reqId" => 2, "identifier" => "5rArie7XKukPCaEwq5XGQJnM9Fc5aZE3M9HAPVfMU2xC", "op" => "op2"];
             $txn2 = ["reqId" => 3, "identifier" => "5rArie7XKukPCaEwq5XGQJnM9Fc5aZE3M9HAPVfMU2xC", "op" => "op3"];
@@ -267,14 +295,14 @@ class TestConsensusSimple extends TestCase
 
             $batching_api_for_a = $A->microledgers->batched();
             $batching_api_for_b = $B->microledgers->batched();
-            $batching_api_for_a->open();
-            $batching_api_for_b->open();
+            $batching_api_for_a->open($ledger_names);
+            $batching_api_for_b->open($ledger_names);
             try {
                 // A -> B
                 $batching_api_for_a->append($new_transactions);
                 $propose_ml_states = [];
                 foreach ($ledgers_for_a as $item) {
-                    array_push($propose_ml_states, MicroLedgerState::from_ledger($item));
+                    $propose_ml_states[] = MicroLedgerState::from_ledger($item);
                 }
                 $propose = new ProposeParallelTransactionsMessage([], $new_transactions, $propose_ml_states);
                 $propose->validate();
@@ -282,12 +310,12 @@ class TestConsensusSimple extends TestCase
                 $batching_api_for_b->append($propose->getTransactions());
                 $states_for_b = [];
                 foreach ($ledgers_for_b as $item) {
-                    array_push($states_for_b, MicroLedgerState::from_ledger($item));
+                    $states_for_b[] = MicroLedgerState::from_ledger($item);
                 }
                 $pre_commit = new PreCommitParallelTransactionsMessage([], null, $states_for_b);
                 $pre_commit->sign_states($B->wallet->crypto, $b2a->me);
                 $pre_commit->validate();
-                list($ok, $state_hash_for_b) = $pre_commit->verify_state($A->wallet->crypto, $a2b->their->verkey);
+                [$ok, $state_hash_for_b] = $pre_commit->verify_state($A->wallet->crypto, $a2b->their->verkey);
                 self::assertTrue($ok);
                 self::assertEquals($propose->getHash(), $state_hash_for_b);
                 // A -> B
@@ -295,8 +323,8 @@ class TestConsensusSimple extends TestCase
                 $commit->add_pre_commit($a2b->their->did, $pre_commit);
                 $commit->validate();
                 $states = $commit->verify_pre_commits($A->wallet->crypto, $propose->getHash());
-                self::assertStringContainsString($a2b->their->did, json_encode($states));
-                self::assertStringContainsString($a2b->their->verkey, json_encode($states));
+                self::assertStringContainsString($a2b->their->did, json_encode($states, JSON_THROW_ON_ERROR));
+                self::assertStringContainsString($a2b->their->verkey, json_encode($states, JSON_THROW_ON_ERROR));
                 // B -> A (post-commit)
                 $post_commit = new PostCommitParallelTransactionsMessage([]);
                 $post_commit->add_commit_sign($B->wallet->crypto, $commit, $b2a->me);

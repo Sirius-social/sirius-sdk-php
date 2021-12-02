@@ -89,7 +89,6 @@ class CoprotocolsTest extends TestCase
             self::assertInstanceOf(TheirEndpointCoProtocolTransport::class, $agent2_protocol);
             $agent1_protocol->start(['test-protocol']);
             $agent2_protocol->start(['test-protocol']);
-            $opened = $agent1_protocol->rpc->isOpen();
             try {
                 self::$MSG_LOG = [];
                 Threads::run_threads([new FirstTask($agent1_protocol), new SecondTask($agent2_protocol)]);

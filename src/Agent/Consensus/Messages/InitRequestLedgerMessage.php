@@ -40,23 +40,27 @@ class InitRequestLedgerMessage extends BaseInitLedgerMessage
         return ArrayHelper::getValueWithKeyFromArray('thid', $thread);
     }
 
-    public function add_signature(AbstractCrypto $api, Me $me)
+    /**
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     * @throws \SodiumException
+     */
+    public function add_signature(AbstractCrypto $api, Me $me): void
     {
-        if (!in_array($me->did, $this->getParticipants())) {
+        if (!in_array($me->did, $this->getParticipants(), true)) {
             throw new SiriusContextError('Signer must be a participant');
         }
         if ($this->ledger_hash) {
             $hash_signature = Utils::sign($api, $this->ledger_hash, $me->verkey);
             $signatures = [];
             foreach ($this->getSignatures() as $signature) {
-                if ($signature['participant'] != $me->did) {
-                    array_push($signatures, $signature);
+                if ($signature['participant'] !== $me->did) {
+                    $signatures[] = $signature;
                 }
             }
-            array_push($signatures, [
+            $signatures[] = [
                 'participant' => $me->did,
                 'signature' => $hash_signature
-            ]);
+            ];
             $this->setSignatures($signatures);
         } else {
             throw new SiriusContextError('Ledger Hash description is empty');

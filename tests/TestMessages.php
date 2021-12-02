@@ -24,10 +24,11 @@ class Test2Message extends Message {
 
 class TestMessages extends TestCase
 {
-    /** @test
-     * @throws SiriusInvalidType
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      */
-    public function test_type_parsing()
+    public function test_type_parsing(): void
     {
         $str1 = 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/test-protocol/1.0/name';
         $type = Type::fromString($str1);
@@ -50,27 +51,28 @@ class TestMessages extends TestCase
         self::assertEquals(0, $type->version_info->patch);
     }
 
-    /** @test
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidType
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      */
-    public function test_register_protocol_message_success()
+    public function test_register_protocol_message_success(): void
     {
         Message::registerMessageClass(Test1Message::class, 'test-protocol');
-        $array = Message::restoreMessageInstance([
+        [$ok, $message] = Message::restoreMessageInstance([
             '@type' => 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/test-protocol/1.0/name'
         ]);
 
-        self::assertTrue($array[0]);
-        self::assertInstanceOf(Test1Message::class, $array[1]);
+        self::assertTrue($ok);
+        self::assertInstanceOf(Test1Message::class, $message);
     }
 
     /**
-     * @test
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidType
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      */
-    public function test_agnostic_doc_uri()
+    public function test_agnostic_doc_uri(): void
     {
         Message::registerMessageClass(Test1Message::class, 'test-protocol');
         $array = Message::restoreMessageInstance([
@@ -89,11 +91,11 @@ class TestMessages extends TestCase
     }
 
     /**
-     * @test
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidType
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      */
-    public function test_register_protocol_message_fail()
+    public function test_register_protocol_message_fail(): void
     {
         Message::registerMessageClass(Test1Message::class, 'test-protocol');
         $array = Message::restoreMessageInstance([
@@ -105,11 +107,11 @@ class TestMessages extends TestCase
     }
 
     /**
-     * @test
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidType
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      */
-    public function test_register_protocol_message_multiple_name()
+    public function test_register_protocol_message_multiple_name(): void
     {
         Message::registerMessageClass(Test1Message::class, 'test-protocol');
         Message::registerMessageClass(Test2Message::class, 'test-protocol', 'test-name');
@@ -130,11 +132,11 @@ class TestMessages extends TestCase
     }
 
     /**
-     * @test
-     * @throws SiriusInvalidType
-     * @throws SiriusInvalidMessageClass
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      */
-    public function test_aries_ping_pong()
+    public function test_aries_ping_pong(): void
     {
         $pingPayload = [
             '@id' => 'trust-ping-message-id',
@@ -152,12 +154,12 @@ class TestMessages extends TestCase
     }
 
     /**
-     * @test
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidType
-     * @throws SiriusValidationError
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      */
-    public function test_aries_ack()
+    public function test_aries_ack(): void
     {
         $payload = [
             '@id' => 'ack-message-id',
@@ -186,8 +188,13 @@ class TestMessages extends TestCase
         self::assertEquals(Status::PENDING, $ack->getStatus());
     }
 
-    /** @test */
-    public function test_attaches_mixin()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     */
+    public function test_attaches_mixin(): void
     {
         $msg = new msg0095_Message([], 'content', 'en');
         $attach = new msg0095_Attach('id', 'image/png', 'photo.png', null, null, 'eW91ciB0ZXh0');

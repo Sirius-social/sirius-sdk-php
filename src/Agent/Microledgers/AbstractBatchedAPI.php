@@ -6,15 +6,15 @@ namespace Siruis\Agent\Microledgers;
 
 abstract class AbstractBatchedAPI
 {
-    public abstract function open($ledgers): array;
+    abstract public function open($ledgers): array;
 
-    public abstract function close();
+    abstract public function close();
 
-    public abstract function states(): array;
+    abstract public function states(): array;
 
-    public abstract function append($transactions, $txn_time = null): array;
+    abstract public function append($transactions, $txn_time = null): array;
 
-    public abstract function commit(): array;
+    abstract public function commit(): array;
 
-    public abstract function reset_uncommitted(): array;
+    abstract public function reset_uncommitted(): array;
 }

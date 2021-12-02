@@ -2,24 +2,18 @@
 
 namespace Siruis\Encryption;
 
-use Exception;
-use ParagonIE_Sodium_Compat;
 use Siruis\Errors\Exceptions\SiriusCryptoError;
-use SodiumException;
 use StephenHill\Base58;
-use function Sodium\crypto_sign;
-use function Sodium\crypto_sign_open;
-use const Sodium\CRYPTO_SIGN_BYTES;
 
 class Encryption
 {
     /**
      * @param $value
-     * @param bool $urlsafe
+     * @param false $urlsafe
      * @return string
-     * @throws SodiumException
+     * @throws \SodiumException
      */
-    public static function b64_to_bytes($value, $urlsafe = false)
+    public static function b64_to_bytes($value, $urlsafe = false): string
     {
         if (is_string($value)) {
             $value = mb_convert_encoding($value, 'ASCII');
@@ -29,24 +23,25 @@ class Encryption
              if ($missing_padding) {
                  $value .= str_repeat(b'=', (4 - $missing_padding));
              }
-            return ParagonIE_Sodium_Compat::base642bin($value, ParagonIE_Sodium_Compat::BASE64_VARIANT_URLSAFE);
+
+            return sodium_base642bin($value, SODIUM_BASE64_VARIANT_URLSAFE);
         }
-        return ParagonIE_Sodium_Compat::base642bin($value, ParagonIE_Sodium_Compat::BASE64_VARIANT_ORIGINAL);
+        return sodium_base642bin($value, SODIUM_BASE64_VARIANT_ORIGINAL);
     }
 
     /**
      * @param $value
-     * @param bool $urlsafe
-     * @return string
-     * @throws SodiumException
+     * @param false $urlsafe
+     * @return array|false|string
+     * @throws \SodiumException
      */
     public static function bytes_to_b64($value, $urlsafe = false)
     {
         if ($urlsafe) {
-            $value = ParagonIE_Sodium_Compat::bin2base64($value, ParagonIE_Sodium_Compat::BASE64_VARIANT_URLSAFE);
+            $value = sodium_bin2base64($value, SODIUM_BASE64_VARIANT_URLSAFE);
             return mb_convert_encoding($value, 'ASCII');
         }
-        $value = ParagonIE_Sodium_Compat::bin2base64($value, ParagonIE_Sodium_Compat::BASE64_VARIANT_ORIGINAL);
+        $value = sodium_bin2base64($value, SODIUM_BASE64_VARIANT_ORIGINAL);
         return mb_convert_encoding($value, 'ASCII');
     }
 
@@ -54,7 +49,7 @@ class Encryption
      * @param $value
      * @return string
      */
-    public static function b58_to_bytes($value)
+    public static function b58_to_bytes($value): string
     {
         $base58 = new Base58();
         return $base58->decode($value);
@@ -64,50 +59,52 @@ class Encryption
      * @param $value
      * @return string
      */
-    public static function bytes_to_b58($value)
+    public static function bytes_to_b58($value): string
     {
         $base58 = new Base58();
         return mb_convert_encoding($base58->encode($value), 'ascii');
     }
 
     /**
-     * @param bool $seed
+     * @param false $seed
      * @return array
-     * @throws SiriusCryptoError
-     * @throws SodiumException
+     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
+     * @throws \SodiumException
+     * @throws \Exception
      */
-    public static function create_keypair($seed = false)
+    public static function create_keypair($seed = false): array
     {
         if ($seed) {
             static::validate_seed($seed);
         } else {
-            $seed = static::random_seed();
+            $seed = self::random_seed();
         }
-        $keys = ParagonIE_Sodium_Compat::crypto_sign_seed_keypair($seed);
+        $keys = sodium_crypto_sign_seed_keypair($seed);
 
         return [
-            'verkey' => ParagonIE_Sodium_Compat::crypto_sign_publickey($keys),
-            'sigkey' => ParagonIE_Sodium_Compat::crypto_sign_secretkey($keys)
+            'verkey' => sodium_crypto_sign_publickey($keys),
+            'sigkey' => sodium_crypto_sign_secretkey($keys)
         ];
     }
 
     /**
      * @return string
-     * @throws Exception
+     * @throws \Exception
      */
-    private static function random_seed()
+    private static function random_seed(): string
     {
-        return random_bytes(ParagonIE_Sodium_Compat::CRYPTO_SECRETBOX_KEYBYTES);
+        return random_bytes(SODIUM_CRYPTO_SECRETBOX_KEYBYTES);
     }
+
     /**
      * @param $seed
-     * @return bool|false|string
-     * @throws SiriusCryptoError|SodiumException
+     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
+     * @throws \SodiumException
      */
-    private static function validate_seed($seed)
+    private static function validate_seed($seed): void
     {
         if (! $seed) {
-            return false;
+            return;
         }
         if (is_string($seed)) {
             if (strpos($seed, '=')) {
@@ -116,25 +113,23 @@ class Encryption
                 $seed = mb_convert_encoding($seed, 'ASCII');
             }
         }
-        if (mb_strlen($seed) != 32) {
+        if (mb_strlen($seed) !== 32) {
             throw new SiriusCryptoError('Seed value must be 32 bytes in length');
         }
 
-        return $seed;
     }
 
     /**
      * Sign a message using a private signing key.
-     * 
      * @param string $message The message to sign
      * @param string $secret The private signing key
      * @return false|string The signature
-     * @throws SodiumException
+     * @throws \SodiumException
      */
     public static function sign_message(string $message, string $secret)
     {
-        $result = crypto_sign($message, $secret);
-        return substr($result, 0, CRYPTO_SIGN_BYTES);
+        $result = sodium_crypto_sign($message, $secret);
+        return substr($result, 0, SODIUM_CRYPTO_SIGN_BYTES);
     }
 
     /**
@@ -144,13 +139,18 @@ class Encryption
      * @param string $message original message
      * @param string $signature The signed message
      * @return bool
+     * @throws \SodiumException
      */
-    public static function verify_signed_message(string $verkey, string $message, string $signature)
+    public static function verify_signed_message(string $verkey, string $message, string $signature): bool
     {
         $signed = $signature . $message;
-        return (bool)crypto_sign_open($signed, $verkey);
+        return (bool)sodium_crypto_sign_open($signed, $verkey);
     }
 
+    /**
+     * @param string $verkey
+     * @return false|string
+     */
     public static function did_from_verkey(string $verkey)
     {
         return substr($verkey, 0, 16);

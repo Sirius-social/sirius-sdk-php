@@ -6,17 +6,17 @@ namespace Siruis\Agent\Microledgers;
 
 abstract class AbstractMicroledgerList
 {
-    public abstract function create(string $name, array $genesis);
+    abstract public function create(string $name, array $genesis);
 
-    public abstract function ledger(string $name): AbstractMicroledger;
+    abstract public function ledger(string $name): AbstractMicroledger;
 
-    public abstract function reset(string $name);
+    abstract public function reset(string $name);
 
-    public abstract function is_exists(string $name);
+    abstract public function is_exists(string $name);
 
-    public abstract function leaf_hash($txn);
+    abstract public function leaf_hash($txn);
 
-    public abstract function list();
+    abstract public function list();
 
-    public abstract function batched();
+    abstract public function batched();
 }

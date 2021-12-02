@@ -10,11 +10,15 @@ abstract class AbstractCrypto
      * Creates keys pair and stores in the wallet.
      *
      * @param string|null $seed string, (optional) Seed that allows deterministic key creation (if not set random one will be created). Can be UTF-8, base64 or hex string.
-     * @param string|null $cryptoType string, // Optional (if not set then ed25519 curve is used); Currently only 'ed25519' value is supported for this field.
+     * @param string|null $crypto_type string, // Optional (if not set then ed25519 curve is used); Currently only 'ed25519' value is supported for this field.
      *
      * @return string Ver key of generated key pair, also used as key identifier
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function create_key(string $seed = null, string $cryptoType = null): string;
+    abstract public function create_key(string $seed = null, string $crypto_type = null): string;
 
     /**
      * Saves/replaces the meta information for the giving key in the wallet.
@@ -22,9 +26,13 @@ abstract class AbstractCrypto
      * @param string $verkey the key (verkey, key id) to store metadata.
      * @param array $metadata the meta information that will be store with the key.
      *
-     * @return null
+     * @return mixed
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function set_key_metadata(string $verkey, array $metadata);
+    abstract public function set_key_metadata(string $verkey, array $metadata);
 
     /**
      * Retrieves the meta information for the giving key in the wallet.
@@ -32,33 +40,46 @@ abstract class AbstractCrypto
      * @param string $verkey The key (verkey, key id) to retrieve metadata.
      *
      * @return array|null The meta information stored with the key; Can be null if no metadata was saved for this key.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function get_key_metadata(string $verkey);
+    abstract public function get_key_metadata(string $verkey): ?array;
 
     /**
      * Signs a message with a key.
      *
      * Note to use DID keys with this function you can call indy_key_for_did to get key id (verkey) for specific DID.
      *
-     * @param string $signerVk id (verkey) of my key. The key must be created by calling create_key or create_and_store_my_did
+     * @param string $signer_vk id (verkey) of my key. The key must be created by calling create_key or create_and_store_my_did
      * @param string $msg a message to be signed
      *
      * @return string a signature string
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function crypto_sign(string $signerVk, string $msg): string;
+    abstract public function crypto_sign(string $signer_vk, string $msg): string;
 
     /**
      * Verify a signature with a verkey.
      *
      * Note to use DID keys with this function you can call key_for_did to get key id (verkey) for specific DID.
      *
-     * @param string $signerVk verkey of signer of the message
+     * @param string $signer_vk verkey of signer of the message
      * @param string $msg message that has been signed
      * @param string $signature a signature to be verified
      *
      * @return bool true - if signature is valid, false - otherwise
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\SiriusFieldTypeError
      */
-    public abstract function crypto_verify(string $signerVk, string $msg, string $signature): bool;
+    abstract public function crypto_verify(string $signer_vk, string $msg, string $signature): bool;
 
     /**
      * Encrypts a message by anonymous-encryption scheme.
@@ -72,11 +93,15 @@ abstract class AbstractCrypto
      *
      * Note: use pack_message function for A2A goals.
      *
-     * @param string $recipientVk verkey of message recipient
+     * @param string $recipient_vk verkey of message recipient
      * @param string $msg a message to be signed
      * @return string an encrypted message as an array of bytes
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function anon_crypt(string $recipientVk, string $msg): string;
+    abstract public function anon_crypt(string $recipient_vk, string $msg): string;
 
     /**
      * Decrypts a message by anonymous-encryption scheme.
@@ -94,8 +119,12 @@ abstract class AbstractCrypto
      * @param string $recipient_vk id (verkey) of my key. The key must be created by calling indy_create_key or create_and_store_my_did
      * @param string $encrypted_msg encrypted message
      * @return string  decrypted message as an array of bytes
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function anon_decrypt(string $recipient_vk, string $encrypted_msg): string;
+    abstract public function anon_decrypt(string $recipient_vk, string $encrypted_msg): string;
 
     /**
      * Packs a message by encrypting the message and serializes it in a JWE-like format (Experimental)
@@ -104,11 +133,15 @@ abstract class AbstractCrypto
      * for specific DID.
      *
      * @param mixed $message the message being sent as a string. If it's JSON formatted it should be converted to a string
-     * @param array $recipientVerkeys a list of Strings which are recipient verkeys
+     * @param array $recipient_verkeys a list of Strings which are recipient verkeys
      * @param string|null $sender_verkey the sender's verkey as a string. -> When None is passed in this parameter, anoncrypt mode is used
      * @return string an Agent Wire Message format as a byte array.
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function pack_message($message, array $recipientVerkeys, string $sender_verkey = null): string;
+    abstract public function pack_message($message, array $recipient_verkeys, string $sender_verkey = null): string;
 
     /**
      * Unpacks a JWE-like formatted message outputted by pack_message (Experimental)
@@ -131,6 +164,10 @@ abstract class AbstractCrypto
      *
      * @param string $jwe
      * @return array
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public abstract function unpack_message(string $jwe): array;
+    abstract public function unpack_message(string $jwe): array;
 }

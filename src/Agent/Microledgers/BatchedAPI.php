@@ -29,14 +29,22 @@ class BatchedAPI extends AbstractBatchedAPI
         $this->external = $external;
     }
 
+    /**
+     * @param $ledgers
+     * @return array
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
     public function open($ledgers): array
     {
         $names_to_open = [];
         foreach ($ledgers as $ledger) {
             if ($ledger instanceof AbstractMicroledger) {
-                array_push($names_to_open, $ledger->getName());
+                $names_to_open[] = $ledger->getName();
             } elseif (is_string($ledger)) {
-                array_push($names_to_open, $ledger);
+                $names_to_open[] = $ledger;
             } else {
                 throw new RuntimeException('Unexpected ledgers item type: '. gettype($ledger));
             }
@@ -52,21 +60,44 @@ class BatchedAPI extends AbstractBatchedAPI
         return $this->states();
     }
 
-    public function close()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function close(): void
     {
         $this->api->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/microledgers-batched/1.0/close'
         );
     }
 
+    /**
+     * @return array
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
     public function states(): array
     {
         $states = $this->api->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/microledgers-batched/1.0/states'
         );
-        return $this->__return_ledgers($states);
+        return $this->return_ledgers($states);
     }
 
+    /**
+     * @param $transactions
+     * @param null $txn_time
+     * @return array
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
     public function append($transactions, $txn_time = null): array
     {
         $states = $this->api->remoteCall(
@@ -76,26 +107,40 @@ class BatchedAPI extends AbstractBatchedAPI
                 'txn_time' => $txn_time
             ]
         );
-        return $this->__return_ledgers($states);
+        return $this->return_ledgers($states);
     }
 
+    /**
+     * @return array
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
     public function commit(): array
     {
         $states = $this->api->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/microledgers-batched/1.0/commit_txns'
         );
-        return $this->__return_ledgers($states);
+        return $this->return_ledgers($states);
     }
 
+    /**
+     * @return array
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
     public function reset_uncommitted(): array
     {
         $states = $this->api->remoteCall(
             'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/microledgers-batched/1.0/reset_uncommitted'
         );
-        return $this->__return_ledgers($states);
+        return $this->return_ledgers($states);
     }
 
-    public function __return_ledgers(array $states): array
+    public function return_ledgers(array $states): array
     {
         $resp = [];
         foreach ($this->names as $name) {
@@ -108,7 +153,7 @@ class BatchedAPI extends AbstractBatchedAPI
                     $this->external->set($name, $ledger);
                 }
             }
-            array_push($resp, $ledger);
+            $resp[] = $ledger;
         }
         return $resp;
     }

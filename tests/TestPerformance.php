@@ -49,7 +49,7 @@ class TestPerformance extends TestCase
             error_log('>START');
             $stamp1 = new DateTime();
             foreach (range(1, self::TEST_ITERATIONS) as $n) {
-                $unpacked = $agent1->wallet->crypto->unpackMessage($packed);
+                $unpacked = $agent1->wallet->crypto->unpack_message($packed);
             }
             error_log('>STOP');
             $stamp2 = new DateTime();

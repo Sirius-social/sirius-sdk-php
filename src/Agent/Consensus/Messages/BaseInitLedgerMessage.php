@@ -69,6 +69,7 @@ class BaseInitLedgerMessage extends SimpleConsensusMessage
      * @throws SiriusContextError
      * @throws SiriusValidationError
      * @throws SodiumException
+     * @throws \JsonException
      */
     public function check_signatures(AbstractCrypto $api, string $participant = 'ALL'): array
     {
@@ -76,30 +77,30 @@ class BaseInitLedgerMessage extends SimpleConsensusMessage
             throw new SiriusContextError('Ledger Hash description is empty');
         }
         $signatures = [];
-        if ($participant == 'ALL') {
+        if ($participant === 'ALL') {
             $signatures = $this->getSignatures();
         } else {
             foreach ($this->getSignatures() as $signature) {
-                if ($signature['participant'] == $participant) {
-                    array_push($signatures, $signature);
+                if ($signature['participant'] === $participant) {
+                    $signatures[] = $signature;
                 }
             }
         }
         if ($signatures) {
             $response = [];
             foreach ($signatures as $item) {
-                list($signed_ledger_hash, $is_success) = Utils::verify_signed($api, $item['signature']);
+                [$signed_ledger_hash, $is_success] = Utils::verify_signed($api, $item['signature']);
                 if (!$is_success) {
                     throw new SiriusValidationError('Invalid sign for participant '. $item['participant']);
                 }
-                if ($signed_ledger_hash != $this->ledger_hash) {
+                if ($signed_ledger_hash !== $this->ledger_hash) {
                     throw new SiriusValidationError('NonConsistent ledger hash for participant ' . $item['participant']);
                 }
                 $response[$item['participant']] = $signed_ledger_hash;
             }
             return $response;
-        } else {
-            throw new SiriusContextError('Signatures list is empty');
         }
+
+        throw new SiriusContextError('Signatures list is empty');
     }
 }

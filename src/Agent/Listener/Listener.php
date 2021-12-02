@@ -3,6 +3,7 @@
 
 namespace Siruis\Agent\Listener;
 
+use JsonException;
 use Siruis\Agent\Connections\AgentEvents;
 use Siruis\Agent\Pairwise\AbstractPairwiseList;
 use Siruis\Errors\Exceptions\SiriusConnectionClosed;
@@ -32,19 +33,21 @@ class Listener
 
     /**
      * @param int|null $timeout
-     * @return Event
-     * @throws SiriusConnectionClosed
-     * @throws SiriusCryptoError
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidPayloadStructure
-     * @throws SiriusInvalidType
+     * @return \Siruis\Agent\Listener\Event
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      */
     public function get_one(int $timeout = null): Event
     {
         $eventMessage = $this->source->pull($timeout);
-        $event = json_decode($eventMessage->serialize(), true);
-        if (key_exists('message', $event)) {
-            list($ok, $message) = Message::restoreMessageInstance($event['message']);
+        $event = json_decode($eventMessage->serialize(), true, 512, JSON_THROW_ON_ERROR);
+        if (array_key_exists('message', $event)) {
+            [$ok, $message] = Message::restoreMessageInstance($event['message']);
             if ($ok) {
                 $event['message'] = $message;
             } else {

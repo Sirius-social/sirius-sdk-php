@@ -11,22 +11,18 @@
   ],
   "require": {
     "php": "^7.3",
-    "paragonie/sodium_compat": "^1.13",
-    "ext-mbstring": "*",
     "ext-json": "*",
+    "ext-mbstring": "*",
+    "ext-sockets": "*",
+    "ext-sodium": "*",
+    "ext-libsodium": "*",
     "stephenhill/base58": "^1.1",
     "phlak/semver": "^3.2.0",
     "myclabs/php-enum": "^1.7",
     "php-ds/php-ds": "^1.3",
     "guzzlehttp/guzzle": "^7.0",
     "textalk/websocket": "^1.5",
-    "wrench/wrench": "^2.0",
-    "ratchet/pawl": "^0.3.5",
-    "wisembly/elephant.io": "^3.3",
-    "ext-sockets": "*",
-    "ext-pthreads": "*",
-    "ext-pcntl": "*",
-    "ext-http": "*"
+    "bkwatch/websocket": "^2.0"
   },
   "require-dev": {
     "phpunit/phpunit": "^9.3"

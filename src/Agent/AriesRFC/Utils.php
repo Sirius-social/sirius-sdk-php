@@ -16,14 +16,9 @@ class Utils
      *
      * @return string
      */
-    public static function utc_to_str(DateTime $dt)
+    public static function utc_to_str(DateTime $dt): string
     {
         return $dt->format('Y-m-d H:i:s') . '+0000';
-    }
-
-    public static function str_to_utc()
-    {
-        
     }
 
     /**
@@ -33,15 +28,16 @@ class Utils
      * @param bool $exclude_sig_data
      * @return array
      * @throws SodiumException
+     * @throws \JsonException
      */
     public static function sign(AbstractCrypto $crypto, $value, string $verkey, bool $exclude_sig_data = false): array
     {
         $timestamp_bytes = pack('Q', time());
 
-        $sig_data_bytes = $timestamp_bytes . json_encode($value);
+        $sig_data_bytes = $timestamp_bytes . json_encode($value, JSON_THROW_ON_ERROR);
         $sig_data = Encryption::bytes_to_b64($sig_data_bytes, true);
 
-        $signature_bytes = $crypto->cryptoSign($verkey, $sig_data);
+        $signature_bytes = $crypto->crypto_sign($verkey, $sig_data);
         $signature = Encryption::bytes_to_b64($signature_bytes, true);
 
         $data = [
@@ -61,17 +57,18 @@ class Utils
      * @param AbstractCrypto $crypto
      * @param array $signed
      *
-     * @return mixed|bool
+     * @return array
      * @throws SodiumException
+     * @throws \JsonException
      */
-    public static function verify_signed(AbstractCrypto $crypto, array $signed)
+    public static function verify_signed(AbstractCrypto $crypto, array $signed): array
     {
         $signature_bytes = Encryption::b64_to_bytes(mb_convert_encoding($signed['signature'], 'ascii'), true);
         $sig_data_bytes = Encryption::b64_to_bytes(mb_convert_encoding($signed['sig_data'], 'ascii'), true);
-        $sig_verified = $crypto->cryptoVerify($signed['signer'], $sig_data_bytes, $signature_bytes);
+        $sig_verified = $crypto->crypto_verify($signed['signer'], $sig_data_bytes, $signature_bytes);
         $field_json = substr($sig_data_bytes, 8);
         return [
-            json_decode($field_json),
+            json_decode($field_json, false, 512, JSON_THROW_ON_ERROR),
             $sig_verified
         ];
     }
