@@ -37,6 +37,10 @@ class TestAgent extends TestCase
 
     /**
      * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function test_agents_wallet(): void
     {
@@ -66,12 +70,14 @@ class TestAgent extends TestCase
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \JsonException
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
      * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      * @throws \Siruis\Errors\Exceptions\SiriusRPCError
-     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function test_agents_communications(): void
     {
@@ -146,6 +152,8 @@ class TestAgent extends TestCase
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      * @throws \Siruis\Errors\Exceptions\SiriusRPCError
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
      */
     public function test_listener_restore_message(): void
     {
@@ -216,6 +224,8 @@ class TestAgent extends TestCase
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      * @throws \Siruis\Errors\Exceptions\SiriusRPCError
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
      */
     public function test_agents_trust_ping(): void
     {
@@ -307,7 +317,11 @@ class TestAgent extends TestCase
 
     /**
      * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusFieldTypeError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function test_agents_crypto(): void
     {

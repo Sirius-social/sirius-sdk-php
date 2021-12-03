@@ -12,12 +12,19 @@ use Siruis\Tests\Helpers\Conftest;
 
 class TestPairwise extends TestCase
 {
-    public function test_create_and_store_my_did_sane()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function test_create_and_store_my_did_sane(): void
     {
         $agent = Conftest::agent1();
         $agent->open();
         try {
-            list($did, $verkey) = $agent->wallet->did->create_and_store_my_did();
+            [$did, $verkey] = $agent->wallet->did->create_and_store_my_did();
             self::assertNotNull($did);
             self::assertNotNull($verkey);
         } finally {
@@ -25,15 +32,22 @@ class TestPairwise extends TestCase
         }
     }
 
-    public function test_pairwise_list()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function test_pairwise_list(): void
     {
         $agent1 = Conftest::agent1();
         $agent2 = Conftest::agent2();
         $agent1->open();
         $agent2->open();
         try {
-            list($did1, $verkey1) = $agent1->wallet->did->create_and_store_my_did();
-            list($did2, $verkey2) = $agent2->wallet->did->create_and_store_my_did();
+            [$did1, $verkey1] = $agent1->wallet->did->create_and_store_my_did();
+            [$did2, $verkey2] = $agent2->wallet->did->create_and_store_my_did();
             $pairwise = new Pairwise(
                 new Me(
                     $did1, $verkey1
@@ -60,15 +74,22 @@ class TestPairwise extends TestCase
         }
     }
 
-    public function test_create_pairwise()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function test_create_pairwise(): void
     {
         $agent1 = Conftest::agent1();
         $agent2 = Conftest::agent2();
         $agent1->open();
         $agent2->open();
         try {
-            list($my_did, $my_vk) = $agent1->wallet->did->create_and_store_my_did();
-            list($their_did, $their_vk) = $agent2->wallet->did->create_and_store_my_did();
+            [$my_did, $my_vk] = $agent1->wallet->did->create_and_store_my_did();
+            [$their_did, $their_vk] = $agent2->wallet->did->create_and_store_my_did();
             $pairwise = new Pairwise(
                 new Me(
                     $my_did, $my_vk

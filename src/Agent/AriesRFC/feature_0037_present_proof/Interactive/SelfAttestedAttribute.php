@@ -32,16 +32,31 @@ class SelfAttestedAttribute
         $this->value = $value;
     }
 
-    public function getReferentId()
+    /**
+     * Get referent_id property.
+     *
+     * @return string
+     */
+    public function getReferentId(): string
     {
         return $this->referent_id;
     }
 
-    public function getName()
+    /**
+     * Get name property.
+     *
+     * @return string
+     */
+    public function getName(): string
     {
         return $this->name;
     }
 
+    /**
+     * Get value property.
+     *
+     * @return mixed
+     */
     public function getValue()
     {
         return $this->value;

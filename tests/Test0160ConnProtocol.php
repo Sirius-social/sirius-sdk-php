@@ -16,11 +16,10 @@ use Siruis\Tests\Threads\feature_0160_conn_protocol\IndyAgentInvite;
 use Siruis\Tests\Threads\feature_0160_conn_protocol\ReadEvents;
 use Siruis\Tests\Threads\feature_0160_conn_protocol\RunInvitee;
 use Siruis\Tests\Threads\feature_0160_conn_protocol\RunInviter;
-use Siruis\Tests\Threads\feature_0160_conn_protocol\Task;
 
 class Test0160ConnProtocol extends TestCase
 {
-    public static function replace_url_components(string $url, string $base = null)
+    public static function replace_url_components(string $url, string $base = null): string
     {
         $ret = $url;
         if ($base) {
@@ -32,8 +31,16 @@ class Test0160ConnProtocol extends TestCase
         return $ret;
     }
 
-    /** @test */
-    public function test_establish_connection()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     */
+    public function test_establish_connection(): void
     {
         $test_suite = Conftest::test_suite();
         $inviter = $test_suite->get_agent_params('agent1');
@@ -47,10 +54,10 @@ class Test0160ConnProtocol extends TestCase
 
         // Init me
         Hub::alloc_context($inviter['server_address'], $inviter['credentials'], $inviter['p2p']);
-        list($did, $verkey) = Init::DID()->create_and_store_my_did();
+        [$did, $verkey] = Init::DID()->create_and_store_my_did();
         $inviter_me = new Me($did, $verkey);
         Hub::alloc_context($invitee['server_address'], $invitee['credentials'], $invitee['p2p']);
-        list($did, $verkey) = Init::DID()->create_and_store_my_did();
+        [$did, $verkey] = Init::DID()->create_and_store_my_did();
         $invitee_me = new Me($did, $verkey);
 
         Threads::run_threads([
@@ -75,8 +82,16 @@ class Test0160ConnProtocol extends TestCase
         self::assertEquals($inviter_me->did, $pairwise->their->did);
     }
 
-    /** @test */
-    public function test_update_pairwise_metadata()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     */
+    public function test_update_pairwise_metadata(): void
     {
         $test_suite = Conftest::test_suite();
         $inviter = $test_suite->get_agent_params('agent1');
@@ -92,10 +107,10 @@ class Test0160ConnProtocol extends TestCase
 
         // Init me
         Hub::alloc_context($inviter['server_address'], $inviter['credentials'], $inviter['p2p']);
-        list($did, $verkey) = Init::DID()->create_and_store_my_did();
+        [$did, $verkey] = Init::DID()->create_and_store_my_did();
         $inviter_side = new Me($did, $verkey);
         Hub::alloc_context($invitee['server_address'], $invitee['credentials'], $invitee['p2p']);
-        list($did, $verkey) = Init::DID()->create_and_store_my_did();
+        [$did, $verkey] = Init::DID()->create_and_store_my_did();
         $invitee_side = new Me($did, $verkey);
 
         // Manually set pairwise list
@@ -142,8 +157,17 @@ class Test0160ConnProtocol extends TestCase
         self::assertNotNull($pairwise->metadata);
     }
 
-    /** @test */
-    public function test_invitee_back_compatibility()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     * @throws \SodiumException
+     */
+    public function test_invitee_back_compatibility(): void
     {
         $indy_agent = Conftest::indy_agent();
         $test_suite = Conftest::test_suite();
@@ -153,7 +177,7 @@ class Test0160ConnProtocol extends TestCase
 
         // Init invitee
         Hub::alloc_context($invitee['server_address'], $invitee['credentials'], $invitee['p2p']);
-        list($did, $verkey) = Init::DID()->create_and_store_my_did();
+        [$did, $verkey] = Init::DID()->create_and_store_my_did();
         $invitee_side = new Me($did, $verkey);
 
         $run_invitee = new RunInvitee(
@@ -167,7 +191,7 @@ class Test0160ConnProtocol extends TestCase
         $invitation_pairwise = null;
         Hub::alloc_context($invitee['server_address'], $invitee['credentials'], $invitee['p2p']);
         foreach (Init::PairwiseList()->enumerate() as $i => $pairwise) {
-            if ($pairwise->me->did == $invitee_side->did) {
+            if ($pairwise->me->did === $invitee_side->did) {
                 $invitation_pairwise = $pairwise;
                 break;
             }
@@ -175,7 +199,16 @@ class Test0160ConnProtocol extends TestCase
         self::assertNotNull($invitation_pairwise);
     }
 
-    public function test_inviter_back_compatibility()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     */
+    public function test_inviter_back_compatibility(): void
     {
         $indy_agent = Conftest::indy_agent();
         $test_suite = Conftest::test_suite();
@@ -186,10 +219,10 @@ class Test0160ConnProtocol extends TestCase
         Hub::alloc_context($inviter['server_address'], $inviter['credentials'], $inviter['p2p']);
         $inviter_endpoint_address = Conftest::get_endpoints(Init::endpoints())[0]->address;
         $connection_key = Init::Crypto()->createKey();
-        $inviter_endpoint_address = $this->replace_url_components($inviter_endpoint_address, $phpunit_configs['test_suite_overlay_address']);
+        $inviter_endpoint_address = self::replace_url_components($inviter_endpoint_address, $phpunit_configs['test_suite_overlay_address']);
         $invitation = new Invitation([], 'Inviter', [$connection_key], $inviter_endpoint_address);
         $invitation_url = $invitation->getInvitationUrl();
-        list($did, $verkey) = Init::DID()->create_and_store_my_did();
+        [$did, $verkey] = Init::DID()->create_and_store_my_did();
         $inviter_side = new Me($did, $verkey);
 
         Threads::run_threads([
@@ -203,7 +236,7 @@ class Test0160ConnProtocol extends TestCase
         Hub::alloc_context($inviter['server_address'], $inviter['credentials'], $inviter['p2p']);
         foreach (Init::PairwiseList()->enumerate() as $i => $p) {
             self::assertInstanceOf(Pairwise::class, $p);
-            if ($p->me->did == $inviter_side->did) {
+            if ($p->me->did === $inviter_side->did) {
                 $invited_pairwise = $p;
                 break;
             }
@@ -211,8 +244,16 @@ class Test0160ConnProtocol extends TestCase
         self::assertNotNull($invited_pairwise);
     }
 
-    /** @test */
-    public function test_did_doc_extra_fields()
+    /**
+     * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     */
+    public function test_did_doc_extra_fields(): void
     {
         $test_suite = Conftest::test_suite();
         $inviter = $test_suite->get_agent_params('agent1');
@@ -226,10 +267,10 @@ class Test0160ConnProtocol extends TestCase
 
         // Init me
         Hub::alloc_context($inviter['server_address'], $inviter['credentials'], $inviter['p2p']);
-        list($did, $verkey) = Init::DID()->create_and_store_my_did();
+        [$did, $verkey] = Init::DID()->create_and_store_my_did();
         $inviter_me = new Me($did, $verkey);
         Hub::alloc_context($invitee['server_address'], $invitee['credentials'], $invitee['p2p']);
-        list($did, $verkey) = Init::DID()->create_and_store_my_did();
+        [$did, $verkey] = Init::DID()->create_and_store_my_did();
         $invitee_me = new Me($did, $verkey);
 
         Threads::run_threads([

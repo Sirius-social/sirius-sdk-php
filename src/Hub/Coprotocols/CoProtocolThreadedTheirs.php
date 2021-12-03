@@ -7,13 +7,7 @@ namespace Siruis\Hub\Coprotocols;
 use Siruis\Agent\Coprotocols\ThreadBasedCoProtocolTransport;
 use Siruis\Agent\Pairwise\Pairwise;
 use Siruis\Errors\Exceptions\OperationAbortedManually;
-use Siruis\Errors\Exceptions\SiriusConnectionClosed;
 use Siruis\Errors\Exceptions\SiriusContextError;
-use Siruis\Errors\Exceptions\SiriusInitializationError;
-use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
-use Siruis\Errors\Exceptions\SiriusInvalidType;
-use Siruis\Errors\Exceptions\SiriusPendingOperation;
-use Siruis\Errors\Exceptions\SiriusTimeoutIO;
 use Siruis\Hub\Core\Hub;
 use Siruis\Messaging\Message;
 
@@ -33,6 +27,14 @@ class CoProtocolThreadedTheirs extends AbstractCoProtocol
     private $pthid;
     protected $dids;
 
+    /**
+     * CoProtocolThreadedTheirs constructor.
+     * @param string $thid
+     * @param array $theirs
+     * @param string|null $pthid
+     * @param int|null $time_to_live
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     */
     public function __construct(string $thid, array $theirs, string $pthid = null, int $time_to_live = null)
     {
         parent::__construct($time_to_live);
@@ -44,7 +46,7 @@ class CoProtocolThreadedTheirs extends AbstractCoProtocol
         $this->pthid = $pthid;
         $dids = [];
         foreach ($theirs as $their) {
-            array_push($dids, $their->their->did);
+            $dids[] = $their->their->did;
         }
         $this->dids = $dids;
     }
@@ -52,65 +54,82 @@ class CoProtocolThreadedTheirs extends AbstractCoProtocol
     /**
      * Send message to given participants
      *
-     * @param Message $message
+     * @param \Siruis\Messaging\Message $message
      * @return array List[( str: participant-id, bool: message was successfully sent, str: endpoint response body )]
-     * @throws OperationAbortedManually
-     * @throws SiriusConnectionClosed
-     * @throws SiriusInitializationError
-     * @throws SiriusPendingOperation
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\OperationAbortedManually
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function send(Message $message): array
     {
         $results = [];
-        $transport = $this->__get_transport_lazy();
-        $responses = $transport->send_many($message, $this->theirs);
-        foreach ($this->theirs as $p2p) {
-            foreach ($responses as $response) {
-                $results[$p2p] = [$response[0], $response[1]];
+        $transport = $this->get_transport_lazy();
+        if ($transport) {
+            $responses = $transport->send_many($message, $this->theirs);
+
+            foreach ($this->theirs as $p2p) {
+                foreach ($responses as $response) {
+                    $results[$p2p] = [$response[0], $response[1]];
+                }
             }
+
+            return $results;
         }
-        return $results;
+
+        throw new OperationAbortedManually();
     }
 
     /**
      * Read event from any of participants at given timeout
      *
      * @return array|null[] (Pairwise: participant-id, Message: message from given participant)
-     * @throws OperationAbortedManually
-     * @throws SiriusConnectionClosed
-     * @throws SiriusInitializationError
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidType
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\OperationAbortedManually
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function get_one(): array
     {
-        $transport = $this->__get_transport_lazy();
-        try {
-            $get_one = $transport->get_one();
-        } catch (SiriusTimeoutIO $exception) {
-            return [null, null];
+        $transport = $this->get_transport_lazy();
+        if ($transport) {
+            [$message, $sender_verkey] = $transport->get_one();
+            $p2p = $this->load_p2p_from_verkey($sender_verkey);
+            return [$p2p, $message];
         }
-        $p2p = $this->__load_p2p_from_verkey($get_one[1]);
-        return [$p2p, $get_one[0]];
+
+        throw new OperationAbortedManually();
     }
 
     /**
      * Switch state while participants at given timeout give responses
-     *
-     * @param Message $message
-     * @return array {
+     * @param \Siruis\Messaging\Message $message
+     * @return array
+     * {
      *      Pairwise: participant,
      *      (
      *          bool: message was successfully sent to participant,
      *          Message: response message from participant or Null if request message was not successfully sent
      *      )
      * }
-     * @throws OperationAbortedManually
-     * @throws SiriusConnectionClosed
-     * @throws SiriusInitializationError
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidType
-     * @throws SiriusPendingOperation
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\OperationAbortedManually
      */
     public function switch(Message $message): array
     {
@@ -131,29 +150,24 @@ class CoProtocolThreadedTheirs extends AbstractCoProtocol
         }
         $accum = 0;
         while ($accum < count($success_theirs)) {
-            $get_one = $this->get_one();
-            $p2p = $get_one[0];
-            $message = $get_one[1];
+            [$p2p, $message] = $this->get_one();
             if (!$p2p) {
                 break;
             }
-            if (in_array($p2p->their->did, $this->dids)) {
+            if (in_array($p2p->their->did, $this->dids, true)) {
                 $success_theirs[$p2p] = [true, $message];
-                $accum += 1;
+                ++$accum;
             }
         }
-        array_push($results, $success_theirs);
+        $results[] = $success_theirs;
         return $results;
     }
 
-    /**
-     * @param string $verkey
-     * @return Pairwise|null
-     */
-    protected function __load_p2p_from_verkey(string $verkey): ?Pairwise
+
+    protected function load_p2p_from_verkey(string $verkey): ?Pairwise
     {
         foreach ($this->theirs as $p2p) {
-            if ($p2p->their->verkey == $verkey) {
+            if ($p2p->their->verkey === $verkey) {
                 return $p2p;
             }
         }
@@ -161,12 +175,14 @@ class CoProtocolThreadedTheirs extends AbstractCoProtocol
     }
 
     /**
-     * @return ThreadBasedCoProtocolTransport|null
-     * @throws OperationAbortedManually
-     * @throws SiriusConnectionClosed
-     * @throws SiriusInitializationError
+     * @return \Siruis\Agent\Coprotocols\ThreadBasedCoProtocolTransport|null
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    protected function __get_transport_lazy(): ?ThreadBasedCoProtocolTransport
+    protected function get_transport_lazy(): ?ThreadBasedCoProtocolTransport
     {
         if (!$this->transport) {
             $agent = Hub::current_hub()->get_agent_connection_lazy();
@@ -178,14 +194,6 @@ class CoProtocolThreadedTheirs extends AbstractCoProtocol
             $this->transport->start(null, $this->time_to_live);
             $this->is_start = true;
         }
-        try {
-            return $this->transport;
-        } catch (SiriusConnectionClosed $exception) {
-            if ($this->is_aborted) {
-                throw new OperationAbortedManually('User aborted operation');
-            } else {
-                throw new SiriusConnectionClosed('Errors: ' . $exception->getMessage());
-            }
-        }
+        return $this->transport;
     }
 }

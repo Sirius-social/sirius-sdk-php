@@ -13,7 +13,7 @@ use Siruis\Tests\Helpers\Conftest;
 
 class TestTimeouts extends TestCase
 {
-    public function test_agent_rcv_timeout()
+    public function test_agent_rcv_timeout(): void
     {
         $test_suite = Conftest::test_suite();
         $params = $test_suite->get_agent_params('agent4');

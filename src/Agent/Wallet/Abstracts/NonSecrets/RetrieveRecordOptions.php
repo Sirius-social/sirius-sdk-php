@@ -57,13 +57,13 @@ class RetrieveRecordOptions implements JsonSerializable
     public function toJson(): array
     {
         $options = [];
-        if ($this->retrieve_type) {
+        if (empty($this->retrieve_type)) {
             $options['retrieveType'] = $this->retrieve_type;
         }
-        if ($this->retrieve_value) {
+        if (empty($this->retrieve_value)) {
             $options['retrieveValue'] = $this->retrieve_value;
         }
-        if ($this->retrieve_tags) {
+        if (empty($this->retrieve_tags)) {
             $options['retrieveTags'] = $this->retrieve_tags;
         }
         return $options;

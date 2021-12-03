@@ -6,12 +6,31 @@ namespace Siruis\Hub\Coprotocols;
 
 abstract class AbstractCoProtocol
 {
+    /**
+     * @var int|null
+     */
     public $time_to_live;
+    /**
+     * @var bool
+     */
     public $is_aborted;
+    /**
+     * @var null
+     */
     public $hub;
+    /**
+     * @var bool
+     */
     public $is_start;
+    /**
+     * @var null
+     */
     public $transport;
 
+    /**
+     * AbstractCoProtocol constructor.
+     * @param int|null $time_to_live
+     */
     public function __construct(int $time_to_live = null)
     {
         $this->time_to_live = $time_to_live;
@@ -21,7 +40,12 @@ abstract class AbstractCoProtocol
         $this->transport = null;
     }
 
-    public function abort()
+    /**
+     * Abort coprotocol.
+     *
+     * @return void
+     */
+    public function abort(): void
     {
         if ($this->hub) {
             $this->hub->run_soon($this->clean());
@@ -33,7 +57,12 @@ abstract class AbstractCoProtocol
         }
     }
 
-    public function clean()
+    /**
+     * Clean coprotocol.
+     *
+     * @return void
+     */
+    public function clean(): void
     {
         if ($this->is_start) {
             $this->transport->stop();

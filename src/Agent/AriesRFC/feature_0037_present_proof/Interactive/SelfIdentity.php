@@ -46,29 +46,45 @@ class SelfIdentity
         $this->__proof_request = null;
     }
 
+    /**
+     * Get proof_request property.
+     *
+     * @return mixed|null
+     */
     public function getProofRequest()
     {
         return $this->__proof_request;
     }
 
+    /**
+     * @param array $self_attested_identity
+     * @param array $proof_request
+     * @param array|null $extra_query
+     * @param int $limit_referents
+     * @param string $default_value
+     * @return bool
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     */
     public function load(
         array $self_attested_identity, array $proof_request, array $extra_query = null,
         int $limit_referents = 1, $default_value = ''
-    )
+    ): bool
     {
-        $this->__clear();
+        $this->clear();
         $this->__proof_request = $proof_request;
         // Stage-1: load self attested attributes
         foreach ($this->getProofRequest()['requested_attributes'] as $referent_id => $data) {
             $restrictions = $data['restrictions'];
-            if (!$restrictions) {
-                if (key_exists('name', $data)) {
-                    $attr_name = $data['name'];
-                    $attr_value = $self_attested_identity[$attr_name] ?? $default_value;
-                    $this->self_attested_attributes[$referent_id] = new SelfAttestedAttribute(
-                        $referent_id, $attr_name, $attr_value
-                    );
-                }
+            if (!$restrictions && array_key_exists('name', $data)) {
+                $attr_name = $data['name'];
+                $attr_value = $self_attested_identity[$attr_name] ?? $default_value;
+                $this->self_attested_attributes[$referent_id] = new SelfAttestedAttribute(
+                    $referent_id, $attr_name, $attr_value
+                );
             }
         }
         // Stage-2: load proof-response
@@ -80,35 +96,34 @@ class SelfIdentity
             if (count($cred_infos) > $limit_referents) {
                 $cred_infos = array_slice($cred_infos, 0, $limit_referents);
             }
-            if (!key_exists($referent_id, $this->self_attested_attributes)) {
+            if (!array_key_exists($referent_id, $this->self_attested_attributes)) {
                 if ($cred_infos) {
                     $attr_name = $proof_request['requested_attributes']['name'];
                     $attr_variants = $this->requested_attributes[$referent_id];
                     foreach (array_values($cred_infos) as $i => $item) {
-                        $attr_value = $item['attrs'][$attr_name];
                         $cred_attrib = new CredAttribute(
-                            "{$referent_id}:{$i}", $item['cred_info'], true, $attr_name, call_user_func('__on_cred_attrib_select'),
+                            " $referent_id:$i", $item['cred_info'], true, $attr_name, on_cred_attrib_select(),
                         );
                         if (!$attr_variants) {
                             $cred_attrib->setSelected(true);
                         }
-                        array_push($attr_variants, $referent_id);
+                        $attr_variants[] = $referent_id;
                         $this->requested_predicates[$referent_id] = $attr_variants;
                     }
                 } else {
-                    array_push($this->non_processed, $referent_id);
+                    $this->non_processed[] = $referent_id;
                 }
             }
         }
         return $this->getIsFilled();
     }
 
-    public function getIsFilled()
+    public function getIsFilled(): bool
     {
-        return count($this->non_processed) == 0;
+        return count($this->non_processed) === 0;
     }
 
-    public function __on_cred_attrib_select(CredAttribute $emitter)
+    public function on_cred_attrib_select(CredAttribute $emitter): void
     {
         // Save from recursion calls
         if ($this->__mute) {
@@ -117,10 +132,10 @@ class SelfIdentity
         // Fire
         $this->__mute = true;
         try {
-            list($referent_id, $index) = explode(':', $emitter->uid);
+            [$referent_id] = explode(':', $emitter->uid);
             $neighbours = $this->requested_attributes[$referent_id] ?? $this->requested_predicates[$referent_id];
             foreach ($neighbours as $neighbour) {
-                if ($neighbour->uid != $emitter->uid && $neighbour->is_selected()) {
+                if ($neighbour->uid !== $emitter->uid && $neighbour->is_selected()) {
                     $neighbour->setSelected(false);
                 }
             }
@@ -129,7 +144,7 @@ class SelfIdentity
         }
     }
 
-    public function __clear()
+    public function clear(): void
     {
         $this->self_attested_attributes = [];
         $this->requested_attributes = [];

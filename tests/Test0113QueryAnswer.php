@@ -12,8 +12,10 @@ use Siruis\Tests\Threads\test_0113_query_answer\Responder;
 
 class Test0113QueryAnswer extends TestCase
 {
-    /** @test */
-    public function test_sane()
+    /**
+     * @return void
+     */
+    public function test_sane(): void
     {
         $requester = Conftest::agent1();
         $responder = Conftest::agent2();
@@ -33,9 +35,9 @@ class Test0113QueryAnswer extends TestCase
         $coro_requester = new Requester($params_req['server_address'], $params_req['credentials'], $params_req['p2p'], $req2resp);
         $coro_responder = new Responder($params_resp['server_address'], $params_resp['credentials'], $params_resp['p2p']);
 
-        print_r('Run state machines\n');
+        printf('Run state machines\n');
         Threads::run_threads([$coro_requester, $coro_responder]);
-        print_r('Finish state machines\n');
+        printf('Finish state machines\n');
         self::assertTrue($coro_requester->success);
         self::assertTrue($coro_responder->success);
     }

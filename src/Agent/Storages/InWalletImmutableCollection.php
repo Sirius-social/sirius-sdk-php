@@ -46,6 +46,10 @@ class InWalletImmutableCollection extends AbstractImmutableCollection
      * @param array $tags
      * @return void
      * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function add($value, array $tags): void
     {
@@ -63,6 +67,10 @@ class InWalletImmutableCollection extends AbstractImmutableCollection
      * @param int|null $limit
      * @return array
      * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function fetch(array $tags, int $limit = null): array
     {
@@ -72,6 +80,7 @@ class InWalletImmutableCollection extends AbstractImmutableCollection
             new RetrieveRecordOptions(true),
             $limit ?: self::DEFAULT_FETCH_LIMIT
         );
+
         if ($collection) {
             $values = [];
             foreach ($collection as $item) {

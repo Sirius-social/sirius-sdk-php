@@ -60,6 +60,7 @@ class AgentEvents extends BaseAgentConnection
         for ($n = 0; $n < self::RECONNECT_TRY_COUNT; $n++) {
             try {
                 $data = $this->connector->read($timeout);
+                break;
             } catch (SiriusConnectionClosed | SiriusIOError | SiriusTimeoutIO $exception) {
                 $this->reopen();
             }

@@ -3,14 +3,8 @@
 
 namespace Siruis\Agent\Listener;
 
-use JsonException;
 use Siruis\Agent\Connections\AgentEvents;
 use Siruis\Agent\Pairwise\AbstractPairwiseList;
-use Siruis\Errors\Exceptions\SiriusConnectionClosed;
-use Siruis\Errors\Exceptions\SiriusCryptoError;
-use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
-use Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure;
-use Siruis\Errors\Exceptions\SiriusInvalidType;
 use Siruis\Helpers\ArrayHelper;
 use Siruis\Messaging\Message;
 
@@ -25,6 +19,11 @@ class Listener
      */
     public $pairwise_resolver;
 
+    /**
+     * Listener constructor.
+     * @param \Siruis\Agent\Connections\AgentEvents $source
+     * @param \Siruis\Agent\Pairwise\AbstractPairwiseList|null $pairwise_resolver
+     */
     public function __construct(AgentEvents $source, AbstractPairwiseList $pairwise_resolver = null)
     {
         $this->source = $source;
@@ -36,11 +35,13 @@ class Listener
      * @return \Siruis\Agent\Listener\Event
      * @throws \JsonException
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusContextError
      * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function get_one(int $timeout = null): Event
     {

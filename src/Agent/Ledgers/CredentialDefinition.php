@@ -34,15 +34,15 @@ class CredentialDefinition implements JsonSerializable
     /**
      * CredentialDefinition constructor.
      *
-     * @param string $tag
-     * @param \Siruis\Agent\Ledgers\Schema $schema
+     * @param string|null $tag
+     * @param \Siruis\Agent\Ledgers\Schema|null $schema
      * @param \Siruis\Agent\Ledgers\Config|null $config
      * @param array|null $body
      * @param int|null $seq_no
      */
     public function __construct(
-        string $tag, Schema $schema, Config $config = null,
-        array $body = null, int $seq_no = null
+        string $tag, Schema $schema, ?Config $config = null,
+        ?array $body = null, ?int $seq_no = null
     )
     {
         $this->tag = $tag;

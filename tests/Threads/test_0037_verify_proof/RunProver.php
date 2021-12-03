@@ -4,6 +4,8 @@
 namespace Siruis\Tests\Threads\test_0037_verify_proof;
 
 
+use DateTime;
+use Exception;
 use PHPUnit\Framework\TestCase;
 use Siruis\Agent\AriesRFC\feature_0037_present_proof\Messages\RequestPresentationMessage;
 use Siruis\Agent\AriesRFC\feature_0037_present_proof\StateMachines\Prover;
@@ -60,7 +62,17 @@ class RunProver extends Threaded
         $this->master_secret_id = $master_secret_id;
     }
 
-    public function work()
+    /**
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
+     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Exception
+     */
+    public function work(): void
     {
         Hub::alloc_context($this->uri, $this->credentials, $this->p2p);
         $listener = Init::subscribe();
@@ -72,8 +84,8 @@ class RunProver extends Threaded
         TestCase::assertInstanceOf(RequestPresentationMessage::class, $request);
         $ttl = 60;
         if ($request->getExpiresTime()) {
-            $expire = new \DateTime($request->getExpiresTime());
-            $delta = (new \DateTime())->diff($expire);
+            $expire = new DateTime($request->getExpiresTime());
+            $delta = (new DateTime())->diff($expire);
             if ($delta->s > 0) {
                 $ttl = $delta->s;
             }
@@ -83,15 +95,15 @@ class RunProver extends Threaded
             $machine = new Prover($this->verifier, $ledger, $ttl);
             $success = $machine->prove($request, $this->master_secret_id);
             if (!$success) {
-                error_log('===================== Prover terminated with error ====================');
+                printf('===================== Prover terminated with error ====================');
                 if ($machine->problem_report) {
-                    error_log(json_encode($machine->problem_report->payload));
+                    printf(json_encode($machine->problem_report->payload, JSON_THROW_ON_ERROR));
                 }
-                error_log('=======================================================================');
+                printf('=======================================================================');
             }
             $this->success = $success;
-        } catch (\Exception $err) {
-            print_r('==== Prover routine Exception: '.$err->getMessage());
+        } catch (Exception $err) {
+            printf('==== Prover routine Exception: '.$err->getMessage());
         }
     }
 }

@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Siruis\Tests\Helpers;
+namespace Siruis\Tests\Threads\Coprotocols;
 
 
 use Siruis\Encryption\P2PConnection;

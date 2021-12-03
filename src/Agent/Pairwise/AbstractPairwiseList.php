@@ -4,33 +4,33 @@
 namespace Siruis\Agent\Pairwise;
 
 
+use Generator;
+
 abstract class AbstractPairwiseList
 {
-    public abstract function create(Pairwise $pairwise);
+    abstract public function create(Pairwise $pairwise);
 
-    public abstract function update(Pairwise $pairwise);
+    abstract public function update(Pairwise $pairwise);
 
-    public abstract function is_exists(string $their_did);
+    abstract public function is_exists(string $their_did);
 
-    public abstract function ensure_exists(Pairwise $pairwise);
+    abstract public function ensure_exists(Pairwise $pairwise);
 
-    public abstract function load_for_did(string $their_did): ?Pairwise;
+    abstract public function load_for_did(string $their_did): ?Pairwise;
 
-    public abstract function load_for_verkey(string $their_verkey): ?Pairwise;
+    abstract public function load_for_verkey(string $their_verkey): ?Pairwise;
 
-    public function enumerate()
+    public function enumerate(): ?Generator
     {
         $cur = 0;
         $this->start_loading();
         try {
             while (true) {
-                $array = $this->partial_load();
-                $success = $array[0];
-                $collection = $array[1];
+                [$success, $collection] = $this->partial_load();
                 if ($success) {
                     foreach ($collection as $p) {
                         yield [$cur, $p];
-                        $cur += 1;
+                        ++$cur;
                     }
                 } else {
                     break;
@@ -41,12 +41,9 @@ abstract class AbstractPairwiseList
         }
     }
 
-    public abstract function start_loading();
+    abstract public function start_loading();
 
-    /**
-     * @return bool|array
-     */
-    public abstract function partial_load();
+    abstract public function partial_load();
 
-    public abstract function stop_loading();
+    abstract public function stop_loading();
 }

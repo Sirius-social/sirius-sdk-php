@@ -18,10 +18,10 @@ class CoProtocols
             $thread_id = null;
             $parent_thread_id = null;
             $messagePayload = $event->getMessage()->payload;
-            if (key_exists(self::THREAD_DECORATOR, $messagePayload)) {
+            if (array_key_exists(self::THREAD_DECORATOR, $messagePayload)) {
                 $thread_id = ArrayHelper::getValueWithKeyFromArray('thid', $messagePayload[self::THREAD_DECORATOR]);
             }
-            if (key_exists(self::PLEASE_ACK_DECORATOR, $messagePayload)) {
+            if (array_key_exists(self::PLEASE_ACK_DECORATOR, $messagePayload)) {
                 $parent_thread_id = $thread_id;
                 $thread_id = ArrayHelper::getValueWithKeyFromArray('message_id', $messagePayload, $event->getMessage()->id);
             }
@@ -37,8 +37,8 @@ class CoProtocols
                 );
             }
             return $comm;
-        } else {
-            return null;
         }
+
+        return null;
     }
 }

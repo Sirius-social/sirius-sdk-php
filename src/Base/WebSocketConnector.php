@@ -8,9 +8,9 @@ use Siruis\Errors\Exceptions\SiriusConnectionClosed;
 use Siruis\Errors\Exceptions\SiriusIOError;
 use Siruis\Errors\Exceptions\SiriusTimeoutIO;
 use Siruis\Messaging\Message;
+use Throwable;
 use WebSocket\Client;
 use WebSocket\ConnectionException;
-use WebSocket\TimeoutException;
 
 
 class WebSocketConnector extends BaseConnector
@@ -22,9 +22,7 @@ class WebSocketConnector extends BaseConnector
     public $path;
     public $credentials;
     private $session;
-    private $port;
     private $url;
-    private $ws_address;
     private $options;
 
     public function __construct($server_address, $path, $credentials, $defTimeout = null, $port = null, $enc = null)
@@ -43,7 +41,6 @@ class WebSocketConnector extends BaseConnector
         if ($enc) {
             $this->enc = $enc;
         }
-        $this->port = $port;
         $this->url = urljoin($ws_address, $path);
         $this->options = [
             'headers' => [
@@ -109,11 +106,7 @@ class WebSocketConnector extends BaseConnector
         if ($timeout) {
             $this->session->setTimeout($timeout);
         }
-        try {
-            $msg = $this->session->receive();
-        } catch (ConnectionException $exception) {
-            throw new SiriusTimeoutIO($exception->getMessage(), $exception->getCode(), $exception->getPrevious());
-        }
+        $msg = $this->session->receive();
 
         printf("Read message from socket: $msg\n");
 
@@ -138,6 +131,7 @@ class WebSocketConnector extends BaseConnector
      *
      * @param string|Message $data
      * @return bool
+     * @throws \JsonException
      */
     public function write($data): bool
     {
@@ -152,7 +146,7 @@ class WebSocketConnector extends BaseConnector
         try {
             $this->session->binary($payload);
             return true;
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             return false;
         }
     }

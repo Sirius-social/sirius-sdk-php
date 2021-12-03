@@ -51,6 +51,15 @@ class ProverInteractiveMode
 
     protected $version;
 
+    /**
+     * ProverInteractiveMode constructor.
+     * @param string $my_did
+     * @param string $pool_name
+     * @param string $master_secret_id
+     * @param \Siruis\Hub\Coprotocols\AbstractP2PCoProtocol $co
+     * @param array|null $self_attested_identity
+     * @param string $default_value
+     */
     public function __construct(
         string $my_did, string $pool_name, string $master_secret_id, AbstractP2PCoProtocol $co,
         array $self_attested_identity = null, $default_value = ''
@@ -69,10 +78,10 @@ class ProverInteractiveMode
     /**
      * Fetch request correspondent data from Wallet
      *
-     * @param RequestPresentationMessage $request Verifier request
+     * @param \Siruis\Agent\AriesRFC\feature_0037_present_proof\Messages\RequestPresentationMessage $request  Verifier request
      * @param array|null $extra_query Wallet extra-query
      * @param int $limit_referents max num of fetching creds
-     * @return SelfIdentity
+     * @return \Siruis\Agent\AriesRFC\feature_0037_present_proof\Interactive\SelfIdentity
      */
     public function fetch(RequestPresentationMessage $request, array $extra_query = null, $limit_referents = 1): SelfIdentity
     {
@@ -93,6 +102,16 @@ class ProverInteractiveMode
         return $self_identity;
     }
 
+    /**
+     * @param \Siruis\Agent\AriesRFC\feature_0037_present_proof\Interactive\SelfIdentity $identity
+     * @return array
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     */
     public function prove(SelfIdentity $identity): array
     {
         if (!$identity->getIsFilled()) {
@@ -120,8 +139,8 @@ class ProverInteractiveMode
         foreach ($identity->requested_attributes as $referent_id => $attr_variants) {
             $selected_variants = [];
             foreach ($attr_variants as $variant) {
-                if ($variant->is_selected() || [$attr_variants[0]]) {
-                    array_push($selected_variants, $variant);
+                if ($variant->is_selected()) {
+                    $selected_variants[] = $variant;
                 }
             }
             $selected_variant = $selected_variants[0];
@@ -129,14 +148,14 @@ class ProverInteractiveMode
                 'cred_id' => $selected_variant->getCredInfo()['referent_id'],
             ];
             $requested_credentials['requested_attributes'][$referent_id] = $info;
-            array_push($all_infos, $selected_variant->getCredInfo());
+            $all_infos[] = $selected_variant->getCredInfo();
         }
         // Stage-3: requested predicates
         foreach ($identity->requested_predicates as $referent_id => $pred_variants) {
             $selected_predicates = [];
             foreach ($pred_variants as $pred) {
-                if ($pred->is_selected() || [$pred_variants[0]]) {
-                    array_push($selected_predicates, $pred);
+                if ($pred->is_selected()) {
+                    $selected_predicates[] = $pred;
                 }
             }
             $selected_predicate = $selected_predicates[0];
@@ -147,7 +166,7 @@ class ProverInteractiveMode
                 $info['revealed'] = true;
             }
             $requested_credentials['requested_attributes'][$referent_id] = $info;
-            array_push($all_infos, $selected_predicate->getCredInfo());
+            $all_infos[] = $selected_predicate->getCredInfo();
         }
         // Stage-4: fill other data
         foreach ($all_infos as $cred_info) {
@@ -177,25 +196,27 @@ class ProverInteractiveMode
             $presentation_msg->setThreadId($this->thread_id);
         }
         // Switch to Verifier
-        list($ok, $resp) = $this->coprotocol->switch($presentation_msg);
+        [$ok, $resp] = $this->coprotocol->switch($presentation_msg);
         if ($ok) {
             if ($resp instanceof Ack) {
                 return [true, null];
-            } elseif ($resp instanceof PresentProofProblemReport) {
-                return [false, $resp];
-            } else {
-                $problem_report = new PresentProofProblemReport(
-                    ['problemCode' => self::RESPONSE_FOR_UNKNOWN_REQUEST, 'explain' => "Unexpected response @type: ".(string)$resp->getType()]
-                );
-                $this->coprotocol->send($problem_report);
-                return [false, $problem_report];
             }
-        } else {
+
+            if ($resp instanceof PresentProofProblemReport) {
+                return [false, $resp];
+            }
+
             $problem_report = new PresentProofProblemReport(
-                ['problem_code' => self::RESPONSE_PROCESSING_ERROR, 'explain' => 'Response awaiting terminated by timeout']
+                ['problemCode' => self::RESPONSE_FOR_UNKNOWN_REQUEST, 'explain' => "Unexpected response @type: ". $resp->getType()]
             );
             $this->coprotocol->send($problem_report);
             return [false, $problem_report];
         }
+
+        $problem_report = new PresentProofProblemReport(
+            ['problem_code' => self::RESPONSE_PROCESSING_ERROR, 'explain' => 'Response awaiting terminated by timeout']
+        );
+        $this->coprotocol->send($problem_report);
+        return [false, $problem_report];
     }
 }

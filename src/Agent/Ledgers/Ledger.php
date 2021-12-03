@@ -67,6 +67,10 @@ class Ledger
      * @param string $submitter_did
      * @param string $target_did
      * @return array
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function read_nym(string $submitter_did, string $target_did): array
     {
@@ -80,6 +84,10 @@ class Ledger
      * @param string|null $alias
      * @param null $role
      * @return array
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function write_nym(
         string $submitter_did, string $target_did,
@@ -99,6 +107,10 @@ class Ledger
      * @param string $id
      * @param string $submitter_did
      * @return \Siruis\Agent\Ledgers\Schema
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      */
     public function load_schema(string $id, string $submitter_did): Schema
@@ -113,7 +125,11 @@ class Ledger
      * @param string $id
      * @param string $submitter_did
      * @return \Siruis\Agent\Ledgers\CredentialDefinition
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      */
     public function load_cred_def(string $id, string $submitter_did): CredentialDefinition
@@ -156,6 +172,10 @@ class Ledger
      * @param \Siruis\Agent\Wallet\Abstracts\Anoncreds\AnonCredSchema $schema
      * @param string $submitter_did
      * @return array
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      */
     public function register_schema(AnonCredSchema $schema, string $submitter_did): array
@@ -175,7 +195,7 @@ class Ledger
 
         $reason = ArrayHelper::getValueWithKeyFromArray('reason', $txn_response);
         if ($reason) {
-            printf($reason);
+            printf($reason.'\n');
         }
         return [false, null];
     }
@@ -185,12 +205,17 @@ class Ledger
      * @param string $submitter_did
      * @param array|null $tags
      * @return array
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      */
     public function register_cred_def(
         CredentialDefinition $cred_def, string $submitter_did, array $tags = null
     ): array
     {
-        [$cred_def_id, $body] = $this->issuer->issuer_create_and_store_credential_def(
+        [, $body] = $this->issuer->issuer_create_and_store_credential_def(
             $submitter_did, $cred_def->schema->body, $cred_def->tag, null, $cred_def->config->serialize()
         );
         $build_request = $this->api->build_cred_def_request(
@@ -216,6 +241,10 @@ class Ledger
      * @param \Siruis\Agent\Wallet\Abstracts\Anoncreds\AnonCredSchema $schema
      * @param string $submitter_did
      * @return \Siruis\Agent\Ledgers\Schema|null
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      */
     public function ensure_schema_exists(AnonCredSchema $schema, string $submitter_did): ?Schema
@@ -245,6 +274,7 @@ class Ledger
      * @param string|null $submitter_did
      * @return array
      * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     * @throws \JsonException
      */
     public function fetch_schemas(
         string $id = null, string $name = null, string $version = null, string $submitter_did = null
@@ -264,9 +294,9 @@ class Ledger
             $filters->setSubmitterDid($submitter_did);
         }
         $this->storage->select_db($this->db);
-        $storageFetch = $this->storage->fetch($filters->tags);
+        [$fetched,] = $this->storage->fetch($filters->tags);
         $schemas = [];
-        foreach ($storageFetch[0] as $item) {
+        foreach ($fetched as $item) {
             $schemas[] = (new Schema)->deserialize($item);
         }
         return $schemas;
@@ -309,7 +339,7 @@ class Ledger
         $storageFetch = $this->storage->fetch($filters->tags);
         $cred_defs = [];
         foreach ($storageFetch[0] as $item) {
-            $cred_defs[] = CredentialDefinition::deserialize($item);
+            $cred_defs[] = (new CredentialDefinition)->deserialize($item);
         }
         return $cred_defs;
     }
@@ -329,8 +359,8 @@ class Ledger
                 'id' => $schema->getId(),
                 'category' => 'schema'
             ];
-            $storageFetch = $this->storage->fetch($tags);
-            if ($storageFetch[1] === 0) {
+            [, $count] = $this->storage->fetch($tags);
+            if ($count === 0) {
                 array_merge($tags, [
                     'id' => $schema->getId(),
                     'name' => $schema->getName(),

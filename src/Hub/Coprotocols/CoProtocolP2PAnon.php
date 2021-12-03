@@ -4,15 +4,9 @@
 namespace Siruis\Hub\Coprotocols;
 
 
-use GuzzleHttp\Exception\GuzzleException;
 use Siruis\Agent\Coprotocols\TheirEndpointCoProtocolTransport;
 use Siruis\Agent\Pairwise\TheirEndpoint;
 use Siruis\Errors\Exceptions\OperationAbortedManually;
-use Siruis\Errors\Exceptions\SiriusConnectionClosed;
-use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
-use Siruis\Errors\Exceptions\SiriusInvalidType;
-use Siruis\Errors\Exceptions\SiriusPendingOperation;
-use Siruis\Errors\Exceptions\SiriusTimeoutIO;
 use Siruis\Helpers\ArrayHelper;
 use Siruis\Hub\Core\Hub;
 use Siruis\Messaging\Message;
@@ -34,6 +28,13 @@ class CoProtocolP2PAnon extends AbstractP2PCoProtocol
     public $thread_id;
 
 
+    /**
+     * CoProtocolP2PAnon constructor.
+     * @param string $my_verkey
+     * @param \Siruis\Agent\Pairwise\TheirEndpoint $endpoint
+     * @param array $protocols
+     * @param int|null $time_to_live
+     */
     public function __construct(string $my_verkey,
                                 TheirEndpoint $endpoint,
                                 array $protocols,
@@ -47,65 +48,105 @@ class CoProtocolP2PAnon extends AbstractP2PCoProtocol
     }
 
     /**
-     * @param Message $message
-     * @throws OperationAbortedManually
-     * @throws SiriusConnectionClosed
-     * @throws GuzzleException
-     * @throws SiriusPendingOperation
+     * @param \Siruis\Messaging\Message $message
+     * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\OperationAbortedManually
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public function send(Message $message)
+    public function send(Message $message): void
     {
-        $transport = $this->__get_transport_lazy();
-        $this->__setup($message, false);
-        $transport->send($message);
+        $transport = $this->get_transport_lazy();
+        $this->setup($message, false);
+        if ($transport) {
+            $transport->send($message);
+        } else {
+            throw new OperationAbortedManually('Transport null');
+        }
     }
 
     /**
-     * @return array|Message|string|null
-     * @throws OperationAbortedManually
-     * @throws SiriusConnectionClosed
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidType
-     * @throws SiriusTimeoutIO
+     * @return array|false|null
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function get_one()
     {
-        $transport = $this->__get_transport_lazy();
-        return $transport->get_one();
+        $transport = $this->get_transport_lazy();
+        if ($transport) {
+            return $transport->get_one();
+        }
+
+        return false;
     }
 
+    /**
+     * @param \Siruis\Messaging\Message $message
+     * @return array
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Siruis\Errors\Exceptions\OperationAbortedManually
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
     public function switch(Message $message): array
     {
-        $transport = $this->__get_transport_lazy();
-        list($success, $response) = $transport->switch($message);
-        if (key_exists(CoProtocols::PLEASE_ACK_DECORATOR, $response)) {
-            $this->thread_id = ArrayHelper::getValueWithKeyFromArray(
-                'message_id', $response[CoProtocols::PLEASE_ACK_DECORATOR], $message->id
-            );
-        } else {
-            $this->thread_id = null;
+        $transport = $this->get_transport_lazy();
+        if ($transport) {
+            [$success, $response] = $transport->switch($message);
+            if (array_key_exists(CoProtocols::PLEASE_ACK_DECORATOR, $response)) {
+                $this->thread_id = ArrayHelper::getValueWithKeyFromArray(
+                    'message_id', $response[CoProtocols::PLEASE_ACK_DECORATOR], $message->id
+                );
+            } else {
+                $this->thread_id = null;
+            }
+            return [$success, $response];
         }
-        return [$success, $response];
+
+        throw new OperationAbortedManually('Transport null');
     }
 
-    public function __setup(Message $message, bool $please_ack = true)
+    /**
+     * @throws \JsonException
+     */
+    public function setup(Message $message, bool $please_ack = true): void
     {
-        $messageArray = json_decode($message->serialize());
-        if ($please_ack) {
-            if (!key_exists(CoProtocols::PLEASE_ACK_DECORATOR, $messageArray)) {
-                $message->payload[CoProtocols::PLEASE_ACK_DECORATOR] = ['message_id' => $message->id];
-            }
+        $messageArray = json_decode($message->serialize(), false, 512, JSON_THROW_ON_ERROR);
+        if ($please_ack && !array_key_exists(CoProtocols::PLEASE_ACK_DECORATOR, $messageArray)) {
+            $message->payload[CoProtocols::PLEASE_ACK_DECORATOR] = ['message_id' => $message->id];
         }
         if ($this->thread_id) {
             $thread = ArrayHelper::getValueWithKeyFromArray(CoProtocols::THREAD_DECORATOR, $message->payload);
-            if (!key_exists('thid', $thread)) {
+            if (!array_key_exists('thid', $thread)) {
                 $thread['thid'] = $this->thread_id;
                 $message->payload[CoProtocols::THREAD_DECORATOR] = $thread;
             }
         }
     }
 
-    public function __get_transport_lazy(): ?TheirEndpointCoProtocolTransport
+    /**
+     * @return \Siruis\Agent\Coprotocols\TheirEndpointCoProtocolTransport|null
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function get_transport_lazy(): ?TheirEndpointCoProtocolTransport
     {
         if (!$this->transport) {
             $this->hub = Hub::current_hub();
@@ -114,14 +155,6 @@ class CoProtocolP2PAnon extends AbstractP2PCoProtocol
             $this->transport->start($this->protocols, $this->time_to_live);
             $this->is_start = true;
         }
-        try {
-            return $this->transport;
-        } catch (SiriusConnectionClosed $e) {
-            if ($this->is_aborted) {
-                throw new OperationAbortedManually('User aborted operation');
-            } else {
-                throw new SiriusConnectionClosed('Errors: ' . $e);
-            }
-        }
+        return $this->transport;
     }
 }

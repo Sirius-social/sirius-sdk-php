@@ -21,9 +21,14 @@ class TestConsensusSimple extends TestCase
 {
     /**
      * @return void
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusContextError
+     * @throws \Siruis\Errors\Exceptions\SiriusFieldTypeError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      * @throws \SodiumException
      */
@@ -54,8 +59,6 @@ class TestConsensusSimple extends TestCase
 
             $request->add_signature($A->wallet->crypto, $A2B->me);
             $request->add_signature($B->wallet->crypto, $B2A->me);
-
-            $signatures = $request->getSignatures();
 
             self::assertCount(2, $request->getSignatures());
 

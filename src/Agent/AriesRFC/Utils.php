@@ -7,7 +7,6 @@ namespace Siruis\Agent\AriesRFC;
 use DateTime;
 use Siruis\Agent\Wallet\Abstracts\AbstractCrypto;
 use Siruis\Encryption\Encryption;
-use SodiumException;
 
 class Utils
 {
@@ -27,8 +26,12 @@ class Utils
      * @param string $verkey
      * @param bool $exclude_sig_data
      * @return array
-     * @throws SodiumException
      * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \SodiumException
      */
     public static function sign(AbstractCrypto $crypto, $value, string $verkey, bool $exclude_sig_data = false): array
     {
@@ -58,8 +61,13 @@ class Utils
      * @param array $signed
      *
      * @return array
-     * @throws SodiumException
      * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusFieldTypeError
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \SodiumException
      */
     public static function verify_signed(AbstractCrypto $crypto, array $signed): array
     {

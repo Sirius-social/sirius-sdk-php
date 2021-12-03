@@ -7,12 +7,12 @@ use RuntimeException;
 
 class NYMRole extends Enum
 {
-    public const COMMON_USER = ['name'=> 'COMMON_USER', 'value' => [null, 'null']];
-    public const TRUSTEE = ['name' => 'TRUSTEE', 'value' => [0, 'TRUSTEE']];
-    public const STEWARD = ['name' => 'STEWARD', 'value' => [2, 'STEWARD']];
-    public const TRUST_ANCHOR = ['name' => 'TRUST_ANCHOR', 'value' => [101, 'TRUST_ANCHOR']];
-    public const NETWORK_MONITOR = ['name' => 'NETWORK_MONITOR', 'value' => [201, 'NETWORK_MONITOR']];
-    public const RESET = ['name' => 'RESET', 'value' => [null, '']];
+    public const COMMON_USER = [null, 'null'];
+    public const TRUSTEE = [0, 'TRUSTEE'];
+    public const STEWARD = [2, 'STEWARD'];
+    public const TRUST_ANCHOR = [101, 'TRUST_ANCHOR'];
+    public const NETWORK_MONITOR = [201, 'NETWORK_MONITOR'];
+    public const RESET = [null, ''];
 
     /**
      * Specify data which should be serialized to JSON. This method returns data that can be serialized by json_encode()
@@ -60,10 +60,5 @@ class NYMRole extends Enum
         }
 
         throw new RuntimeException('Unexpected value ' . $buffer);
-    }
-
-    public function getValue()
-    {
-        return $this->value['value'];
     }
 }

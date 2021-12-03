@@ -14,6 +14,11 @@ class PairwiseCoProtocolTransport extends AbstractCoProtocolTransport
      */
     public $pairwise;
 
+    /**
+     * PairwiseCoProtocolTransport constructor.
+     * @param \Siruis\Agent\Pairwise\Pairwise $pairwise
+     * @param \Siruis\Agent\Connections\AgentRPC $rpc
+     */
     public function __construct(Pairwise $pairwise, AgentRPC $rpc)
     {
         parent::__construct($rpc);
@@ -26,7 +31,15 @@ class PairwiseCoProtocolTransport extends AbstractCoProtocolTransport
         );
     }
 
-    public function start(array $protocols, int $time_to_live = null)
+    /**
+     * @param array $protocols
+     * @param int|null $time_to_live
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function start(array $protocols, int $time_to_live = null): void
     {
         parent::start($protocols, $time_to_live);
         $this->rpc->start_protocol_for_p2p(
@@ -37,7 +50,13 @@ class PairwiseCoProtocolTransport extends AbstractCoProtocolTransport
         );
     }
 
-    public function stop()
+    /**
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function stop(): void
     {
         parent::stop();
         $this->rpc->stop_protocol_for_p2p(

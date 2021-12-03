@@ -12,6 +12,10 @@ class TestLedgers extends TestCase
 {
     /**
      * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function test_nym_ops(): void
     {
@@ -22,23 +26,23 @@ class TestLedgers extends TestCase
         $agent2->open();
         try {
             $seed = '000000000000000000000000Steward1';
-            [$did_steward, $verkey_steward] = $steward->wallet->did->create_and_store_my_did(null, $seed);
+            [$did_steward,] = $steward->wallet->did->create_and_store_my_did(null, $seed);
             // check-1: read ops sane
             /** @var Ledger $dkms */
             $dkms = $steward->ledger('default');
-            [$ok, $resp] = $dkms->read_nym($did_steward, $did_steward);
+            [$ok] = $dkms->read_nym($did_steward, $did_steward);
             self::assertTrue($ok);
             [$did_test, $verkey_test] = $agent2->wallet->did->create_and_store_my_did();
             // check-2: read nym operation for unknown DID
             $dkms = $agent2->ledger('default');
-            [$ok, $resp] = $dkms->read_nym($did_test, $did_test);
+            [$ok,] = $dkms->read_nym($did_test, $did_test);
             self::assertFalse($ok);
             // check-3: read nym for known DID
-            [$ok, $resp] = $dkms->read_nym($did_test, $did_steward);
+            [$ok,] = $dkms->read_nym($did_test, $did_steward);
             self::assertTrue($ok);
             // check-4: write Nym
             $dkms = $steward->ledger('default');
-            [$ok, $resp] = $dkms->write_nym($did_steward, $did_test, $verkey_test, 'Test Alias');
+            [$ok,] = $dkms->write_nym($did_steward, $did_test, $verkey_test, 'Test Alias');
             self::assertTrue($ok);
         } finally {
             $steward->close();
@@ -48,6 +52,10 @@ class TestLedgers extends TestCase
 
     /**
      * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      */
     public function test_schema_registration(): void
@@ -56,9 +64,9 @@ class TestLedgers extends TestCase
         $agent1->open();
         try {
             $seed = '000000000000000000000000Steward1';
-            [$did, $verkey] = $agent1->wallet->did->create_and_store_my_did(null, $seed);
+            [$did,] = $agent1->wallet->did->create_and_store_my_did(null, $seed);
             $schema_name = 'schema_' . uniqid('', true);
-            [$schema_id, $anoncred_schema] = $agent1->wallet->anoncreds->issuer_create_schema($did, $schema_name, '1.0', ['attr1', 'attr2', 'attr3']);
+            [, $anoncred_schema] = $agent1->wallet->anoncreds->issuer_create_schema($did, $schema_name, '1.0', ['attr1', 'attr2', 'attr3']);
             /** @var Ledger $ledger */
             $ledger = $agent1->ledger('default');
 
@@ -66,7 +74,7 @@ class TestLedgers extends TestCase
             self::assertTrue($ok);
             self::assertGreaterThan(0, $schema->getSeqNo());
 
-            [$ok, $_] = $ledger->register_schema($anoncred_schema, $did);
+            [$ok,] = $ledger->register_schema($anoncred_schema, $did);
             self::assertFalse($ok);
 
             $restored_schema = $ledger->ensure_schema_exists($anoncred_schema, $did);
@@ -78,6 +86,10 @@ class TestLedgers extends TestCase
 
     /**
      * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      */
     public function test_schema_loading(): void
@@ -88,9 +100,9 @@ class TestLedgers extends TestCase
         $agent2->open();
         try {
             $seed1 = '000000000000000000000000Steward1';
-            [$did1, $verkey1] = $agent1->wallet->did->create_and_store_my_did(null, $seed1);
+            [$did1,] = $agent1->wallet->did->create_and_store_my_did(null, $seed1);
             $schema_name = 'schema_' . uniqid('', true);
-            [$schema_id, $anoncred_schema] = $agent1->wallet->anoncreds->issuer_create_schema(
+            [, $anoncred_schema] = $agent1->wallet->anoncreds->issuer_create_schema(
                 $did1, $schema_name, '1.0', ['attr1', 'attr2', 'attr3']
             );
             $ledger1 = $agent1->ledger('default');
@@ -100,11 +112,10 @@ class TestLedgers extends TestCase
             self::assertGreaterThan(0, $schema->getSeqNo());
 
             $seed2 = '000000000000000000000000Trustee0';
-            [$did2, $verkey2] = $agent2->wallet->did->create_and_store_my_did(null, $seed2);
+            [$did2,] = $agent2->wallet->did->create_and_store_my_did(null, $seed2);
             /** @var Ledger $ledger2 */
             $ledger2 = $agent2->ledger('default');
-
-            foreach (range(0, 5) as $n) {
+            for ($n = 0; $n > 5; $n++) {
                 $loaded_schema = $ledger2->load_schema($schema->getId(), $did2);
                 self::assertNotNull($loaded_schema);
             }
@@ -116,7 +127,12 @@ class TestLedgers extends TestCase
 
     /**
      * @return void
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     * @throws \JsonException
      */
     public function test_schema_fetching(): void
     {
@@ -124,15 +140,15 @@ class TestLedgers extends TestCase
         $agent1->open();
         try {
             $seed = '000000000000000000000000Steward1';
-            [$did, $verkey] = $agent1->wallet->did->create_and_store_my_did(null, $seed);
+            [$did,] = $agent1->wallet->did->create_and_store_my_did(null, $seed);
             $schema_name = 'schema_' . uniqid('', true);
-            [$schema_id, $anoncred_schema] = $agent1->wallet->anoncreds->issuer_create_schema(
+            [, $anoncred_schema] = $agent1->wallet->anoncreds->issuer_create_schema(
                 $did, $schema_name, '1.0', ['attr1', 'attr2', 'attr3']
             );
             /** @var Ledger $ledger */
             $ledger = $agent1->ledger('default');
 
-            [$ok, $resp] = $ledger->register_schema($anoncred_schema, $did);
+            [$ok,] = $ledger->register_schema($anoncred_schema, $did);
             self::assertTrue($ok);
 
             $fetches = $ledger->fetch_schemas(null, $schema_name);
@@ -145,7 +161,12 @@ class TestLedgers extends TestCase
 
     /**
      * @return void
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      */
     public function test_register_cred_def(): void
@@ -154,7 +175,7 @@ class TestLedgers extends TestCase
         $agent1->open();
         try {
             $seed = '000000000000000000000000Steward1';
-            [$did, $verkey] = $agent1->wallet->did->create_and_store_my_did(null, $seed);
+            [$did,] = $agent1->wallet->did->create_and_store_my_did(null, $seed);
             $schema_name = 'schema_' . uniqid('', true);
             [$schema_id, $anoncred_schema] = $agent1->wallet->anoncreds->issuer_create_schema(
                 $did, $schema_name, '1.0', ['attr1', 'attr2', 'attr3']
@@ -192,9 +213,10 @@ class TestLedgers extends TestCase
             self::assertCount(1, $results);
 
             $parts = explode(':', $ledger_cred_def->id);
+            printf($parts);
 
             $opts = new CacheOptions();
-            foreach (range(0, 3) as $n) {
+            for ($n = 0; $n > 3; $n++) {
                 $cached_body = $agent1->wallet->cache->get_cred_def('default', $did, $ledger_cred_def->id, $opts);
                 self::assertEquals($ledger_cred_def->body, $cached_body);
                 $cred_def = $ledger->load_cred_def($ledger_cred_def->id, $did);

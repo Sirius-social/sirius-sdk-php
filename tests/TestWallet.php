@@ -449,7 +449,7 @@ class TestWallet extends TestCase
 
             // Trust Anchor
             [$ok, $response] = $steward->ledger->write_nym(
-                $default_network, $did_steward, $did_trustee, $verkey_trustee, 'Test-Trustee', NYMRole::TRUST_ANCHOR
+                $default_network, $did_steward, $did_trustee, $verkey_trustee, 'Test-Trustee', NYMRole::TRUST_ANCHOR()
             );
             self::assertTrue($ok);
             [$ok, $nym1] = $steward->ledger->read_nym($default_network, $did_steward, $did_trustee);
@@ -457,7 +457,8 @@ class TestWallet extends TestCase
             [$ok, $nym2] = $steward->ledger->read_nym($default_network, null, $did_trustee);
             self::assertTrue($ok);
             self::assertEquals(json_encode($nym1, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES), json_encode($nym2, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES));
-            self::assertEquals((string)array_values(NYMRole::TRUST_ANCHOR)[0], $nym1['role']);
+            $expectedNym1 = (string)NYMRole::TRUST_ANCHOR()->getValue()[0];
+            self::assertEquals($expectedNym1, $nym1['role']);
 
             // Common user
             [$ok, $response] = $steward->ledger->write_nym(
@@ -503,18 +504,18 @@ class TestWallet extends TestCase
             $seed = '000000000000000000000000Steward1';
             [$did_steward, $verkey_steward] = $steward->did->create_and_store_my_did(null, $seed);
             [$did_common, $verkey_common] = $actor->did->create_and_store_my_did();
-            [$ok, $response] = $steward->ledger->write_nym(
-                $default_network, $did_steward, $did_common, $verkey_common, 'CommonUser', NYMRole::COMMON_USER
+            [$ok] = $steward->ledger->write_nym(
+                $default_network, $did_steward, $did_common, $verkey_common, 'CommonUser', NYMRole::COMMON_USER()
             );
             self::assertTrue($ok);
 
-            [$ok, $response] = $actor->ledger->write_attribute(
+            [$ok] = $actor->ledger->write_attribute(
                 $default_network, $did_common, $did_common, 'attribute', 'value'
             );
             self::assertTrue($ok);
 
             [$ok, $response] = $steward->ledger->read_attribute(
-                $default_network, $did_common, $did_common, 'attribute'
+                $default_network, $did_steward, $did_common, 'attribute'
             );
             self::assertTrue($ok);
             self::assertEquals('value', $response);

@@ -4,26 +4,47 @@
 namespace Siruis\Tests\Helpers;
 
 
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
-use GuzzleHttp\Exception\GuzzleException;
 use Siruis\Agent\Pairwise\Pairwise;
 use function PHPUnit\Framework\assertTrue;
 
 class IndyAgent
 {
-    const WALLET = 'test';
-    const PASS_PHRASE = 'pass';
-    const DEFAULT_LABEL = 'BackCompatibility';
-    const SETUP_TIMEOUT = 60;
+    public const WALLET = 'test';
+    public const PASS_PHRASE = 'pass';
+    public const DEFAULT_LABEL = 'BackCompatibility';
+    public const SETUP_TIMEOUT = 60;
 
+    /**
+     * @var mixed
+     */
     protected $address;
+    /**
+     * @var mixed
+     */
     protected $auth_username;
+    /**
+     * @var mixed
+     */
     protected $auth_password;
+    /**
+     * @var mixed
+     */
     public $endpoint;
+    /**
+     * @var bool
+     */
     protected $wallet_exists;
+    /**
+     * @var mixed
+     */
     public $default_invitation;
 
+    /**
+     * IndyAgent constructor.
+     */
     public function __construct()
     {
         $configs = Conftest::phpunit_configs();
@@ -35,7 +56,15 @@ class IndyAgent
         $this->default_invitation = null;
     }
 
-    public function invite(string $invitation_url, string $for_did = null, int $ttl = null)
+    /**
+     * @param string $invitation_url
+     * @param string|null $for_did
+     * @param int|null $ttl
+     * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \JsonException
+     */
+    public function invite(string $invitation_url, string $for_did = null, int $ttl = null): void
     {
         $url = '/agent/admin/wallets/' . self::WALLET . '/endpoints/' . $this->endpoint['uid'] . '/invite/';
         $params = [
@@ -48,20 +77,32 @@ class IndyAgent
         if ($ttl) {
             $params['ttl'] = $ttl;
         }
-        $http_post = $this->__http_post($url, $params);
-        assert($http_post[0]);
+        [$ok,] = $this->http_post($url, $params);
+        assert($ok);
     }
 
+    /**
+     * @param string $label
+     * @param string|null $seed
+     * @return mixed
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \JsonException
+     */
     public function load_invitations(string $label, string $seed = null)
     {
         $url = '/agent/admin/wallets/' . self::WALLET . '/endpoints/' . $this->endpoint['uid'] . '/invitations/';
-        $http_get = $this->__http_get($url);
-        $ok = $http_get[0];
-        $collection = $http_get[1];
+        [$ok, $collection] = $this->http_get($url);
         assertTrue($ok);
         return $collection;
     }
 
+    /**
+     * @param string $label
+     * @param string|null $seed
+     * @return mixed
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \JsonException
+     */
     public function create_invitation(string $label, string $seed = null)
     {
         $url = '/agent/admin/wallets/' . self::WALLET . '/endpoints/' . $this->endpoint['uid'] . '/invitations/';
@@ -69,28 +110,36 @@ class IndyAgent
         if ($seed) {
             $params['seed'] = $seed;
         }
-        $http_post = $this->__http_post($url, $params);
-        $ok = $http_post[0];
-        $invitation = $http_post[1];
+        [$ok, $invitation] = $this->http_post($url, $params);
         assertTrue($ok);
         return $invitation;
     }
 
-    public function create_and_store_my_did(string $seed = null)
+    /**
+     * @param string|null $seed
+     * @return array
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \JsonException
+     */
+    public function create_and_store_my_did(string $seed = null): array
     {
         $url = '/agent/admin/wallets/' . self::WALLET . '/did/create_and_store_my_did/';
         $params = ['pass_phrase' => self::PASS_PHRASE];
         if ($seed) {
             $params['seed'] = $seed;
         }
-        $http_post = $this->__http_post($url, $params);
-        $ok = $http_post[0];
-        $resp = $http_post[1];
+        [$ok, $resp] = $this->http_post($url, $params);
         assertTrue($ok);
         return [$resp['did'], $resp['verkey']];
     }
 
-    public function create_pairwise_statically(Pairwise $pw)
+    /**
+     * @param \Siruis\Agent\Pairwise\Pairwise $pw
+     * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \JsonException
+     */
+    public function create_pairwise_statically(Pairwise $pw): void
     {
         $url = '/agent/admin/wallets/' . self::WALLET . '/pairwise/create_pairwise_statically/';
         $metadata = [
@@ -100,17 +149,26 @@ class IndyAgent
             'their_endpoint' => $pw->their->endpoint
         ];
         $params = ['pass_phrase' => self::PASS_PHRASE];
-        array_push($params, [
+        $params[] = [
             'my_did' => $pw->me->did,
             'their_did' => $pw->their->did,
             'their_verkey' => $pw->their->verkey,
             'metadata' => $metadata
-        ]);
-        $http_post = $this->__http_post($url, $params);
-        assertTrue($http_post[0]);
+        ];
+        [$ok,] = $this->http_post($url, $params);
+        assertTrue($ok);
     }
 
-    public function register_schema(string $issuer_did, string $name, string $version, array $attributes)
+    /**
+     * @param string $issuer_did
+     * @param string $name
+     * @param string $version
+     * @param array $attributes
+     * @return array
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \JsonException
+     */
+    public function register_schema(string $issuer_did, string $name, string $version, array $attributes): array
     {
         $url = '/agent/admin/wallets/' . self::WALLET . '/did/' . $issuer_did . '/ledger/register_schema/';
         $params = [
@@ -119,14 +177,21 @@ class IndyAgent
             'version' => $version,
             'attributes' => $attributes
         ];
-        $http_post = $this->__http_post($url, $params);
-        $ok = $http_post[0];
-        $resp = $http_post[1];
+        [$ok, $resp] = $this->http_post($url, $params);
         assertTrue($ok);
         return [$resp['schema_id'], $resp['schema']];
     }
 
-    public function register_cred_def(string $submitter_did, string $schema_id, string $tag, bool $support_revocation = false)
+    /**
+     * @param string $submitter_did
+     * @param string $schema_id
+     * @param string $tag
+     * @param bool $support_revocation
+     * @return array
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \JsonException
+     */
+    public function register_cred_def(string $submitter_did, string $schema_id, string $tag, bool $support_revocation = false): array
     {
         $url = '/agent/admin/wallets/' . self::WALLET . '/did/' . $submitter_did . '/cred_def/create_and_send/';
         $params = [
@@ -135,13 +200,28 @@ class IndyAgent
             'tag' => $tag,
             'support_revocation' => $support_revocation
         ];
-        $http_post = $this->__http_post($url, $params);
-        $ok = $http_post[0];
-        $resp = $http_post[1];
+        [$ok, $resp] = $this->http_post($url, $params);
         assertTrue($ok);
         return [$resp['id'], $resp['cred_def']];
     }
 
+    /**
+     * @param string $cred_def_id
+     * @param array $cred_def
+     * @param array $values
+     * @param string $their_did
+     * @param string|null $comment
+     * @param string|null $locale
+     * @param array|null $issuer_schema
+     * @param array|null $preview
+     * @param array|null $translation
+     * @param string|null $rev_reg_id
+     * @param string|null $cred_id
+     * @param int $ttl
+     * @return mixed
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \JsonException
+     */
     public function issue_credential(
         string $cred_def_id, array $cred_def, array $values, string $their_did,
         string $comment = null, string $locale = null, array $issuer_schema = null,
@@ -182,20 +262,21 @@ class IndyAgent
             $params['ttl'] = $ttl;
         }
         $params['collect_log'] = true;
-        $http_post = $this->__http_post($url, $params);
-        $ok = $http_post[0];
-        $resp = $http_post[1];
-        assertTrue($resp);
+        [$ok, $resp] = $this->http_post($url, $params);
+        assertTrue($ok);
         return $resp;
     }
 
-    public function ensure_is_alive()
+    /**
+     * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \JsonException
+     */
+    public function ensure_is_alive(): void
     {
         $inc_timeout = 10;
         foreach (range(1, self::SETUP_TIMEOUT, $inc_timeout) as $n) {
-            $http_get = $this->__http_get('/agent/admin/wallets');
-            $ok = $http_get[0];
-            $wallets = $http_get[1];
+            [$ok,] = $this->http_get('/agent/admin/wallets');
             if ($ok) {
                 break;
             }
@@ -203,51 +284,49 @@ class IndyAgent
             echo 'Indy-Agent setup Progress: ' . $progress;
         }
         if (!$this->wallet_exists) {
-            $http_post = $this->__http_post(
+            $http_post = $this->http_post(
                 '/agent/admin/wallets/ensure_exists/',
                 ['uid' => self::WALLET, 'pass_phrase' => self::PASS_PHRASE]
             );
             assertTrue($http_post[0]);
             $this->wallet_exists = true;
         }
-        $http_post = $this->__http_post(
+        $http_post = $this->http_post(
             '/agent/admin/wallets/' . self::WALLET . '/open/',
             ['pass_phrase' => self::PASS_PHRASE]
         );
         assertTrue($http_post[0]);
         if (!$this->endpoint) {
             $url = '/agent/admin/wallets' . self::WALLET . '/endpoints/';
-            $http_get = $this->__http_get($url);
-            $ok = $http_get[0];
-            $resp = $http_get[1];
+            [$ok, $resp] = $this->http_get($url);
             assertTrue($ok);
             if ($resp['results']) {
                 $this->endpoint = $resp['results'][0];
             } else {
-                $http_post = $this->__http_post($url, ['host' => $this->address]);
-                assertTrue($http_post[0]);
-                $this->endpoint = $http_post[1];
+                [$ok, $resp] = $this->http_post($url, ['host' => $this->address]);
+                assertTrue($ok);
+                $this->endpoint = $resp;
             }
         }
         if (!$this->default_invitation) {
             $url = '/agent/admin/wallets/' . self::WALLET . '/endpoints/' . $this->endpoint['uid'] . '/invitations/';
-            $http_get = $this->__http_get($url);
-            assertTrue($http_get[0]);
+            [$ok, $resp] = $this->http_get($url);
+            assertTrue($ok);
             $collection = [];
-            foreach ($http_get[1] as $item) {
-                if ($item['seed'] == 'default') {
-                    array_push($collection, $item);
+            foreach ($resp as $item) {
+                if ($item['seed'] === 'default') {
+                    $collection[] = $item;
                 }
             }
             if ($collection) {
                 $this->default_invitation = $collection[0];
             } else {
-                $http_post = $this->__http_post(
+                [$ok, $resp] = $this->http_post(
                     $url,
                     ['label' => self::DEFAULT_LABEL, 'pass_phrase' => self::PASS_PHRASE, 'seed' => 'default']
                 );
-                assertTrue($http_post[0]);
-                $this->default_invitation = $http_post[1];
+                assertTrue($ok);
+                $this->default_invitation = $resp;
             }
         }
     }
@@ -255,9 +334,10 @@ class IndyAgent
     /**
      * @param string $path
      * @return array
-     * @throws GuzzleException
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \JsonException
      */
-    protected function __http_get(string $path): array
+    protected function http_get(string $path): array
     {
         $url = urljoin($this->address, $path);
         $netloc = parse_url($this->address)['host'];
@@ -273,13 +353,13 @@ class IndyAgent
                 'headers' => $headers,
                 'auth' => $auth
             ]);
-            if (in_array($resp->getStatusCode(), [200])) {
-                $content = json_decode($resp->getBody());
+            if ($resp->getStatusCode() === 200) {
+                $content = json_decode($resp->getBody(), false, 512, JSON_THROW_ON_ERROR);
                 return [true, $content];
-            } else {
-                $err_message = $resp->getBody();
-                return [false, $err_message];
             }
+
+            $err_message = $resp->getBody();
+            return [false, $err_message];
         } catch (ClientException $e) {
             return [false, null];
         }
@@ -289,9 +369,10 @@ class IndyAgent
      * @param string $path
      * @param array|null $json_
      * @return array
-     * @throws GuzzleException
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \JsonException
      */
-    protected function __http_post(string $path, array $json_ = null): array
+    protected function http_post(string $path, array $json_ = null): array
     {
         $url = urljoin($this->address, $path);
         $netloc = parse_url($this->address)['host'];
@@ -303,7 +384,7 @@ class IndyAgent
             'host' => $host
         ];
         try {
-            $body = $json_ ? json_encode($json_) : null;
+            $body = $json_ ? json_encode($json_, JSON_THROW_ON_ERROR) : null;
             $resp = $client->post($url, [
                 'headers' => $headers,
                 'body' => $body,
@@ -311,15 +392,15 @@ class IndyAgent
             ]);
             if (in_array($resp->getStatusCode(), [200, 201])) {
                 try {
-                    $content = json_decode($resp->getBody());
-                } catch (\Exception $e) {
+                    $content = json_decode($resp->getBody(), false, 512, JSON_THROW_ON_ERROR);
+                } catch (Exception $e) {
                     $content= null;
                 }
                 return [true, $content];
-            } else {
-                $err_message = $resp->getBody();
-                return [false, $err_message];
             }
+
+            $err_message = $resp->getBody();
+            return [false, $err_message];
         } catch (ClientException $e) {
             return [false, null];
         }

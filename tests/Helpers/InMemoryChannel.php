@@ -22,21 +22,20 @@ class InMemoryChannel implements WriteOnlyChannel, ReadOnlyChannel
      * Read message packet
      *
      * @param int|null $timeout
-     * @return mixed
+     * @return array|string
      * @throws SiriusTimeoutIO
      */
     public function read($timeout = null)
     {
-        $ret = null;
         $ret = $this->internal_reading();
         if (is_string($ret) || is_array($ret)) {
             return $ret;
-        } else {
-            throw new SiriusTimeoutIO();
         }
+
+        throw new SiriusTimeoutIO();
     }
 
-    private function internal_reading()
+    private function internal_reading(): array
     {
         return $this->queue->toArray();
     }
@@ -45,9 +44,9 @@ class InMemoryChannel implements WriteOnlyChannel, ReadOnlyChannel
      * Write message packet
      *
      * @param string $data
-     * @return mixed
+     * @return bool
      */
-    public function write(string $data)
+    public function write(string $data): bool
     {
         $this->queue->push($data);
         return true;
