@@ -77,7 +77,7 @@ class InWalletImmutableCollection extends AbstractImmutableCollection
         [$collection, $total_count] = $this->storage::wallet_search(
             $this->selected_db,
             $tags,
-            new RetrieveRecordOptions(true),
+            new RetrieveRecordOptions(false, true),
             $limit ?: self::DEFAULT_FETCH_LIMIT
         );
 

@@ -131,7 +131,7 @@ class ThreadBasedCoProtocolTransport extends AbstractCoProtocolTransport
     }
 
     /**
-     * @param \Siruis\Messaging\Message $message
+     * @param \Siruis\Messaging\Message &$message
      * @return void
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
@@ -139,7 +139,7 @@ class ThreadBasedCoProtocolTransport extends AbstractCoProtocolTransport
      * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
      * @throws \JsonException
      */
-    public function send(Message $message): void
+    public function send(Message &$message): void
     {
         $message = $this->prepare_message($message);
         parent::send($message);

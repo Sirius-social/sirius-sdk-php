@@ -79,7 +79,7 @@ class CredentialDefinitionFilters
     {
         if ($value) {
             $this->tags['tag'] = $value;
-        } elseif (key_exists('tag', $this->tags)) {
+        } elseif (array_key_exists('tag', $this->tags)) {
             unset($this->tags['tag']);
         }
     }

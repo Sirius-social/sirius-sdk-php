@@ -70,6 +70,7 @@ class TestLedgers extends TestCase
             /** @var Ledger $ledger */
             $ledger = $agent1->ledger('default');
 
+            /** @var \Siruis\Agent\Ledgers\Schema $schema */
             [$ok, $schema] = $ledger->register_schema($anoncred_schema, $did);
             self::assertTrue($ok);
             self::assertGreaterThan(0, $schema->getSeqNo());
@@ -79,6 +80,7 @@ class TestLedgers extends TestCase
 
             $restored_schema = $ledger->ensure_schema_exists($anoncred_schema, $did);
             self::assertNotNull($restored_schema);
+            self::assertEquals(sort($schema->body), sort($restored_schema->body));
         } finally {
             $agent1->close();
         }
@@ -118,6 +120,7 @@ class TestLedgers extends TestCase
             for ($n = 0; $n > 5; $n++) {
                 $loaded_schema = $ledger2->load_schema($schema->getId(), $did2);
                 self::assertNotNull($loaded_schema);
+                self::assertEquals(sort($schema->body), sort($loaded_schema->body));
             }
         } finally {
             $agent1->close();
@@ -151,6 +154,7 @@ class TestLedgers extends TestCase
             [$ok,] = $ledger->register_schema($anoncred_schema, $did);
             self::assertTrue($ok);
 
+            /** @var \Siruis\Agent\Ledgers\Schema[] $fetches */
             $fetches = $ledger->fetch_schemas(null, $schema_name);
             self::assertCount(1, $fetches);
             self::assertEquals($did, $fetches[0]->getIssuerDid());

@@ -136,6 +136,7 @@ abstract class AbstractCoProtocolTransport
         }
         try {
             $this->rpc->setTimeout($this->get_io_timeout());
+            $this->setup_context($message);
             try {
                 $event = $this->rpc->sendMessage(
                     $message, $this->their_vk, $this->__endpoint, $this->my_vk,
@@ -250,8 +251,13 @@ abstract class AbstractCoProtocolTransport
     }
 
     /**
-     * @param Message $message
-     * @throws Exception
+     * @param \Siruis\Messaging\Message $message
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Exception
      */
     public function setup_context(Message $message): void
     {

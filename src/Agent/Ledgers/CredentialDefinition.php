@@ -113,8 +113,8 @@ class CredentialDefinition implements JsonSerializable
         } else {
             throw new RuntimeException('Unexpected buffer type');
         }
-        $schema = Schema::deserialize($data['schema']);
-        $config = Config::deserialize($data['config']);
+        $schema = (new Schema)->deserialize($data['schema']);
+        $config = (new Config)->deserialize($data['config']);
         $seq_no = $data['seq_no'];
         $body = $data['body'];
         return new CredentialDefinition($body['tag'], $schema, $config, $body, $seq_no);

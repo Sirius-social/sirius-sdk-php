@@ -22,6 +22,16 @@ class Config implements JsonSerializable
     }
 
     /**
+     * Get support_revocation attribute.
+     *
+     * @return bool
+     */
+    public function getSupportRevocation(): bool
+    {
+        return $this->support_revocation;
+    }
+
+    /**
      * Set support_revocation attribute.
      *
      * @param bool $value

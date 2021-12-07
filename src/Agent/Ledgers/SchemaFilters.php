@@ -77,7 +77,7 @@ class SchemaFilters
      * @param string $value
      * @return void
      */
-    public function setVersion(string $value)
+    public function setVersion(string $value): void
     {
         $this->tags['version'] = $value;
     }

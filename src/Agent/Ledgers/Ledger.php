@@ -74,7 +74,8 @@ class Ledger
      */
     public function read_nym(string $submitter_did, string $target_did): array
     {
-        return $this->api->read_nym($this->name, $submitter_did, $target_did);
+        [$success, $data] = $this->api->read_nym($this->name, $submitter_did, $target_did);
+        return [$success, $data];
     }
 
     /**
@@ -93,7 +94,7 @@ class Ledger
         string $submitter_did, string $target_did,
         string $ver_key = null, string $alias = null, $role = null): array
     {
-        return $this->api->write_nym(
+        [$success, $data] = $this->api->write_nym(
             $this->name,
             $submitter_did,
             $target_did,
@@ -101,6 +102,7 @@ class Ledger
             $alias,
             $role ?: NYMRole::COMMON_USER()
         );
+        return [$success, $data];
     }
 
     /**
