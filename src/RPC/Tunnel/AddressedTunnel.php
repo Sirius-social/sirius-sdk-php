@@ -7,30 +7,41 @@ use Exception;
 use Siruis\Base\ReadOnlyChannel;
 use Siruis\Base\WriteOnlyChannel;
 use Siruis\Encryption\P2PConnection;
-use Siruis\Errors\Exceptions\SiriusCryptoError;
-use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
 use Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure;
-use Siruis\Errors\Exceptions\SiriusInvalidType;
 use Siruis\Messaging\Message;
-use SodiumException;
 use TypeError;
 
 class AddressedTunnel
 {
-    const ENC = 'utf-8';
+    public const ENC = 'utf-8';
+    /**
+     * @var string
+     */
     public $address;
-    public $input;
-    public $output;
-    public $p2p;
+    /**
+     * @var \Siruis\Base\ReadOnlyChannel
+     */
+    protected $input;
+    /**
+     * @var \Siruis\Base\WriteOnlyChannel
+     */
+    protected $output;
+    /**
+     * @var \Siruis\Encryption\P2PConnection
+     */
+    protected $p2p;
+    /**
+     * @var \Siruis\RPC\Tunnel\Context
+     */
     public $context;
 
     /**
      * AddressedTunnel constructor.
      *
      * @param string $address communication address of transport environment on server-side
-     * @param ReadOnlyChannel $input channel of input stream
-     * @param WriteOnlyChannel $output channel of output stream
-     * @param P2PConnection $p2p pairwise connection that configured and prepared outside
+     * @param \Siruis\Base\ReadOnlyChannel $input channel of input stream
+     * @param \Siruis\Base\WriteOnlyChannel $output channel of output stream
+     * @param \Siruis\Encryption\P2PConnection $p2p pairwise connection that configured and prepared outside
      */
     public function __construct(
         string $address,
@@ -45,30 +56,19 @@ class AddressedTunnel
         $this->context = new Context();
     }
 
-    public function address()
-    {
-        return $this->address;
-    }
-
-    public function context()
-    {
-        return $this->context;
-    }
-
     /**
      * Read message.
      *
-     * Tunnel allows to receive non-encrypted messages, high-level logic may control message encryption flag
-     * via context.encrypted field
+     * Tunnel allows receiving non-encrypted messages, high-level logic may control message encryption flag via context.
+     * Encrypted field
      *
      * @param int|null $timeout timeout in seconds
-     *
-     * @return Message received packet
-     *
-     * @throws SiriusInvalidPayloadStructure
-     * @throws SiriusCryptoError
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidType
+     * @return \Siruis\Messaging\Message received packet
+     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \JsonException
      */
     public function receive(int $timeout = null) : Message
     {
@@ -76,36 +76,37 @@ class AddressedTunnel
         if (!is_string($payload) && !is_array($payload)) {
             throw new TypeError('Expected bytes or dict, got ' . gettype($payload));
         }
-        if (is_array($payload) && count($payload) == 1) {
+        if (is_array($payload) && count($payload) === 1) {
             $payload = $payload[0];
         }
         if (is_string($payload)) {
             try {
-                $payload = json_decode($payload, true);
+                $payload = json_decode($payload, true, 512, JSON_THROW_ON_ERROR);
             } catch (Exception $e) {
                 throw new SiriusInvalidPayloadStructure('Invalid packed message ' . $e);
             }
         }
-        if (key_exists('protected', $payload)) {
+        if (array_key_exists('protected', $payload)) {
             $unpacked = $this->p2p->unpack($payload);
             $this->context->encrypted = true;
-            return new Message(json_decode($unpacked, true));
-        } else {
-            $this->context->encrypted = false;
-            return new Message($payload);
+            return new Message(json_decode($unpacked, true, 512, JSON_THROW_ON_ERROR));
         }
+
+        $this->context->encrypted = false;
+        return new Message($payload);
     }
 
     /**
      * Write message
      *
-     * @param Message $message message to send
+     * @param \Siruis\Messaging\Message $message message to send
      * @param bool $encrypt do encryption
-     *
-     * @throws SiriusCryptoError
-     * @throws SodiumException
+     * @return void
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
+     * @throws \SodiumException
      */
-    public function post(Message $message, bool $encrypt = true)
+    public function post(Message $message, bool $encrypt = true): void
     {
         if ($encrypt) {
             $payload = $this->p2p->pack($message->payload);

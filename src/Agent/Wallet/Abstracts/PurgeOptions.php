@@ -55,4 +55,9 @@ class PurgeOptions implements JsonSerializable
         $data = json_decode($buffer, false, 512, JSON_THROW_ON_ERROR);
         $this->max_age = array_key_exists('maxAge', $data) ? $data['maxAge'] : -1;
     }
+
+    public static function unserialize($buffer): void
+    {
+        // You are never use this method.
+    }
 }

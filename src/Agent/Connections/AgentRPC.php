@@ -436,14 +436,13 @@ class AgentRPC extends BaseAgentConnection
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
-     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function reopen(): void
     {
         $this->connector->reconnect();
         $payload = $this->connector->read(1);
         $context = Message::deserialize($payload);
-        if (!empty($context)) {
+        if ($context !== null) {
             $this->setup($context);
         }
     }

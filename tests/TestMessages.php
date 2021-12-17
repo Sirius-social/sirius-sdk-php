@@ -6,9 +6,6 @@ use PHPUnit\Framework\TestCase;
 use Siruis\Agent\AriesRFC\feature_0015_acks\Ack;
 use Siruis\Agent\AriesRFC\feature_0015_acks\Status;
 use Siruis\Agent\AriesRFC\feature_0048_trust_ping\Ping;
-use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
-use Siruis\Errors\Exceptions\SiriusInvalidType;
-use Siruis\Errors\Exceptions\SiriusValidationError;
 use Siruis\Messaging\Message;
 use Siruis\Messaging\Type\Type;
 use Siruis\Agent\AriesRFC\feature_0095_basic_message\Messages\Message as msg0095_Message;
@@ -36,9 +33,9 @@ class TestMessages extends TestCase
         self::assertEquals('test-protocol', $type->protocol);
         self::assertEquals('name', $type->name);
         self::assertEquals('1.0', $type->version);
-        self::assertEquals(1, $type->version_info->major);
-        self::assertEquals(0, $type->version_info->minor);
-        self::assertEquals(0, $type->version_info->patch);
+        self::assertEquals(1, $type->version_info->getMajor());
+        self::assertEquals(0, $type->version_info->getMinor());
+        self::assertEquals(0, $type->version_info->getPatch());
 
         $str2 = 'https://didcomm.org/test-protocol/1.2/name';
         $type = Type::fromString($str2);
@@ -46,9 +43,9 @@ class TestMessages extends TestCase
         self::assertEquals('test-protocol', $type->protocol);
         self::assertEquals('name', $type->name);
         self::assertEquals('1.2', $type->version);
-        self::assertEquals(1, $type->version_info->major);
-        self::assertEquals(2, $type->version_info->minor);
-        self::assertEquals(0, $type->version_info->patch);
+        self::assertEquals(1, $type->version_info->getMajor());
+        self::assertEquals(2, $type->version_info->getMinor());
+        self::assertEquals(0, $type->version_info->getPatch());
     }
 
     /**

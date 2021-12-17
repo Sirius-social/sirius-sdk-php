@@ -106,6 +106,19 @@ class CredentialDefinition implements JsonSerializable
      */
     public function deserialize($buffer): CredentialDefinition
     {
+        return self::unserialize($buffer);
+    }
+
+    /**
+     * Call statically deserialize.
+     *
+     * @param $buffer
+     * @return \Siruis\Agent\Ledgers\CredentialDefinition
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     */
+    public static function unserialize($buffer): CredentialDefinition
+    {
         if (is_string($buffer)) {
             $data = json_decode($buffer, false, 512, JSON_THROW_ON_ERROR);
         } elseif (is_array($buffer)) {
@@ -113,8 +126,8 @@ class CredentialDefinition implements JsonSerializable
         } else {
             throw new RuntimeException('Unexpected buffer type');
         }
-        $schema = (new Schema)->deserialize($data['schema']);
-        $config = (new Config)->deserialize($data['config']);
+        $schema = Schema::unserialize($data['schema']);
+        $config = Config::unserialize($data['config']);
         $seq_no = $data['seq_no'];
         $body = $data['body'];
         return new CredentialDefinition($body['tag'], $schema, $config, $body, $seq_no);

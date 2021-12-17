@@ -15,10 +15,23 @@ use Siruis\Agent\Consensus\Messages\PreCommitTransactionsMessage;
 use Siruis\Agent\Consensus\Messages\ProposeParallelTransactionsMessage;
 use Siruis\Agent\Consensus\Messages\ProposeTransactionsMessage;
 use Siruis\Agent\Microledgers\Transaction;
+use Siruis\Encryption\Encryption;
+use Siruis\RPC\RawBytes;
 use Siruis\Tests\Helpers\Conftest;
 
 class TestConsensusSimple extends TestCase
 {
+    public function test_utf8_encode()
+    {
+        $sig_data = 'kKi5YQAAAAB7ImZ1bmMiOiJzaGEyNTYiLCJiYXNlNTgiOiIzVG5nNFRaRWZNcjVoWGtvTm1XU1Qzb2tYS043RjRLRWNHNnI5aGNXVEE5YlFleFY5OWZKRkZXUlk3ekpiaEJHUWY3UEE0NFdlTjlrZkVqR2NqY3JpaTJnIn0=';
+        $sig_data_bytes = Encryption::b64_to_bytes(mb_convert_encoding($sig_data, 'ascii'), true);
+        $msg = new RawBytes($sig_data_bytes);
+        for ($n = 0; $n <= 100; $n++) {
+            $bytes = Encryption::bytes_to_b64($msg->toBytes());
+            self::assertEquals('wpDCqMK5YQAAAAB7ImZ1bmMiOiJzaGEyNTYiLCJiYXNlNTgiOiIzVG5nNFRaRWZNcjVoWGtvTm1XU1Qzb2tYS043RjRLRWNHNnI5aGNXVEE5YlFleFY5OWZKRkZXUlk3ekpiaEJHUWY3UEE0NFdlTjlrZkVqR2NqY3JpaTJnIn0=', $bytes);
+        }
+    }
+
     /**
      * @return void
      * @throws \JsonException
@@ -108,13 +121,13 @@ class TestConsensusSimple extends TestCase
             $genesis_txns = [
                 new Transaction($payload)
             ];
-            [$ledger_for_a, $txns] = $A->microledgers->create($ledger_name, $genesis_txns);
-            [$ledger_for_b, $txns] = $B->microledgers->create($ledger_name, $genesis_txns);
+            [$ledger_for_a,] = $A->microledgers->create($ledger_name, $genesis_txns);
+            [$ledger_for_b,] = $B->microledgers->create($ledger_name, $genesis_txns);
 
             $txn1 = ["reqId" => 2, "identifier" => "5rArie7XKukPCaEwq5XGQJnM9Fc5aZE3M9HAPVfMU2xC", "op" => "op2"];
             $txn2 = ["reqId" => 3, "identifier" => "5rArie7XKukPCaEwq5XGQJnM9Fc5aZE3M9HAPVfMU2xC", "op" => "op3"];
             $new_transactions = [new Transaction($txn1), new Transaction($txn2)];
-            [$pos1, $pos2, $new_txns] = $ledger_for_a->append($new_transactions);
+            [,, $new_txns] = $ledger_for_a->append($new_transactions);
             // A -> B
             $state = new MicroLedgerState(
                 [
@@ -156,9 +169,9 @@ class TestConsensusSimple extends TestCase
             $commit = new CommitTransactionsMessage([]);
             $commit->add_pre_commit($a2b->their->did, $pre_commit);
             $commit->validate();
-            $states = $commit->verify_pre_commits($A->wallet->crypto, $state);
-            self::assertStringContainsString($a2b->their->did, $state);
-            self::assertStringContainsString($a2b->their->verkey, $state);
+            $commit->verify_pre_commits($A->wallet->crypto, $state);
+            self::assertStringContainsString($a2b->their->did, $state->serialize());
+            self::assertStringContainsString($a2b->their->verkey, $state->serialize());
             // B -> A (post-commit)
             $post_commit = new PostCommitTransactionsMessage([]);
             $post_commit->add_commit_sign($B->wallet->crypto, $commit, $b2a->me);
@@ -199,8 +212,8 @@ class TestConsensusSimple extends TestCase
             $ledgers_for_a = [];
             $ledgers_for_b = [];
             foreach ($ledger_names as $n) {
-                [$l_for_a, $_] = $A->microledgers->create($n, $genesis_txns);
-                [$l_for_b, $_] = $B->microledgers->create($n, $genesis_txns);
+                [$l_for_a, ] = $A->microledgers->create($n, $genesis_txns);
+                [$l_for_b, ] = $B->microledgers->create($n, $genesis_txns);
                 $ledgers_for_a[] = $l_for_a;
                 $ledgers_for_b[] = $l_for_b;
             }
@@ -214,7 +227,7 @@ class TestConsensusSimple extends TestCase
             // A -> B
             $states_for_a = [];
             foreach ($ledgers_for_a as $ledger_for_a) {
-                [$pos1, $pos2, $new_txns] = $ledger_for_a->append($new_transactions);
+                $ledger_for_a->append($new_transactions);
                 $state = MicroLedgerState::from_ledger($ledger_for_a);
                 $states_for_a[] = $state;
             }
@@ -224,7 +237,7 @@ class TestConsensusSimple extends TestCase
             $states_for_b = [];
             foreach ($propose->getLedgers() as $ledger_name) {
                 $ledger_for_b = $B->microledgers->ledger($ledger_name);
-                [$pos1, $pos2, $new_txns] = $ledger_for_b->append($propose->getTransactions());
+                $ledger_for_b->append($propose->getTransactions());
                 $states_for_b[] = MicroLedgerState::from_ledger($ledger_for_b);
             }
             $pre_commit = new PreCommitParallelTransactionsMessage(
@@ -234,7 +247,7 @@ class TestConsensusSimple extends TestCase
             );
             $pre_commit->sign_states($B->wallet->crypto, $b2a->me);
             $pre_commit->validate();
-            [$ok, $state_hash_for_b] = $pre_commit->verify_state($A->wallet->crypto, $a2b->their->verkey);
+            [, $state_hash_for_b] = $pre_commit->verify_state($A->wallet->crypto, $a2b->their->verkey);
 //            self::assertTrue($ok);
             self::assertEquals($propose->getHash(), $state_hash_for_b);
             // A -> B
@@ -284,8 +297,8 @@ class TestConsensusSimple extends TestCase
             $ledgers_for_a = [];
             $ledgers_for_b = [];
             foreach ($ledger_names as $n) {
-                [$l_for_a, $_] = $A->microledgers->create($n, $genesis_txns);
-                [$l_for_b, $_] = $B->microledgers->create($n, $genesis_txns);
+                [$l_for_a,] = $A->microledgers->create($n, $genesis_txns);
+                [$l_for_b,] = $B->microledgers->create($n, $genesis_txns);
                 $ledgers_for_a[] = $l_for_a;
                 $ledgers_for_b[] = $l_for_b;
             }

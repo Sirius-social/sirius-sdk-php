@@ -4,6 +4,7 @@
 namespace Siruis\Agent\Ledgers;
 
 
+use RuntimeException;
 use Siruis\Base\JsonSerializable;
 
 class Config implements JsonSerializable
@@ -63,12 +64,24 @@ class Config implements JsonSerializable
      */
     public function deserialize($buffer): Config
     {
+        return self::unserialize($buffer);
+    }
+
+    /**
+     * Call statically deserialize.
+     *
+     * @param $buffer
+     * @return \Siruis\Agent\Ledgers\Config
+     * @throws \JsonException
+     */
+    public static function unserialize($buffer): Config
+    {
         if (is_string($buffer)) {
             $data = json_decode($buffer, false, 512, JSON_THROW_ON_ERROR);
         } elseif (is_array($buffer)) {
             $data = $buffer;
         } else {
-            throw new \RuntimeException('Unexpected buffer Type');
+            throw new RuntimeException('Unexpected buffer Type');
         }
         $instance = new Config();
         $instance->setSupportRevocation($data['support_revocation'] ?: false);

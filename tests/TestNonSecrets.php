@@ -10,14 +10,19 @@ use Siruis\Tests\Helpers\Conftest;
 
 class TestNonSecrets extends TestCase
 {
-    /** @test */
-    public function test_record_value_ops()
+    /**
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function test_record_value_ops(): void
     {
         $test_suite = Conftest::test_suite();
         $params = $test_suite->get_agent_params('agent4');
         Hub::alloc_context($params['server_address'], $params['credentials'], $params['p2p']);
         $value = 'my-value';
-        $my_id = 'my-id'.uniqid();
+        $my_id = 'my-id'.uniqid('', true);
         NonSecretsProxy::add_wallet_record('type', $my_id, $value);
         $opts = new RetrieveRecordOptions();
         $opts->checkAll();
@@ -34,13 +39,18 @@ class TestNonSecrets extends TestCase
         NonSecretsProxy::delete_wallet_record('type', $my_id);
     }
 
-    /** @test */
-    public function test_record_tags_ops()
+    /**
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function test_record_tags_ops(): void
     {
         $test_suite = Conftest::test_suite();
         $params = $test_suite->get_agent_params('agent4');
         Hub::alloc_context($params['server_address'], $params['credentials'], $params['p2p']);
-        $my_id = 'my-id'.uniqid();
+        $my_id = 'my-id'.uniqid('', true);
         $value = 'my-value';
         $tags = ['tag1' => 'val1', '~tag2' => 'val2'];
         NonSecretsProxy::add_wallet_record('type', $my_id, $value, $tags);
@@ -69,13 +79,18 @@ class TestNonSecrets extends TestCase
         self::assertEquals($tags, $value_info['tags']);
     }
 
-    /** @test */
-    public function test_maintain_tags_only_update_ops()
+    /**
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function test_maintain_tags_only_update_ops(): void
     {
         $test_suite = Conftest::test_suite();
         $params = $test_suite->get_agent_params('agent4');
         Hub::alloc_context($params['server_address'], $params['credentials'], $params['p2p']);
-        $my_id = 'my-id'.uniqid();
+        $my_id = 'my-id'.uniqid('', true);
         $value = 'my-value';
         NonSecretsProxy::add_wallet_record('type', $my_id, $value);
         $opts = new RetrieveRecordOptions();
@@ -103,15 +118,21 @@ class TestNonSecrets extends TestCase
         self::assertEquals($tags2, $value_info['tags']);
     }
 
-    /** @test */
-    public function test_wallet_search_sqlite()
+    /**
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function test_wallet_search_sqlite(): void
     {
         $test_suite = Conftest::test_suite();
         $params = $test_suite->get_agent_params('agent4');
         Hub::alloc_context($params['server_address'], $params['credentials'], $params['p2p']);
-        $my_id1 = 'my-id-'.uniqid();
-        $my_id2 = 'my-id-'.uniqid();
-        $type_ = 'type_'.uniqid();
+        $my_id1 = 'my-id-'.uniqid('', true);
+        $my_id2 = 'my-id-'.uniqid('', true);
+        $type_ = 'type_'.uniqid('', true);
         $opts = new RetrieveRecordOptions();
         $opts->checkAll();
         $tags1 = [
@@ -128,9 +149,9 @@ class TestNonSecrets extends TestCase
         NonSecretsProxy::add_wallet_record($type_, $my_id2, 'value2', $tags2);
 
         $query = ['tag1' => 'val1'];
-        list($records, $total) = NonSecretsProxy::wallet_search($type_, $query, $opts);
+        [$records, $total] = NonSecretsProxy::wallet_search($type_, $query, $opts);
         self::assertEquals(1, $total);
-        self::assertStringContainsString('value1', json_encode($records));
+        self::assertStringContainsString('value1', json_encode($records, JSON_THROW_ON_ERROR));
 
         $query = [
             '$or' => [
@@ -138,18 +159,18 @@ class TestNonSecrets extends TestCase
                 ['~tag4' => '6']
             ]
         ];
-        list($records, $total) = NonSecretsProxy::wallet_search($type_, $query, $opts);
+        [$records, $total] = NonSecretsProxy::wallet_search($type_, $query, $opts);
         self::assertCount(1, $records);
         self::assertEquals(2, $total);
 
-        list($records, $total) = NonSecretsProxy::wallet_search($type_, $query, $opts, 1000);
+        [$records, $total] = NonSecretsProxy::wallet_search($type_, $query, $opts, 1000);
         self::assertCount(2, $records);
         self::assertEquals(2, $total);
 
         $query = [
             'marker' => ['$in' => ['A', 'C']]
         ];
-        list($records, $total) = NonSecretsProxy::wallet_search($type_, $query, $opts);
+        [, $total] = NonSecretsProxy::wallet_search($type_, $query, $opts);
         self::assertEquals(1, $total);
     }
 }

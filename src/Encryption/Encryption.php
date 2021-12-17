@@ -9,11 +9,11 @@ class Encryption
 {
     /**
      * @param $value
-     * @param false $urlsafe
+     * @param bool $urlsafe
      * @return string
      * @throws \SodiumException
      */
-    public static function b64_to_bytes($value, $urlsafe = false): string
+    public static function b64_to_bytes($value, bool $urlsafe = false): string
     {
         if (is_string($value)) {
             $value = mb_convert_encoding($value, 'ASCII');
@@ -31,11 +31,11 @@ class Encryption
 
     /**
      * @param $value
-     * @param false $urlsafe
+     * @param bool $urlsafe
      * @return array|false|string
      * @throws \SodiumException
      */
-    public static function bytes_to_b64($value, $urlsafe = false)
+    public static function bytes_to_b64($value, bool $urlsafe = false)
     {
         if ($urlsafe) {
             $value = sodium_bin2base64($value, SODIUM_BASE64_VARIANT_URLSAFE);
@@ -51,8 +51,7 @@ class Encryption
      */
     public static function b58_to_bytes($value): string
     {
-        $base58 = new Base58();
-        return $base58->decode($value);
+        return (new Base58())->decode($value);
     }
 
     /**
@@ -66,7 +65,7 @@ class Encryption
     }
 
     /**
-     * @param false $seed
+     * @param mixed $seed
      * @return array
      * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
      * @throws \SodiumException
@@ -77,7 +76,7 @@ class Encryption
         if ($seed) {
             static::validate_seed($seed);
         } else {
-            $seed = self::random_seed();
+            $seed = static::random_seed();
         }
         $keys = sodium_crypto_sign_seed_keypair($seed);
 
@@ -97,7 +96,7 @@ class Encryption
     }
 
     /**
-     * @param $seed
+     * @param mixed $seed
      * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
      * @throws \SodiumException
      */
@@ -121,6 +120,7 @@ class Encryption
 
     /**
      * Sign a message using a private signing key.
+     *
      * @param string $message The message to sign
      * @param string $secret The private signing key
      * @return false|string The signature

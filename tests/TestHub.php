@@ -6,12 +6,17 @@ use PHPUnit\Framework\TestCase;
 use Siruis\Hub\Core\Hub;
 use Siruis\Hub\Init;
 use Siruis\Tests\Helpers\Conftest;
-use Swoole\Lock;
 
 class TestHub extends TestCase
 {
-    /** @test */
-    public function test_sane()
+    /**
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function test_sane(): void
     {
         $test_suite = Conftest::test_suite();
         $params = $test_suite->get_agent_params('agent1');
@@ -39,19 +44,19 @@ class TestHub extends TestCase
 
         $new_endpoints1 = [];
         foreach ($endpoints1 as $e) {
-            array_push($new_endpoints1, $e->address);
+            $new_endpoints1[] = $e->address;
         }
         $new_endpoints2 = [];
         foreach ($endpoints2 as $e) {
-            array_push($new_endpoints2, $e->address);
+            $new_endpoints2[] = $e->address;
         }
         $new_my_did_list1 = [];
         foreach ($my_did_list1 as $d) {
-            array_push($new_my_did_list1, $d['did']);
+            $new_my_did_list1[] = $d['did'];
         }
         $new_my_did_list2 = [];
         foreach ($my_did_list2 as $d) {
-            array_push($new_my_did_list2, $d['did']);
+            $new_my_did_list2[] = $d['did'];
         }
         self::assertTrue($ping1);
         self::assertTrue($ping2);
@@ -63,12 +68,13 @@ class TestHub extends TestCase
         self::assertNotEquals($new_my_did_list2, $new_my_did_list1);
     }
 
-    public function test_aborting()
+    /**
+     * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     */
+    public function test_aborting(): void
     {
         $test_suite = Conftest::test_suite();
         $params = $test_suite->get_agent_params('agent1');
-        $agent1 = null;
-        $agent2 = null;
         Hub::alloc_context($params['server_address'], $params['credentials'], $params['p2p']);
         try {
             $hub = Hub::current_hub();

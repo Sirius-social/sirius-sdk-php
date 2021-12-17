@@ -95,4 +95,9 @@ class CacheOptions implements JsonSerializable
     {
         return array_key_exists($key, $data) ? $data[$key] : false;
     }
+
+    public static function unserialize($buffer): void
+    {
+        // You are never use this method.
+    }
 }

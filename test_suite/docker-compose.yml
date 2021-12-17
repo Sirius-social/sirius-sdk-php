@@ -143,7 +143,6 @@ services:
     environment:
       TEST_SUITE_BASE_URL: "http://10.0.0.90"
       INDY_AGENT_BASE_URL: "http://10.0.0.52:8888"
-      XDEBUG_CONFIG: client_host=10.0.0.1
     networks:
       test_network:
         ipv4_address: 10.0.0.91

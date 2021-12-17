@@ -10,7 +10,7 @@ use Siruis\Tests\Helpers\Conftest;
 
 class TestStorages extends TestCase
 {
-    public function test_inmemory_kv_storage()
+    public function test_inmemory_kv_storage(): void
     {
         $kv = new InMemoryKeyValueStorage();
         $kv->select_db('db1');
@@ -31,7 +31,7 @@ class TestStorages extends TestCase
         $kv->delete('unknown-key');
     }
 
-    public function test_inmemory_immutable_collection()
+    public function test_inmemory_immutable_collection(): void
     {
         $collection = new InMemoryImmutableCollection();
 
@@ -51,7 +51,14 @@ class TestStorages extends TestCase
         self::assertCount(0, $fetched);
     }
 
-    public function test_inwallet_immutable_collection()
+    /**
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     */
+    public function test_inwallet_immutable_collection(): void
     {
         $agent = Conftest::agent1();
         $agent->open();
@@ -67,25 +74,25 @@ class TestStorages extends TestCase
                 'key2' => 50000
             ];
 
-            $collection->select_db(uniqid());
+            $collection->select_db(uniqid('', true));
             $collection->add($value1, ['tag' => 'value1']);
             $collection->add($value2, ['tag' => 'value2']);
 
-            list($fetched, $count) = $collection->fetch(['tag' => 'value1']);
+            [$fetched, $count] = $collection->fetch(['tag' => 'value1']);
             self::assertEquals(1, $count);
             self::assertCount(1, $fetched);
             self::assertEquals($value1, $fetched[0]);
 
-            list($fetched, $count) = $collection->fetch(['tag' => 'value2']);
+            [$fetched, $count] = $collection->fetch(['tag' => 'value2']);
             self::assertEquals(1, $count);
             self::assertCount(1, $fetched);
             self::assertEquals($value2, $fetched[0]);
 
-            list($fetched, $count) = $collection->fetch([]);
+            [, $count] = $collection->fetch([]);
             self::assertEquals(2, $count);
 
-            $collection->select_db(uniqid());
-            list($fetched, $count) = $collection->fetch([]);
+            $collection->select_db(uniqid('', true));
+            [, $count] = $collection->fetch([]);
             self::assertEquals(0, $count);
         } finally {
             $agent->close();

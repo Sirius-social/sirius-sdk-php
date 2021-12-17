@@ -18,10 +18,6 @@ use stdClass;
 
 class TestMicroledgers extends TestCase
 {
-    /**
-     * @param \Siruis\Agent\Microledgers\AbstractMicroledger $ledger
-     * @return array
-     */
     public function get_state(AbstractMicroledger $ledger): array
     {
         return [
@@ -50,7 +46,7 @@ class TestMicroledgers extends TestCase
                 ['reqId' => 3, 'identifier' => 'CECeGXDi6EHuhpwz19uyjjEnsRGNXodFYqCRgdLmLRkt', 'op' => 'op3'],
             ];
             /** @var Microledger $ledger */
-            [$ledger, $txns] = $agent->microledgers->create($ledger_name, $genesis_txns);
+            [$ledger,] = $agent->microledgers->create($ledger_name, $genesis_txns);
             self::assertEquals('3u8ZCezSXJq72H5CdEryyTuwAKzeZnCZyfftJVFr7y8U', $ledger->getRootHash());
         } finally {
             $agent->close();
@@ -73,7 +69,7 @@ class TestMicroledgers extends TestCase
                 ['reqId' => 4, 'identifier' => '2btLJAAb1S3x6hZYdVyAePjqtQYi2ZBSRGy4569RZu8h', 'op' => 'op4'],
                 ['reqId' => 5, 'identifier' => 'CECeGXDi6EHuhpwz19uyjjEnsRGNXodFYqCRgdLmLRkt', 'op' => 'op5'],
             ];
-            [$ledger, $txns] = $agent->microledgers->create($ledger_name, $genesis_txns);
+            [$ledger,] = $agent->microledgers->create($ledger_name, $genesis_txns);
             /** @var MerkleInfo $merkle_info */
             $merkle_info = $ledger->merkle_info(4);
             self::assertEquals('CwX1TRYKpejHmdnx3gMgHtSioDzhDGTASAD145kjyyRh', $merkle_info->root_hash);
@@ -95,13 +91,13 @@ class TestMicroledgers extends TestCase
             $genesis_txns = [
                 ['reqId' => 1, 'identifier' => '5rArie7XKukPCaEwq5XGQJnM9Fc5aZE3M9HAPVfMU2xC', 'op' => 'op1']
             ];
-            [$ledger, $_] = $agent->microledgers->create($ledger_name, $genesis_txns);
+            [$ledger,] = $agent->microledgers->create($ledger_name, $genesis_txns);
             $txns = [
                 ['reqId' => 2, 'identifier' => '2btLJAAb1S3x6hZYdVyAePjqtQYi2ZBSRGy4569RZu8h', 'op' => 'op2'],
                 ['reqId' => 3, 'identifier' => 'CECeGXDi6EHuhpwz19uyjjEnsRGNXodFYqCRgdLmLRkt', 'op' => 'op3'],
             ];
             $txn_time = (string)date('Y-m-d h:i:s');
-            [$start, $end, $appended_transactions] = $ledger->append($txns, $txn_time);
+            [$start, $end,] = $ledger->append($txns, $txn_time);
             self::assertEquals(3, $end);
             self::assertEquals(2, $start);
         } finally {
@@ -127,7 +123,7 @@ class TestMicroledgers extends TestCase
                 ['reqId' => 1, 'identifier' => '5rArie7XKukPCaEwq5XGQJnM9Fc5aZE3M9HAPVfMU2xC', 'op' => 'op1']
             ];
             /** @var Microledger $ledger */
-            [$ledger, $_] = $agent->microledgers->create($ledger_name, $genesis_txns);
+            [$ledger,] = $agent->microledgers->create($ledger_name, $genesis_txns);
             $txns = [
                 ['reqId' => 2, 'identifier' => '2btLJAAb1S3x6hZYdVyAePjqtQYi2ZBSRGy4569RZu8h', 'op' => 'op2'],
                 ['reqId' => 3, 'identifier' => 'CECeGXDi6EHuhpwz19uyjjEnsRGNXodFYqCRgdLmLRkt', 'op' => 'op3'],
@@ -174,7 +170,7 @@ class TestMicroledgers extends TestCase
                 ['reqId' => 1, 'identifier' => '5rArie7XKukPCaEwq5XGQJnM9Fc5aZE3M9HAPVfMU2xC', 'op' => 'op1']
             ];
             /** @var Microledger $ledger */
-            [$ledger, $_] = $agent->microledgers->create($ledger_name, $genesis_txns);
+            [$ledger,] = $agent->microledgers->create($ledger_name, $genesis_txns);
             $txns = [
                 ['reqId' => 2, 'identifier' => '2btLJAAb1S3x6hZYdVyAePjqtQYi2ZBSRGy4569RZu8h', 'op' => 'op2'],
                 ['reqId' => 3, 'identifier' => 'CECeGXDi6EHuhpwz19uyjjEnsRGNXodFYqCRgdLmLRkt', 'op' => 'op3']
@@ -212,7 +208,7 @@ class TestMicroledgers extends TestCase
                 ['reqId' => 3, 'identifier' => 'CECeGXDi6EHuhpwz19uyjjEnsRGNXodFYqCRgdLmLRkt', 'op' => 'op3'],
             ];
             /** @var Microledger $ledger */
-            [$ledger, $_] = $agent->microledgers->create($ledger_name, $genesis_txns);
+            [$ledger,] = $agent->microledgers->create($ledger_name, $genesis_txns);
             $txns = [
                 ['reqId' => 4, 'identifier' => '2btLJAAb1S3x6hZYdVyAePjqtQYi2ZBSRGy4569RZu8h', 'op' => 'op4'],
                 ['reqId' => 5, 'identifier' => 'CECeGXDi6EHuhpwz19uyjjEnsRGNXodFYqCRgdLmLRkt', 'op' => 'op5'],
@@ -266,7 +262,7 @@ class TestMicroledgers extends TestCase
                 ['reqId' => 4, 'identifier' => '2btLJAAb1S3x6hZYdVyAePjqtQYi2ZBSRGy4569RZu8h', 'op' => 'op4'],
                 ['reqId' => 5, 'identifier' => 'CECeGXDi6EHuhpwz19uyjjEnsRGNXodFYqCRgdLmLRkt', 'op' => 'op5'],
             ];
-            [$ledger, $_] = $agent->microledgers->create($ledger_name, $genesis_txns);
+            [$ledger,] = $agent->microledgers->create($ledger_name, $genesis_txns);
             self::assertEquals(5, $ledger->getSize());
 
             $is_exists = $agent->microledgers->is_exists($ledger_name);
@@ -294,7 +290,7 @@ class TestMicroledgers extends TestCase
                 ['reqId' => 2, 'identifier' => '2btLJAAb1S3x6hZYdVyAePjqtQYi2ZBSRGy4569RZu8h', 'op' => 'op2'],
                 ['reqId' => 3, 'identifier' => 'CECeGXDi6EHuhpwz19uyjjEnsRGNXodFYqCRgdLmLRkt', 'op' => 'op3'],
             ];
-            [$ledger, $_] = $agent->microledgers->create($ledger_name, $genesis_txns);
+            $agent->microledgers->create($ledger_name, $genesis_txns);
             // Get list
             $collection = $agent->microledgers->list();
             self::assertStringContainsString($ledger_name, implode(', ', $collection));
@@ -324,6 +320,7 @@ class TestMicroledgers extends TestCase
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \JsonException
      */
     public function test_get_all_txns(): void
     {
@@ -337,7 +334,7 @@ class TestMicroledgers extends TestCase
                 ['reqId' => 3, 'identifier' => 'CECeGXDi6EHuhpwz19uyjjEnsRGNXodFYqCRgdLmLRkt', 'op' => 'op3'],
             ];
             /** @var Microledger $ledger */
-            [$ledger, $_] = $agent->microledgers->create($ledger_name, $genesis_txns);
+            [$ledger,] = $agent->microledgers->create($ledger_name, $genesis_txns);
             $txns = [
                 ['reqId' => 4, 'identifier' => '2btLJAAb1S3x6hZYdVyAePjqtQYi2ZBSRGy4569RZu8h', 'op' => 'op4'],
                 ['reqId' => 5, 'identifier' => 'CECeGXDi6EHuhpwz19uyjjEnsRGNXodFYqCRgdLmLRkt', 'op' => 'op5'],
@@ -377,7 +374,7 @@ class TestMicroledgers extends TestCase
                 ['reqId' => 6, 'identifier' => 'CECeGXDi6EHuhpwz19uyjjEnsRGNXodFYqCRgdLmLRkt', 'op' => 'op6'],
             ];
             /** @var Microledger $ledger */
-            [$ledger, $_] = $agent->microledgers->create($ledger_name, $genesis_txns);
+            [$ledger,] = $agent->microledgers->create($ledger_name, $genesis_txns);
             $txns = [
                 ['reqId' => 7, 'identifier' => '2btLJAAb1S3x6hZYdVyAePjqtQYi2ZBSRGy4569RZu8h', 'op' => 'op7'],
                 ['reqId' => 8, 'identifier' => 'CECeGXDi6EHuhpwz19uyjjEnsRGNXodFYqCRgdLmLRkt', 'op' => 'op8'],
@@ -385,19 +382,16 @@ class TestMicroledgers extends TestCase
             ];
             $ledger->append($txns);
 
-            $audit_paths = [];
             foreach ([1, 2, 3, 4, 5, 6] as $seq_no) {
                 $audit_proof = $ledger->audit_proof($seq_no);
                 self::assertEquals('3eDS4j8HgpAyRnuvfFG624KKvQBuNXKBenhqHmHtUgeq', $audit_proof->root_hash);
                 self::assertEquals(6, $audit_proof->ledger_size);
-                $audit_paths[] = $audit_proof->audit_path;
             }
 
             foreach ([7, 8, 9] as $seq_no) {
                 $audit_proof = $ledger->audit_proof($seq_no);
                 self::assertEquals('3eDS4j8HgpAyRnuvfFG624KKvQBuNXKBenhqHmHtUgeq', $audit_proof->root_hash);
                 self::assertEquals(6, $audit_proof->ledger_size);
-                $audit_paths[] = $audit_proof->audit_path;
                 self::assertEquals('Dkoca8Af15uMLBHAqbddwqmpiqsaDEtKDoFVfNRXt44g', $ledger->getUncommittedRootHash());
             }
             printf('@');
@@ -418,7 +412,7 @@ class TestMicroledgers extends TestCase
             $genesis_txns = [
                 ['reqId' => 1, 'identifier' => '5rArie7XKukPCaEwq5XGQJnM9Fc5aZE3M9HAPVfMU2xC', 'op' => 'op1'],
             ];
-            [$ledger, $txns] = $agent->microledgers->create($ledger_name, $genesis_txns);
+            [, $txns] = $agent->microledgers->create($ledger_name, $genesis_txns);
             $txn = $txns[0];
             $leaf_hash = $agent->microledgers->leaf_hash($txn);
             $leaf_hash_b58 = Encryption::bytes_to_b58($leaf_hash);
@@ -447,7 +441,7 @@ class TestMicroledgers extends TestCase
                 ['reqId' => 1, 'identifier' => '5rArie7XKukPCaEwq5XGQJnM9Fc5aZE3M9HAPVfMU2xC', 'op' => 'op1'],
             ];
             /** @var Microledger $ledger */
-            [$ledger, $_] = $agent->microledgers->create($ledger_name, $genesis_txns);
+            [$ledger,] = $agent->microledgers->create($ledger_name, $genesis_txns);
 
             $new_name = 'new_name_'.uniqid('', true);
             $ledger->rename($new_name);
@@ -516,7 +510,7 @@ class TestMicroledgers extends TestCase
                 sort($states_after_append_keys);
                 sort($ledger_names);
                 self::assertEquals($ledger_names, $states_after_append_keys);
-                foreach ($states_after_append as $ledger_name_ => $state_) {
+                foreach ($states_after_append as $state_) {
                     self::assertEquals(2, $state_['uncommitted_size']);
                 }
                 // Reset uncommitted
@@ -529,7 +523,7 @@ class TestMicroledgers extends TestCase
                 sort($states_after_reset_uncommitted_keys);
                 sort($ledger_names);
                 self::assertEquals($ledger_names, $states_after_reset_uncommitted_keys);
-                foreach ($states_after_reset_uncommitted as $ledger_name_ => $state_) {
+                foreach ($states_after_reset_uncommitted as $state_) {
                     self::assertEquals(1, $state_['uncommitted_size']);
                 }
                 // Append + Commit
@@ -543,7 +537,7 @@ class TestMicroledgers extends TestCase
                 sort($states_after_commit_keys);
                 sort($ledger_names);
                 self::assertEquals($ledger_names, $states_after_commit_keys);
-                foreach ($states_after_commit as $ledger_name_ => $state_) {
+                foreach ($states_after_commit as $state_) {
                     self::assertEquals(2, $state_['uncommitted_size']);
                     self::assertEquals(2, $state_['size']);
                 }
@@ -635,7 +629,7 @@ class TestMicroledgers extends TestCase
             printf('========== Timeout for 100 Ledgers Non-parallel mode =======');
             printf("Seconds: $seconds_for_100_non_parallel");
             printf('========================================');
-            self::assertGreaterThan($seconds_for_100_non_parallel / 2, $seconds_for_100);
+            self::assertGreaterThan($seconds_for_100, $seconds_for_100_non_parallel / 2);
         } finally {
             $agent->close();
         }

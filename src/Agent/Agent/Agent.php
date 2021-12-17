@@ -100,7 +100,7 @@ class Agent extends TransportLayers
     ) {
         $parsed = parse_url($server_address);
         if (!in_array($parsed['scheme'], ['https'])) {
-            error_log('Endpoints has non secure scheme, you will have issues for Android/iOS devices');
+            printf('Endpoints has non secure scheme, you will have issues for Android/iOS devices');
         }
         $this->server_address = $server_address;
         $this->credentials = $credentials;

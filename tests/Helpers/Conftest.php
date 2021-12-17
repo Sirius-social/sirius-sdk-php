@@ -22,9 +22,9 @@ class Conftest
     public static function phpunit_configs(): array
     {
         return [
-            'test_suite_baseurl' => getenv('TEST_SUITE_BASE_URL') ? getenv('TEST_SUITE_BASE_URL') : 'http://localhost',
+            'test_suite_baseurl' => getenv('TEST_SUITE_BASE_URL') ?: 'http://localhost',
             'test_suite_overlay_address' => 'http://10.0.0.90',
-            'old_agent_address' => getenv('INDY_AGENT_BASE_URL') ? getenv('INDY_AGENT_BASE_URL') : 'http://127.0.0.1:88',
+            'old_agent_address' => getenv('INDY_AGENT_BASE_URL') ?: 'http://127.0.0.1:88',
             'old_agent_overlay_address' => 'http://10.0.0.52:8888',
             'old_agent_root' => [
                 'username' => 'root',

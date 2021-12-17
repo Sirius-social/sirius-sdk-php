@@ -5,31 +5,25 @@ namespace Siruis\Tests;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use Siruis\Encryption\Encryption;
-use Siruis\Errors\Exceptions\SiriusCryptoError;
-use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
-use Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure;
-use Siruis\Errors\Exceptions\SiriusInvalidType;
-use Siruis\Errors\Exceptions\SiriusPendingOperation;
 use Siruis\Errors\Exceptions\SiriusPromiseContextException;
-use Siruis\Errors\Exceptions\SiriusValueEmpty;
 use Siruis\Errors\IndyExceptions\ErrorCode;
 use Siruis\Errors\IndyExceptions\WalletItemAlreadyExists;
 use Siruis\Messaging\Message;
 use Siruis\RPC\Futures\Future;
-use SodiumException;
 use Siruis\Tests\Helpers\Conftest;
 
 class TestFuturePromise extends TestCase
 {
     /**
-     * @throws SiriusCryptoError
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidPayloadStructure
-     * @throws SiriusInvalidType
-     * @throws SiriusPendingOperation
-     * @throws SodiumException
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
+     * @throws \SodiumException
      */
-    public function test_sane()
+    public function test_sane(): void
     {
         $p2p = Conftest::p2p();
         $agent_to_sdk = $p2p['agent']['tunnel'];
@@ -58,15 +52,15 @@ class TestFuturePromise extends TestCase
     }
 
     /**
-     * @throws SiriusCryptoError
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidPayloadStructure
-     * @throws SiriusInvalidType
-     * @throws SiriusPendingOperation
-     * @throws SodiumException
-     * @throws SiriusValueEmpty
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
+     * @throws \SodiumException
      */
-    public function test_set_non_indy_error()
+    public function test_set_non_indy_error(): void
     {
         $p2p = Conftest::p2p();
         $agent_to_sdk = $p2p['agent']['tunnel'];
@@ -106,16 +100,15 @@ class TestFuturePromise extends TestCase
     }
 
     /**
-     * @throws SiriusCryptoError
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidPayloadStructure
-     * @throws SiriusInvalidType
-     * @throws SiriusPendingOperation
-     * @throws SiriusPromiseContextException
-     * @throws SiriusValueEmpty
-     * @throws SodiumException
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
+     * @throws \SodiumException
      */
-    public function test_set_indy_error()
+    public function test_set_indy_error(): void
     {
         $p2p = Conftest::p2p();
         $agent_to_sdk = $p2p['agent']['tunnel'];
@@ -159,14 +152,15 @@ class TestFuturePromise extends TestCase
     }
 
     /**
-     * @throws SiriusCryptoError
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidPayloadStructure
-     * @throws SiriusInvalidType
-     * @throws SiriusPendingOperation
-     * @throws SodiumException
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
+     * @throws \SodiumException
      */
-    public function test_tuple_value()
+    public function test_tuple_value(): void
     {
         $p2p = Conftest::p2p();
         $agent_to_sdk = $p2p['agent']['tunnel'];
@@ -195,14 +189,15 @@ class TestFuturePromise extends TestCase
     }
 
     /**
-     * @throws SiriusCryptoError
-     * @throws SiriusInvalidMessageClass
-     * @throws SiriusInvalidPayloadStructure
-     * @throws SiriusInvalidType
-     * @throws SiriusPendingOperation
-     * @throws SodiumException
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
+     * @throws \SodiumException
      */
-    public function test_bytes_value()
+    public function test_bytes_value(): void
     {
         $p2p = Conftest::p2p();
         $agent_to_sdk = $p2p['agent']['tunnel'];

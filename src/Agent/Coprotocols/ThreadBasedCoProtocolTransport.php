@@ -139,7 +139,7 @@ class ThreadBasedCoProtocolTransport extends AbstractCoProtocolTransport
      * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
      * @throws \JsonException
      */
-    public function send(Message &$message): void
+    public function send(Message $message): void
     {
         $message = $this->prepare_message($message);
         parent::send($message);

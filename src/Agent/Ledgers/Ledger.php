@@ -218,12 +218,16 @@ class Ledger
     ): array
     {
         [, $body] = $this->issuer->issuer_create_and_store_credential_def(
-            $submitter_did, $cred_def->schema->body, $cred_def->tag, null, $cred_def->config->serialize()
+            $submitter_did,
+            $cred_def->schema->body,
+            $cred_def->tag,
+            null,
+            $cred_def->config->serialize()
         );
         $build_request = $this->api->build_cred_def_request(
             $submitter_did, $body
         );
-        $signed_request = $this->api->sign_request($this->name, $build_request);
+        $signed_request = $this->api->sign_request($submitter_did, $build_request);
         $resp = $this->api->submit_request($this->name, $signed_request);
         $success = ArrayHelper::getValueWithKeyFromArray('op', $resp) === 'REPLY';
         if ($success) {
@@ -336,12 +340,14 @@ class Ledger
         if ($seq_no) {
             $filters->setSeqNo($seq_no);
         }
-        $filters->setExtras($extras);
+        if ($extras) {
+            $filters->setExtras($extras);
+        }
         $this->storage->select_db($this->db);
         $storageFetch = $this->storage->fetch($filters->tags);
         $cred_defs = [];
         foreach ($storageFetch[0] as $item) {
-            $cred_defs[] = (new CredentialDefinition)->deserialize($item);
+            $cred_defs[] = CredentialDefinition::unserialize($item);
         }
         return $cred_defs;
     }
@@ -379,8 +385,17 @@ class Ledger
                 'schema_id' => $cred_def->schema->getId(),
                 'submitter_did' => $cred_def->getSubmitterDid()
             ];
+            [,$count] = $this->storage->fetch($tags);
+            if ($count === 0) {
+                $tags = array_merge($tags, [
+                    'id' => $cred_def->getId(),
+                    'tag' => $cred_def->tag,
+                    'schema_id' => $cred_def->schema->getId(),
+                    'submitter_did' => $cred_def->getSubmitterDid()
+                ]);
+            }
             if ($search_tags) {
-                $tags[] = $search_tags;
+                $tags = array_merge($tags, $search_tags);
             }
             $this->storage->add($cred_def->serialize(), $tags);
         }

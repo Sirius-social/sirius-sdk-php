@@ -25,4 +25,29 @@ class Semver extends Version
 
         return self::parse($version_str);
     }
+
+    public function getMajor(): int
+    {
+        return $this->major;
+    }
+
+    public function getMinor(): int
+    {
+        return $this->minor;
+    }
+
+    public function getPatch()
+    {
+        return $this->patch;
+    }
+
+    public function getPreRelease(): ?string
+    {
+        return $this->preRelease;
+    }
+
+    public function getBuild(): ?string
+    {
+        return $this->build;
+    }
 }

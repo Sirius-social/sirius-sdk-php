@@ -43,6 +43,7 @@ RUN mkdir ~/apps && cd ~/apps/ && wget https://www.php.net/distributions/php-7.3
            --with-openssl \
            --with-sodium \
     && make && make install \
+    && ln -s /usr/local/bin/php /usr/bin/php \
     && mkdir -p /usr/local/lib && cp php.ini-development /usr/local/lib/php.ini \
     && wget -q -O /usr/bin/composer https://getcomposer.org/composer.phar && chmod +x /usr/bin/composer
 

@@ -60,4 +60,24 @@ class Schema extends AnonCredSchema implements JsonSerializable
         }
         return new Schema($kwargs);
     }
+
+    /**
+     * Call statically deserialize.
+     *
+     * @param $buffer
+     * @return \Siruis\Agent\Ledgers\Schema
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     */
+    public static function unserialize($buffer): Schema
+    {
+        if (is_string($buffer)) {
+            $kwargs = json_decode($buffer, false, 512, JSON_THROW_ON_ERROR);
+        } elseif (is_array($buffer)) {
+            $kwargs = $buffer;
+        } else {
+            throw new RuntimeException('Unexpected buffer type');
+        }
+        return new Schema($kwargs);
+    }
 }

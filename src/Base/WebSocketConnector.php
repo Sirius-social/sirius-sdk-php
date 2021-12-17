@@ -6,11 +6,9 @@ namespace Siruis\Base;
 
 use Siruis\Errors\Exceptions\SiriusConnectionClosed;
 use Siruis\Errors\Exceptions\SiriusIOError;
-use Siruis\Errors\Exceptions\SiriusTimeoutIO;
 use Siruis\Messaging\Message;
 use Throwable;
 use WebSocket\Client;
-use WebSocket\ConnectionException;
 
 
 class WebSocketConnector extends BaseConnector
@@ -25,7 +23,7 @@ class WebSocketConnector extends BaseConnector
     private $url;
     private $options;
 
-    public function __construct($server_address, $path, $credentials, $defTimeout = null, $port = null, $enc = null)
+    public function __construct($server_address, $path, $credentials, $defTimeout = null, $enc = null)
     {
         $this->server_address = $server_address;
         $parsed = parse_url($server_address);
@@ -99,7 +97,6 @@ class WebSocketConnector extends BaseConnector
      * @return string
      * @throws SiriusConnectionClosed
      * @throws SiriusIOError
-     * @throws SiriusTimeoutIO
      */
     public function read($timeout = null): string
     {
@@ -107,8 +104,6 @@ class WebSocketConnector extends BaseConnector
             $this->session->setTimeout($timeout);
         }
         $msg = $this->session->receive();
-
-        printf("Read message from socket: $msg\n");
 
         $lastOpcode = $this->session->getLastOpcode();
         if ($lastOpcode === 'close') {
@@ -140,8 +135,6 @@ class WebSocketConnector extends BaseConnector
         } else {
             $payload = $data;
         }
-
-        printf("Send to the communication message: $payload\n");
 
         try {
             $this->session->binary($payload);

@@ -113,7 +113,7 @@ class TestWallet extends TestCase
             self::assertEquals($expected, $actual);
 
             // #3: Create DID + Verkey
-            [$did, $verkey] = $agent1->wallet->did->create_and_store_my_did();
+            [$did,] = $agent1->wallet->did->create_and_store_my_did();
             $fully = $agent1->wallet->did->qualify_did($did, 'peer');
             self::assertStringContainsString($did, $fully);
 
@@ -149,7 +149,7 @@ class TestWallet extends TestCase
         $wallet_me = $agent1->wallet;
         $wallet_their = $agent2->wallet;
         try {
-            [$did_my, $verkey_my] = $wallet_me->did->create_and_store_my_did();
+            $wallet_me->did->create_and_store_my_did();
             [$did_their, $verkey_their] = $wallet_their->did->create_and_store_my_did();
             $wallet_me->did->store_their_did($did_their, $verkey_their);
             $metadata = [
@@ -355,7 +355,7 @@ class TestWallet extends TestCase
             $query = [
                 'marker' => ['$in' => [$marker_a, $marker_b]]
             ];
-            [$records, $total] = $agent->wallet->non_secrets::wallet_search('type', $query, $opts);
+            [, $total] = $agent->wallet->non_secrets::wallet_search('type', $query, $opts);
             self::assertEquals(2, $total);
         } finally {
             $agent->close();
@@ -377,11 +377,11 @@ class TestWallet extends TestCase
         $agent->open();
         try {
             $seed = '000000000000000000000000Trustee1';
-            [$did, $verkey] = $agent->wallet->did->create_and_store_my_did(null, $seed);
+            [$did,] = $agent->wallet->did->create_and_store_my_did(null, $seed);
             $schema_name = 'schema_'.uniqid('', true);
-            [$schema_id, $schema] = $agent->wallet->anoncreds->issuer_create_schema($did, $schema_name, '1.0', ['attr1', 'attr2', 'attr3']);
+            [, $schema] = $agent->wallet->anoncreds->issuer_create_schema($did, $schema_name, '1.0', ['attr1', 'attr2', 'attr3']);
 
-            [$ok, $response] = $agent->wallet->ledger->register_schema($default_network, $did, $schema->body);
+            [$ok, ] = $agent->wallet->ledger->register_schema($default_network, $did, $schema->body);
             self::assertTrue($ok);
         } finally {
             $agent->close();
@@ -414,7 +414,7 @@ class TestWallet extends TestCase
             $opts = new CacheOptions();
             $schema_from_ledger = $agent->wallet->cache->get_schema($default_network, $did, $schema_id, $opts);
 
-            [$_, $cred_def] = $agent->wallet->anoncreds->issuer_create_and_store_credential_def(
+            [, $cred_def] = $agent->wallet->anoncreds->issuer_create_and_store_credential_def(
                 $did, $schema_from_ledger, 'TAG'
             );
             [$ok] = $agent->wallet->ledger->register_cred_def($default_network, $did, $cred_def);
@@ -443,12 +443,12 @@ class TestWallet extends TestCase
         $actor = $agent2->wallet;
         try {
             $seed = '000000000000000000000000Steward1';
-            [$did_steward, $verkey_steward] = $steward->did->create_and_store_my_did(null, $seed);
+            [$did_steward, ] = $steward->did->create_and_store_my_did(null, $seed);
             [$did_trustee, $verkey_trustee] = $actor->did->create_and_store_my_did();
             [$did_common, $verkey_common] = $actor->did->create_and_store_my_did();
 
             // Trust Anchor
-            [$ok, $response] = $steward->ledger->write_nym(
+            [$ok, ] = $steward->ledger->write_nym(
                 $default_network, $did_steward, $did_trustee, $verkey_trustee, 'Test-Trustee', NYMRole::TRUST_ANCHOR()
             );
             self::assertTrue($ok);
@@ -461,7 +461,7 @@ class TestWallet extends TestCase
             self::assertEquals($expectedNym1, $nym1['role']);
 
             // Common user
-            [$ok, $response] = $steward->ledger->write_nym(
+            [$ok,] = $steward->ledger->write_nym(
                 $default_network, $did_steward, $did_common, $verkey_common, 'CommonUser', NYMRole::COMMON_USER()
             );
             self::assertTrue($ok);
@@ -470,11 +470,11 @@ class TestWallet extends TestCase
             self::assertNull($nym3['role']);
 
             // Reset
-            [$ok, $response] = $actor->ledger->write_nym(
+            [$ok, ] = $actor->ledger->write_nym(
                 $default_network, $did_common, $did_common, $verkey_common, 'ResetUser', NYMRole::RESET()
             );
             self::assertTrue($ok);
-            [$ok, $nym4] = $steward->ledger->read_nym(
+            [$ok,] = $steward->ledger->read_nym(
                 $default_network, null, $did_common
             );
             self::assertTrue($ok);
@@ -502,7 +502,7 @@ class TestWallet extends TestCase
         $actor = $agent2->wallet;
         try {
             $seed = '000000000000000000000000Steward1';
-            [$did_steward, $verkey_steward] = $steward->did->create_and_store_my_did(null, $seed);
+            [$did_steward,] = $steward->did->create_and_store_my_did(null, $seed);
             [$did_common, $verkey_common] = $actor->did->create_and_store_my_did();
             [$ok] = $steward->ledger->write_nym(
                 $default_network, $did_steward, $did_common, $verkey_common, 'CommonUser', NYMRole::COMMON_USER()

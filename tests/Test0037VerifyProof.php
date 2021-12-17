@@ -6,7 +6,6 @@ use PHPUnit\Framework\TestCase;
 use Siruis\Agent\Agent\Agent;
 use Siruis\Agent\Codec;
 use Siruis\Agent\Ledgers\CredentialDefinition;
-use Siruis\Errors\IndyExceptions\AnoncredsMasterSecretDuplicateNameError;
 use Siruis\Hub\Core\Hub;
 use Siruis\Hub\Init;
 use Siruis\Tests\Helpers\Conftest;
@@ -23,7 +22,6 @@ class Test0037VerifyProof extends TestCase
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      * @throws \Siruis\Errors\Exceptions\SiriusValidationError
-     * @throws \Siruis\Errors\IndyExceptions\AnoncredsMasterSecretDuplicateNameError
      * @throws \JsonException
      */
     public function test_sane(): void
@@ -46,7 +44,7 @@ class Test0037VerifyProof extends TestCase
             printf('Register schema');
             [$did_issuer] = [$i2p->me->did, $i2p->me->verkey];
             $schema_name = 'schema_'.uniqid('', true);
-            [$schema_id, $anoncred_schema] = $issuer->wallet->anoncreds->issuer_create_schema(
+            [, $anoncred_schema] = $issuer->wallet->anoncreds->issuer_create_schema(
                 $did_issuer, $schema_name, '1.0', ['attr1', 'attr2', 'attr3']
             );
             $ledger = $issuer->ledger('default');
@@ -61,11 +59,7 @@ class Test0037VerifyProof extends TestCase
             self::assertTrue($ok);
 
             printf('Prepare prover');
-            try {
-                $prover->wallet->anoncreds->prover_create_master_secret($prover_master_secret_name);
-            } catch (AnoncredsMasterSecretDuplicateNameError $err) {
-                throw $err;
-            }
+            $prover->wallet->anoncreds->prover_create_master_secret($prover_master_secret_name);
 
             $prover_secret_id = $prover_master_secret_name;
             $cred_values = ['attr1' => 'Value-1', 'attr2' => 456, 'attr3' => 5.87];
@@ -74,7 +68,7 @@ class Test0037VerifyProof extends TestCase
             // Issue credential
             $offer = $issuer->wallet->anoncreds->issuer_create_credential_offer($cred_def->getId());
             [$cred_request, $cred_metadata] = $prover->wallet->anoncreds->prover_create_credential_req(
-                $p2i->me->did, $offer, $cred_def->getBody(), $prover_secret_id
+                $p2i->me->did, $offer, $cred_def->body, $prover_secret_id
             );
             $encoded_cred_values = [];
             foreach ($cred_values as $key => $value) {
@@ -85,7 +79,7 @@ class Test0037VerifyProof extends TestCase
             $ret = $issuer->wallet->anoncreds->issuer_create_credential(
                 $offer, $cred_request, $encoded_cred_values
             );
-            [$cred, $cred_revoc_id, $revoc_reg_delta] = $ret;
+            [$cred,,] = $ret;
             $prover->wallet->anoncreds->prover_store_credential(
                 $cred_id, $cred_metadata, $cred, $cred_def->getBody()
             );
@@ -152,7 +146,6 @@ class Test0037VerifyProof extends TestCase
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      * @throws \Siruis\Errors\Exceptions\SiriusValidationError
-     * @throws \Siruis\Errors\IndyExceptions\AnoncredsMasterSecretDuplicateNameError
      */
     public function test_multiple_provers(): void
     {
@@ -178,9 +171,9 @@ class Test0037VerifyProof extends TestCase
             $p2_to_v = Conftest::get_pairwise($prover2, $verifier);
 
             printf('Register schema');
-            [$did_issuer, $verkey_issuer] = [$i_to_p1->me->did, $i_to_p1->me->verkey];
+            [$did_issuer,] = [$i_to_p1->me->did, $i_to_p1->me->verkey];
             $schema_name = 'schema_'.uniqid('', true);
-            [$schema_id, $anoncred_schema] = $issuer->wallet->anoncreds->issuer_create_schema(
+            [, $anoncred_schema] = $issuer->wallet->anoncreds->issuer_create_schema(
                 $did_issuer, $schema_name, '1.0', ['attr1', 'attr2', 'attr3']
             );
             $ledger = $issuer->ledger('default');
@@ -196,11 +189,7 @@ class Test0037VerifyProof extends TestCase
             printf('Prepare Provers');
             /** @var Agent $prover */
             foreach ([$prover1, $prover2] as $prover) {
-                try {
-                    $prover->wallet->anoncreds->prover_create_master_secret($prover_master_secret_name);
-                } catch (AnoncredsMasterSecretDuplicateNameError $error) {
-                    throw $error;
-                }
+                $prover->wallet->anoncreds->prover_create_master_secret($prover_master_secret_name);
             }
             $cred_ids = [
                 0 => 'cred-id-'.uniqid('', true),
@@ -227,7 +216,7 @@ class Test0037VerifyProof extends TestCase
                 $ret = $issuer->wallet->anoncreds->issuer_create_credential(
                     $offer, $cred_request, $encoded_cred_values
                 );
-                [$cred, $cred_revoc_id, $revoc_reg_delta] = $ret;
+                [$cred,,] = $ret;
                 $prover->wallet->anoncreds->prover_store_credential(
                     $cred_id, $cred_metadata, $cred, $cred_def->getBody(),
                 );
