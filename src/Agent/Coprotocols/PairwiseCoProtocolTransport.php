@@ -32,14 +32,14 @@ class PairwiseCoProtocolTransport extends AbstractCoProtocolTransport
     }
 
     /**
-     * @param array $protocols
+     * @param array|null $protocols
      * @param int|null $time_to_live
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public function start(array $protocols, int $time_to_live = null): void
+    public function start(array $protocols = null, int $time_to_live = null): void
     {
         parent::start($protocols, $time_to_live);
         $this->rpc->start_protocol_for_p2p(

@@ -154,9 +154,8 @@ abstract class AbstractCoProtocolTransport
                 if ($sender_verkey !== $this->their_vk) {
                     throw new SiriusInvalidPayloadStructure('Unexpected sender_verkey: ' . $sender_verkey);
                 }
-                $message = $event['message'] ?: [];
-                $message = new Message($message);
-                if ($message) {
+                if ($event !== null && array_key_exists('message', $event)) {
+                    $message = new Message($event['message']);
                     $payload = json_decode($message->serialize(), true, 512, JSON_THROW_ON_ERROR);
                     $restored = Message::restoreMessageInstance($payload);
                     if (!$restored[0]) {
@@ -284,7 +283,7 @@ abstract class AbstractCoProtocolTransport
     {
         if ($message) {
             if (array_key_exists(self::PLEASE_ACK_DECORATOR, $message->payload)) {
-                $ack_message_id = $message[self::PLEASE_ACK_DECORATOR]['message_id'] ?: $message['id'];
+                $ack_message_id = $message->payload[self::PLEASE_ACK_DECORATOR]['message_id'] ?: $message['id'];
                 $this->rpc->stop_protocol_with_threads([$ack_message_id], true);
                 foreach ($this->please_ack_ids as $please_ack_id) {
                     if ($please_ack_id !== $ack_message_id) {

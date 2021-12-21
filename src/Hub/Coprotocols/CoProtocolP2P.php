@@ -59,7 +59,11 @@ class CoProtocolP2P extends AbstractP2PCoProtocol
      * @param \Siruis\Messaging\Message $message
      * @return array
      * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function switch(Message $message): array
     {
@@ -91,10 +95,14 @@ class CoProtocolP2P extends AbstractP2PCoProtocol
     }
 
     /**
-     * @return \Siruis\Agent\Coprotocols\TheirEndpointCoProtocolTransport|null
+     * @return mixed
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public function get_transport_lazy(): ?TheirEndpointCoProtocolTransport
+    public function get_transport_lazy()
     {
         if (!$this->transport) {
             $this->hub = Hub::current_hub();

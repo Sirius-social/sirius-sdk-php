@@ -369,7 +369,7 @@ class Ledger
             ];
             [, $count] = $this->storage->fetch($tags);
             if ($count === 0) {
-                array_merge($tags, [
+                $tags = array_merge($tags, [
                     'id' => $schema->getId(),
                     'name' => $schema->getName(),
                     'version' => $schema->getVersion(),
@@ -381,9 +381,8 @@ class Ledger
             $cred_def = $entity;
             $tags = [
                 'id' => $cred_def->getId(),
-                'tag' => $cred_def->tag,
-                'schema_id' => $cred_def->schema->getId(),
-                'submitter_did' => $cred_def->getSubmitterDid()
+                'seq_no' => (string)$cred_def->seq_no,
+                'category' => 'cred_def'
             ];
             [,$count] = $this->storage->fetch($tags);
             if ($count === 0) {

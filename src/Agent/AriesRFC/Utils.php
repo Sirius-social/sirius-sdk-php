@@ -5,11 +5,39 @@ namespace Siruis\Agent\AriesRFC;
 
 
 use DateTime;
+use Exception;
 use Siruis\Agent\Wallet\Abstracts\AbstractCrypto;
 use Siruis\Encryption\Encryption;
 
 class Utils
 {
+    /**
+     * @param string $s
+     * @param bool $throw_exceptions
+     * @return \DateTime|false|null
+     */
+    public static function str_to_utc(string $s, bool $throw_exceptions = true)
+    {
+        $tz_shift = null;
+        try {
+            if (strpos($s, '+')) {
+                [$s, $shift] = explode('+', $s);
+                $now = new DateTime();
+                $shift = DateTime::createFromFormat('h', $shift);
+                $tz_shift = $now->diff($shift);
+            }
+            $s = str_replace('T', ' ', $s);
+            return DateTime::createFromFormat('Y-m-d h:i:s', $s . $tz_shift);
+        } catch (Exception $exception) {
+            printf('Error while parse datetime');
+            if ($throw_exceptions) {
+                throw $exception;
+            }
+
+            return null;
+        }
+    }
+    
     /**
      * @param DateTime $dt
      *

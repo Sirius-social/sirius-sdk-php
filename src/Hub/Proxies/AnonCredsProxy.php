@@ -95,7 +95,7 @@ class AnonCredsProxy extends AbstractAnonCreds
         return $this->service->prover_create_master_secret($master_secret_name);
     }
 
-    public function prover_create_credential_req(string $provider_did, array $cred_offer, array $cred_def, string $master_secret_id): string
+    public function prover_create_credential_req(string $provider_did, array $cred_offer, array $cred_def, string $master_secret_id): array
     {
         return $this->service->prover_create_credential_req($provider_did, $cred_offer, $cred_def, $master_secret_id);
     }

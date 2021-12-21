@@ -15,23 +15,10 @@ use Siruis\Agent\Consensus\Messages\PreCommitTransactionsMessage;
 use Siruis\Agent\Consensus\Messages\ProposeParallelTransactionsMessage;
 use Siruis\Agent\Consensus\Messages\ProposeTransactionsMessage;
 use Siruis\Agent\Microledgers\Transaction;
-use Siruis\Encryption\Encryption;
-use Siruis\RPC\RawBytes;
 use Siruis\Tests\Helpers\Conftest;
 
 class TestConsensusSimple extends TestCase
 {
-    public function test_utf8_encode()
-    {
-        $sig_data = 'kKi5YQAAAAB7ImZ1bmMiOiJzaGEyNTYiLCJiYXNlNTgiOiIzVG5nNFRaRWZNcjVoWGtvTm1XU1Qzb2tYS043RjRLRWNHNnI5aGNXVEE5YlFleFY5OWZKRkZXUlk3ekpiaEJHUWY3UEE0NFdlTjlrZkVqR2NqY3JpaTJnIn0=';
-        $sig_data_bytes = Encryption::b64_to_bytes(mb_convert_encoding($sig_data, 'ascii'), true);
-        $msg = new RawBytes($sig_data_bytes);
-        for ($n = 0; $n <= 100; $n++) {
-            $bytes = Encryption::bytes_to_b64($msg->toBytes());
-            self::assertEquals('wpDCqMK5YQAAAAB7ImZ1bmMiOiJzaGEyNTYiLCJiYXNlNTgiOiIzVG5nNFRaRWZNcjVoWGtvTm1XU1Qzb2tYS043RjRLRWNHNnI5aGNXVEE5YlFleFY5OWZKRkZXUlk3ekpiaEJHUWY3UEE0NFdlTjlrZkVqR2NqY3JpaTJnIn0=', $bytes);
-        }
-    }
-
     /**
      * @return void
      * @throws \JsonException

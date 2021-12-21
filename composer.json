@@ -15,8 +15,6 @@
     "ext-mbstring": "*",
     "ext-sockets": "*",
     "ext-sodium": "*",
-    "ext-libsodium": "*",
-    "ext-http": "*",
     "stephenhill/base58": "^1.1",
     "phlak/semver": "^3.2.0",
     "myclabs/php-enum": "^1.7",
@@ -37,7 +35,7 @@
       "Siruis\\": "src"
     },
     "files": [
-      "src/urljoin.php"
+      "src/url_helper.php"
     ]
   },
   "autoload-dev": {

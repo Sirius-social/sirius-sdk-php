@@ -21,78 +21,82 @@ class CryptoProxy extends AbstractCrypto
      */
     public function __construct()
     {
-        $this->service = Hub::current_hub()->get_crypto();
+        $hub = Hub::current_hub();
+        if (is_null($hub)) {
+            throw new SiriusInitializationError('Hub not initialized');
+        }
+        $this->service = $hub->get_crypto();
     }
 
     /**
      * @inheritDoc
      */
-    public function createKey(string $seed = null, string $cryptoType = null): string
+    public function create_key(string $seed = null, string $crypto_type = null): string
     {
-        return $this->service->createKey($seed, $cryptoType);
+        return $this->service->create_key($seed, $crypto_type);
     }
 
     /**
      * @inheritDoc
      */
-    public function setKeyMetadata(string $verkey, array $metadata)
+    public function set_key_metadata(string $verkey, array $metadata)
     {
-        return $this->service->setKeyMetadata($verkey, $metadata);
+        return $this->service->set_key_metadata($verkey, $metadata);
     }
 
     /**
      * @inheritDoc
      */
-    public function getKeyMetadata(string $verkey): ?array
+    public function get_key_metadata(string $verkey): ?array
     {
-        return $this->service->getKeyMetadata($verkey);
+        return $this->service->get_key_metadata($verkey);
     }
 
     /**
      * @inheritDoc
      */
-    public function cryptoSign(string $signerVk, string $msg): string
+    public function crypto_sign(string $signer_vk, string $msg): string
     {
-        return $this->service->cryptoSign($signerVk, $msg);
+        return $this->service->crypto_sign($signer_vk, $msg);
     }
 
     /**
      * @inheritDoc
      */
-    public function cryptoVerify(string $signerVk, string $msg, string $signature): bool
+    public function crypto_verify(string $signer_vk, string $msg, string $signature): bool
     {
-        return $this->service->cryptoVerify($signerVk, $msg, $signature);
+        return $this->service->crypto_verify($signer_vk, $msg, $signature);
     }
 
     /**
      * @inheritDoc
      */
-    public function anonCrypt(string $recipientVk, string $msg): string
+    public function anon_crypt(string $recipient_vk, string $msg): string
     {
-        return $this->service->anonCrypt($recipientVk, $msg);
+        return $this->service->anon_crypt($recipient_vk, $msg);
     }
 
     /**
      * @inheritDoc
      */
-    public function anonDecrypt(string $recipient_vk, string $encrypted_msg): string
+    public function anon_decrypt(string $recipient_vk, string $encrypted_msg): string
     {
-        return $this->service->anonDecrypt($recipient_vk, $encrypted_msg);
+        return $this->service->anon_decrypt($recipient_vk, $encrypted_msg);
     }
 
     /**
      * @inheritDoc
      */
-    public function pack_message($message, array $recipientVerkeys, string $sender_verkey = null): string
+    public function pack_message($message, array $recipient_verkeys, string $sender_verkey = null): string
     {
-        return $this->service->pack_message($message, $recipientVerkeys, $sender_verkey);
+        return $this->service->pack_message($message, $recipient_verkeys, $sender_verkey);
     }
 
     /**
      * @inheritDoc
      */
-    public function unpackMessage(string $jwe): array
+    public function unpack_message(string $jwe): array
     {
-        return $this->service->unpackMessage($jwe);
+        return $this->service->unpack_message($jwe);
     }
 }

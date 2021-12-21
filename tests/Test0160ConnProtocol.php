@@ -49,7 +49,7 @@ class Test0160ConnProtocol extends TestCase
         // Get endpoints
         Hub::alloc_context($inviter['server_address'], $inviter['credentials'], $inviter['p2p']);
         $inviter_endpoint_address = Conftest::get_endpoints(Init::endpoints())[0]->address;
-        $connection_key = Init::Crypto()->createKey();
+        $connection_key = Init::Crypto()->create_key();
         $invitation = new Invitation([], 'Inviter', [$connection_key], $inviter_endpoint_address);
 
         // Init me
@@ -100,7 +100,7 @@ class Test0160ConnProtocol extends TestCase
         // Get endpoints
         Hub::alloc_context($inviter['server_address'], $inviter['credentials'], $inviter['p2p']);
         $inviter_endpoint_address = Conftest::get_endpoints(Init::endpoints())[0]->address;
-        $connection_key = Init::Crypto()->createKey();
+        $connection_key = Init::Crypto()->create_key();
         $invitation = new Invitation([], 'Inviter', [$connection_key], $inviter_endpoint_address);
         Hub::alloc_context($invitee['server_address'], $invitee['credentials'], $invitee['p2p']);
         $invitee_endpoint_address = Conftest::get_endpoints(Init::endpoints())[0]->address;
@@ -159,6 +159,8 @@ class Test0160ConnProtocol extends TestCase
 
     /**
      * @return void
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \JsonException
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
@@ -218,7 +220,7 @@ class Test0160ConnProtocol extends TestCase
         // Init inviter
         Hub::alloc_context($inviter['server_address'], $inviter['credentials'], $inviter['p2p']);
         $inviter_endpoint_address = Conftest::get_endpoints(Init::endpoints())[0]->address;
-        $connection_key = Init::Crypto()->createKey();
+        $connection_key = Init::Crypto()->create_key();
         $inviter_endpoint_address = self::replace_url_components($inviter_endpoint_address, $phpunit_configs['test_suite_overlay_address']);
         $invitation = new Invitation([], 'Inviter', [$connection_key], $inviter_endpoint_address);
         $invitation_url = $invitation->getInvitationUrl();
@@ -262,7 +264,7 @@ class Test0160ConnProtocol extends TestCase
         // Get endpoints
         Hub::alloc_context($inviter['server_address'], $inviter['credentials'], $inviter['p2p']);
         $inviter_endpoint_address = Conftest::get_endpoints(Init::endpoints())[0]->address;
-        $connection_key = Init::Crypto()->createKey();
+        $connection_key = Init::Crypto()->create_key();
         $invitation = new Invitation([], 'Inviter', [$connection_key], $inviter_endpoint_address);
 
         // Init me

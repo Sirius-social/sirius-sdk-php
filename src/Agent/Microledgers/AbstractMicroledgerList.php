@@ -18,5 +18,5 @@ abstract class AbstractMicroledgerList
 
     abstract public function list();
 
-    abstract public function batched();
+    abstract public function batched(): ?AbstractBatchedAPI;
 }

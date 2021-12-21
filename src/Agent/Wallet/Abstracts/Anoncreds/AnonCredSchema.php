@@ -21,12 +21,14 @@ class AnonCredSchema
     public function __construct(array $args = null)
     {
         $this->body = array();
-        $fields = ['ver', 'id', 'name', 'version', 'attrNames'];
-        foreach ($fields as $field) {
-            if (!array_key_exists($field, $args)) {
-                throw new SiriusValidationError('Except for '. $field . ' field exists');
+        if (!is_null($args)) {
+            $fields = ['ver', 'id', 'name', 'version', 'attrNames'];
+            foreach ($fields as $field) {
+                if (!array_key_exists($field, $args)) {
+                    throw new SiriusValidationError('Except for '. $field . ' field exists');
+                }
+                $this->body[$field] = $args[$field];
             }
-            $this->body[$field] = $args[$field];
         }
         $this->body = $args;
     }

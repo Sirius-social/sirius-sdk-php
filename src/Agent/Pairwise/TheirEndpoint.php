@@ -60,7 +60,7 @@ class TheirEndpoint
         if ($this->endpoint) {
             $components = parse_url($this->endpoint);
             $components['host'] = $value;
-            $this->endpoint = http_build_url(null, $components);
+            $this->endpoint = http_build_url('', $components);
         }
     }
 }

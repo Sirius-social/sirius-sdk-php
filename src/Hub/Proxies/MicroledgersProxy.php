@@ -4,6 +4,7 @@
 namespace Siruis\Hub\Proxies;
 
 
+use Siruis\Agent\Microledgers\AbstractBatchedAPI;
 use Siruis\Agent\Microledgers\AbstractMicroledger;
 use Siruis\Agent\Microledgers\AbstractMicroledgerList;
 use Siruis\Errors\Exceptions\SiriusInitializationError;
@@ -22,7 +23,12 @@ class MicroledgersProxy extends AbstractMicroledgerList
      */
     public function __construct()
     {
-        $this->service = Hub::current_hub()->get_microledgers();
+        $hub = Hub::current_hub();
+        if (is_null($hub)) {
+            throw new SiriusInitializationError('Hub not initialized');
+        }
+
+        $this->service = $hub->get_microledgers();
     }
 
     public function create(string $name, array $genesis)
@@ -53,5 +59,19 @@ class MicroledgersProxy extends AbstractMicroledgerList
     public function list()
     {
         return $this->service->list();
+    }
+
+    /**
+     * @return \Siruis\Agent\Microledgers\AbstractBatchedAPI|null
+     * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     */
+    public function batched(): ?AbstractBatchedAPI
+    {
+        $hub = Hub::current_hub();
+        if (is_null($hub)) {
+            throw new SiriusInitializationError('Hub not initialized');
+        }
+
+        return $hub->get_microledgers()->batched();
     }
 }

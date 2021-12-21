@@ -28,6 +28,8 @@ class OfferCredentialMessage extends BaseIssueCredentialMessage
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     * @throws \SodiumException
+     * @throws \JsonException
      */
     public function __construct(
         array $payload,
@@ -48,7 +50,7 @@ class OfferCredentialMessage extends BaseIssueCredentialMessage
         if ($preview) {
             $attributes = [];
             foreach ($preview as $item) {
-                array_push($attributes, $item->to_json());
+                $attributes[] = $item->to_json();
             }
             $this->payload['credential_preview'] = [
                 '@type' => self::CREDENTIAL_PREVIEW_TYPE,
@@ -56,9 +58,8 @@ class OfferCredentialMessage extends BaseIssueCredentialMessage
             ];
         }
         if ($translation) {
-            $attributes = [];
             foreach ($translation as $item) {
-                array_push($attributes, new AttribTranslation($item->data['attrib_name'], $item->data['translation']));
+                $attributes[] = new AttribTranslation($item->data['attrib_name'], $item->data['translation']);
             }
         }
         if ($offer && $cred_def) {
@@ -68,19 +69,19 @@ class OfferCredentialMessage extends BaseIssueCredentialMessage
                     '@id' => 'libindy-cred-offer-'.$this->getId(),
                     'mime-type' => 'application/json',
                     'data' => [
-                        'base64' => Encryption::bytes_to_b64(json_encode($payload))
+                        'base64' => Encryption::bytes_to_b64(json_encode($payload, JSON_THROW_ON_ERROR))
                     ]
                 ]
             ];
         }
         if ($translation || $issuer_schema) {
             $this->payload['~attach'] = [];
-            $attributes = [];
-            foreach ($translation as $item) {
-                array_push($attributes, $item->to_json());
-            }
             if ($translation) {
-                array_push($this->payload['~attach'], [
+                $attributes = [];
+                foreach ($translation as $item) {
+                    $attributes[] = $item->to_json();
+                }
+                $this->payload['~attach'][] = [
                     '@type' => self::CREDENTIAL_TRANSLATION_TYPE,
                     'id' => self::CREDENTIAL_TRANSLATION_ID,
                     '~l10n' => ['locale' => $this->getLocale()],
@@ -88,17 +89,17 @@ class OfferCredentialMessage extends BaseIssueCredentialMessage
                     'data' => [
                         'json' => $attributes
                     ]
-                ]);
+                ];
             }
             if ($issuer_schema) {
-                array_push($this->payload['~attach'], [
+                $this->payload['~attach'][] = [
                     '@type' => self::ISSUER_SCHEMA_TYPE,
                     'id' => self::ISSUER_SCHEMA_ID,
                     'mime-type' => 'application/json',
                     'data' => [
                         'json' => $issuer_schema
                     ]
-                ]);
+                ];
             }
         }
         if ($expires_time) {

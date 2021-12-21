@@ -39,7 +39,7 @@ RUN mkdir ~/apps && cd ~/apps/ && wget https://www.php.net/distributions/php-7.3
            --with-zlib \
            --with-readline \
            --with-curl \
-           --without-pear \
+           --with-pear \
            --with-openssl \
            --with-sodium \
     && make && make install \
@@ -52,13 +52,11 @@ RUN cd ~/apps && git clone https://github.com/krakjoe/pthreads.git \
     && ./configure \
        --with-libdir='/lib/x86_64-linux-gnu' \
        --enable-pthreads=shared \
-    && make && make install
-
-RUN cd ~/apps && git clone git://github.com/xdebug/xdebug.git \
-    && cd xdebug && git checkout xdebug_2_9 && phpize \
-    && ./configure --enable-xdebug \
     && make && make install \
-    && echo "zend_extension=$(find /usr/local/lib/php/extensions/ -name xdebug.so)" >> /usr/local/lib/php.ini \
-    && echo "xdebug.remote_enable=on" >> /usr/local/lib/php.ini \
-    && echo "xdebug.remote_autostart=off" >> /usr/local/lib/php.ini \
-    && echo 'extension=pthreads' >> /usr/local/lib/php.ini
+    && pecl install xdebug-2.9.8 && pecl install pecl_http
+
+RUN echo 'extension = pthreads' >> /usr/local/lib/php.ini \
+    && echo 'extension = raphf'  >> /usr/local/lib/php.ini \
+    && echo 'zend_extension = xdebug' >> /usr/local/lib/php.ini \
+    && echo 'xdebug.remote_enable = on'  >> /usr/local/lib/php.ini \
+    && echo 'xdebug.remote_autostart = off' >> /usr/local/lib/php.ini

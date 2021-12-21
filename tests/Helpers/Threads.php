@@ -4,9 +4,6 @@
 namespace Siruis\Tests\Helpers;
 
 
-use Siruis\Agent\Coprotocols\AbstractCoProtocolTransport;
-use Siruis\Messaging\Message;
-use Siruis\Tests\CoprotocolsTest;
 use Thread;
 use Threaded;
 
@@ -15,11 +12,11 @@ class Threads
     /**
      * @param Threaded|Threaded[] $tasks
      */
-    public static function run_threads($tasks)
+    public static function run_threads($tasks): void
     {
         $threads = [];
         foreach ($tasks as $task) {
-            array_push($threads, self::thread($task));
+            $threads[] = self::thread($task);
         }
 
         /** @var Thread $thread */
@@ -28,7 +25,7 @@ class Threads
         }
     }
 
-    protected static function thread(Threaded $task)
+    protected static function thread(Threaded $task): Thread
     {
         return new class($task) extends Thread
         {
@@ -39,7 +36,7 @@ class Threads
                 $this->task = $task;
             }
 
-            public function run()
+            public function run(): void
             {
                 $this->task->work();
             }

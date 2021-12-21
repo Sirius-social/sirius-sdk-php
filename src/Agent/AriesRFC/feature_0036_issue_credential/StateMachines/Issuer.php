@@ -69,15 +69,15 @@ class Issuer extends BaseIssuingStateMachine
      */
     public function issue(
         array $values, Schema $schema, CredentialDefinition $cred_def,
-        string $comment = null, string $locale = BaseIssueCredentialMessage::DEF_LOCALE,
-        array $preview = null, array $translation = null, string $cred_id = null
+        string $comment = null, array $preview = null, array $translation = null,
+        string $cred_id = null, string $locale = BaseIssueCredentialMessage::DEF_LOCALE
     ): bool
     {
         $this->coprotocol($this->holder);
         try {
             // Step-1: Send offer to holder
             $offer = Init::AnonCreds()->issuer_create_credential_offer($cred_def->getId());
-            $expires_time = new DateTime(time() + $this->time_to_live);
+            $expires_time = new DateTime(date('Y-m-d H:i:s', time() + $this->time_to_live));
             $offer_msg = new OfferCredentialMessage(
                 [],
                 $comment,

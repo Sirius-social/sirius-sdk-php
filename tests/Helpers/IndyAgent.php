@@ -149,12 +149,12 @@ class IndyAgent
             'their_endpoint' => $pw->their->endpoint
         ];
         $params = ['pass_phrase' => self::PASS_PHRASE];
-        $params[] = [
+        $params = array_merge($params, [
             'my_did' => $pw->me->did,
             'their_did' => $pw->their->did,
             'their_verkey' => $pw->their->verkey,
             'metadata' => $metadata
-        ];
+        ]);
         [$ok,] = $this->http_post($url, $params);
         assertTrue($ok);
     }
@@ -297,7 +297,7 @@ class IndyAgent
         );
         assertTrue($http_post[0]);
         if (!$this->endpoint) {
-            $url = '/agent/admin/wallets' . self::WALLET . '/endpoints/';
+            $url = '/agent/admin/wallets/' . self::WALLET . '/endpoints/';
             [$ok, $resp] = $this->http_get($url);
             assertTrue($ok);
             if ($resp['results']) {
@@ -354,7 +354,7 @@ class IndyAgent
                 'auth' => $auth
             ]);
             if ($resp->getStatusCode() === 200) {
-                $content = json_decode($resp->getBody(), false, 512, JSON_THROW_ON_ERROR);
+                $content = json_decode($resp->getBody(), true, 512, JSON_THROW_ON_ERROR);
                 return [true, $content];
             }
 
@@ -392,7 +392,7 @@ class IndyAgent
             ]);
             if (in_array($resp->getStatusCode(), [200, 201])) {
                 try {
-                    $content = json_decode($resp->getBody(), false, 512, JSON_THROW_ON_ERROR);
+                    $content = json_decode($resp->getBody(), true, 512, JSON_THROW_ON_ERROR);
                 } catch (Exception $e) {
                     $content= null;
                 }

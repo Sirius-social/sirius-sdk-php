@@ -40,7 +40,10 @@ class BaseIssuingStateMachine extends AbstractStateMachine
         $this->coprotocol = null;
     }
 
-    public function coprotocol(Pairwise $pairwise)
+    /**
+     * @throws \Siruis\Errors\Exceptions\StateMachineAborted
+     */
+    public function coprotocol(Pairwise $pairwise): ?CoProtocolP2P
     {
         $this->coprotocol = new CoProtocolP2P(
             $pairwise, [BaseIssueCredentialMessage::PROTOCOL, Ack::PROTOCOL], $this->time_to_live
@@ -48,7 +51,7 @@ class BaseIssuingStateMachine extends AbstractStateMachine
         $this->_register_for_aborting($this->coprotocol);
         try {
             try {
-                yield $this->coprotocol;
+                return $this->coprotocol;
             } catch (OperationAbortedManually $exception) {
                 $this->log(['progress' => 100, 'message' => 'Aborted']);
                 throw new StateMachineAborted('Aborted by User');
@@ -63,11 +66,14 @@ class BaseIssuingStateMachine extends AbstractStateMachine
      * @param BaseIssueCredentialMessage $request
      * @param array|null $response_classes
      * @return BaseIssueCredentialMessage|Ack
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     * @throws \Siruis\Errors\Exceptions\StateMachineTerminatedWithError
      */
     public function switch(BaseIssueCredentialMessage $request, array $response_classes = null)
     {
         while (true) {
-            list($ok, $resp) = $this->coprotocol->switch($request);
+            [$ok, $resp] = $this->coprotocol->switch($request);
             if ($ok) {
                 if ($resp instanceof BaseIssueCredentialMessage || $resp instanceof Ack) {
                     try {
