@@ -16,7 +16,7 @@ use Siruis\Errors\Exceptions\SiriusPromiseContextException;
 use Siruis\Tests\Helpers\Conftest;
 use stdClass;
 
-class TestMicroledgers extends TestCase
+class MicroledgersTest extends TestCase
 {
     public function get_state(AbstractMicroledger $ledger): array
     {

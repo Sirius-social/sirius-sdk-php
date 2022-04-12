@@ -11,7 +11,7 @@ use Siruis\Errors\Exceptions\SiriusTimeoutIO;
 use Siruis\Messaging\Message;
 use Siruis\Tests\Helpers\Conftest;
 
-class TestTimeouts extends TestCase
+class TimeoutsTest extends TestCase
 {
     public function test_agent_rcv_timeout(): void
     {

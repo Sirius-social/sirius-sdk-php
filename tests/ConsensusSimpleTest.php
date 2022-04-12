@@ -17,7 +17,7 @@ use Siruis\Agent\Consensus\Messages\ProposeTransactionsMessage;
 use Siruis\Agent\Microledgers\Transaction;
 use Siruis\Tests\Helpers\Conftest;
 
-class TestConsensusSimple extends TestCase
+class ConsensusSimpleTest extends TestCase
 {
     /**
      * @return void

@@ -8,7 +8,7 @@ use Siruis\Agent\Wallet\Abstracts\Ledger\NYMRole;
 use Siruis\Agent\Wallet\Abstracts\NonSecrets\RetrieveRecordOptions;
 use Siruis\Tests\Helpers\Conftest;
 
-class TestWallet extends TestCase
+class WalletTest extends TestCase
 {
     /**
      * @return void

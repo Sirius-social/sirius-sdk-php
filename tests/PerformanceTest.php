@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Siruis\Messaging\Message;
 use Siruis\Tests\Helpers\Conftest;
 
-class TestPerformance extends TestCase
+class PerformanceTest extends TestCase
 {
     public const TEST_ITERATIONS = 100;
 

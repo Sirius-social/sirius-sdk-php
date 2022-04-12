@@ -8,7 +8,7 @@ use Siruis\Agent\Ledgers\Ledger;
 use Siruis\Agent\Wallet\Abstracts\CacheOptions;
 use Siruis\Tests\Helpers\Conftest;
 
-class TestLedgers extends TestCase
+class LedgersTest extends TestCase
 {
     /**
      * @return void

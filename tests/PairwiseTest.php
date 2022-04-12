@@ -10,7 +10,7 @@ use Siruis\Agent\Pairwise\Pairwise;
 use Siruis\Agent\Pairwise\Their;
 use Siruis\Tests\Helpers\Conftest;
 
-class TestPairwise extends TestCase
+class PairwiseTest extends TestCase
 {
     /**
      * @return void

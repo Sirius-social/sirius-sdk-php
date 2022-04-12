@@ -10,7 +10,7 @@ use Siruis\Tests\Helpers\Threads;
 use Siruis\Tests\Threads\test_0113_query_answer\Requester;
 use Siruis\Tests\Threads\test_0113_query_answer\Responder;
 
-class Test0113QueryAnswer extends TestCase
+class QueryAnswer0113Test extends TestCase
 {
     /**
      * @return void

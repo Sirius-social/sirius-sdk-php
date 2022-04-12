@@ -8,7 +8,7 @@ use Siruis\Storage\Impl\InMemoryImmutableCollection;
 use Siruis\Storage\Impl\InMemoryKeyValueStorage;
 use Siruis\Tests\Helpers\Conftest;
 
-class TestStorages extends TestCase
+class StoragesTest extends TestCase
 {
     public function test_inmemory_kv_storage(): void
     {

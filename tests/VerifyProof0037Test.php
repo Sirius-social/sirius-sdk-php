@@ -13,7 +13,7 @@ use Siruis\Tests\Helpers\Threads;
 use Siruis\Tests\Threads\test_0037_verify_proof\RunProver;
 use Siruis\Tests\Threads\test_0037_verify_proof\RunVerifier;
 
-class Test0037VerifyProof extends TestCase
+class VerifyProof0037Test extends TestCase
 {
     /**
      * @return void

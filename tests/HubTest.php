@@ -7,7 +7,7 @@ use Siruis\Hub\Core\Hub;
 use Siruis\Hub\Init;
 use Siruis\Tests\Helpers\Conftest;
 
-class TestHub extends TestCase
+class HubTest extends TestCase
 {
     /**
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed

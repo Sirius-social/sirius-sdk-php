@@ -28,23 +28,4 @@ php:
 #  - "nightly"  # nightly build
 
 script:
-  - php vendor/phpunit/phpunit/phpunit ./tests/EncryptionTest.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/CoprotocolsTest.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/TestAgent.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/TestFuturePromise.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/TestLocks.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/TestMessages.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/TestMicroledgers.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/TestStorages.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/TestWallet.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/TestPairwise.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/Test0037VerifyProof.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/Test0048TrustPing.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/Test0113QueryAnswer.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/Test0160ConnProtocol.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/TestConsensusSimple.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/TestHub.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/TestLedgers.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/TestNonSecrets.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/TestPerformance.php
-  - php vendor/phpunit/phpunit/phpunit ./tests/TestTimeouts.php
+  - php vendor/phpunit/phpunit/phpunit ./tests

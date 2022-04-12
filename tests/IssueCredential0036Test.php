@@ -17,7 +17,7 @@ use Siruis\Tests\Helpers\Threads;
 use Siruis\Tests\Threads\test_0036_issue_credential\RunHolder;
 use Siruis\Tests\Threads\test_0036_issue_credential\RunIssuer;
 
-class Test0036IssueCredential extends TestCase
+class IssueCredential0036Test extends TestCase
 {
     /**
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed

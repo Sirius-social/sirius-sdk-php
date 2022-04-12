@@ -12,7 +12,7 @@ use Siruis\Encryption\P2PConnection;
 use Siruis\Hub\Core\Hub;
 use Siruis\Hub\Init;
 use Siruis\Tests\Helpers\Conftest;
-use Siruis\Tests\Test0160ConnProtocol;
+use Siruis\Tests\ConnProtocol1060Test;
 
 class RunInviter extends \Threaded
 {
@@ -76,7 +76,7 @@ class RunInviter extends \Threaded
         $my_endpoint = Conftest::get_endpoints($endpoints)[0];
         $phpunit_configs = Conftest::phpunit_configs();
         if ($this->replace_endpoints) {
-            $new_address = Test0160ConnProtocol::replace_url_components($my_endpoint->address, $phpunit_configs['test_suite_overlay_address']);
+            $new_address = ConnProtocol1060Test::replace_url_components($my_endpoint->address, $phpunit_configs['test_suite_overlay_address']);
             $my_endpoint = new Endpoint($new_address, $my_endpoint->routingKeys, $my_endpoint->isDefault);
         }
         $listener = Init::subscribe();
@@ -84,9 +84,9 @@ class RunInviter extends \Threaded
         $connection_key = $event->getRecipientVerkey();
         if ($this->expected_connection_key == $connection_key) {
             $request = $event->getMessage();
-            Test0160ConnProtocol::assertInstanceOf(ConnRequest::class, $request);
+            ConnProtocol1060Test::assertInstanceOf(ConnRequest::class, $request);
             if ($this->replace_endpoints) {
-                $request->payload['connection']['did_doc']['service'][0]['serviceEndpoint'] = Test0160ConnProtocol::replace_url_components(
+                $request->payload['connection']['did_doc']['service'][0]['serviceEndpoint'] = ConnProtocol1060Test::replace_url_components(
                     $request->payload['connection']['did_doc']['service'][0]['serviceEndpoint'],
                     $phpunit_configs['old_agent_overlay_address']
                 );
@@ -99,7 +99,7 @@ class RunInviter extends \Threaded
             // Create connection
             $machine = new Inviter($this->me, $connection_key, $my_endpoint);
             list($ok, $pairwise) = $machine->create_connection($request, $this->did_doc_extra);
-            Test0160ConnProtocol::assertTrue($ok);
+            ConnProtocol1060Test::assertTrue($ok);
             Init::PairwiseList()->ensure_exists($pairwise);
         }
     }

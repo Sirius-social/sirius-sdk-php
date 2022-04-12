@@ -11,7 +11,7 @@ use Siruis\Agent\Microledgers\Transaction;
 use Siruis\Encryption\P2PConnection;
 use Siruis\Hub\Core\Hub;
 use Siruis\Hub\Init;
-use Siruis\Tests\TestConsensusSimple;
+use Siruis\Tests\ConsensusSimpleTest;
 
 class RoutineOfTxnAcceptor extends \Threaded
 {
@@ -46,7 +46,7 @@ class RoutineOfTxnAcceptor extends \Threaded
         $listener = Init::subscribe();
         while (true) {
             $event = $listener->get_one();
-            TestConsensusSimple::assertNotNull($event->pairwise);
+            ConsensusSimpleTest::assertNotNull($event->pairwise);
             $propose = $event->getMessage();
             if ($propose instanceof ProposeTransactionsMessage) {
                 if ($this->txns) {

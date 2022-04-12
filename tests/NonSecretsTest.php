@@ -8,7 +8,7 @@ use Siruis\Agent\Wallet\Impl\NonSecretsProxy;
 use Siruis\Hub\Core\Hub;
 use Siruis\Tests\Helpers\Conftest;
 
-class TestNonSecrets extends TestCase
+class NonSecretsTest extends TestCase
 {
     /**
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed

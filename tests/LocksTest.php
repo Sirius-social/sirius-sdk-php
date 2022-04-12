@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 use Siruis\Agent\Agent\Agent;
 use Siruis\Tests\Helpers\Conftest;
 
-class TestLocks extends TestCase
+class LocksTest extends TestCase
 {
     public function test_same_account(): void
     {

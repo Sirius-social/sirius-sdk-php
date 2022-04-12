@@ -9,7 +9,7 @@ use Siruis\Messaging\Message;
 use Siruis\Tests\Helpers\Conftest;
 use Siruis\Tests\Helpers\TrustPingMessageUnderTest;
 
-class TestAgent extends TestCase
+class AgentTest extends TestCase
 {
     /**
      * @return void

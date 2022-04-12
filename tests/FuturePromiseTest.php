@@ -12,7 +12,7 @@ use Siruis\Messaging\Message;
 use Siruis\RPC\Futures\Future;
 use Siruis\Tests\Helpers\Conftest;
 
-class TestFuturePromise extends TestCase
+class FuturePromiseTest extends TestCase
 {
     /**
      * @throws \JsonException

@@ -19,7 +19,7 @@ class Test2Message extends Message {
 
 }
 
-class TestMessages extends TestCase
+class MessagesTest extends TestCase
 {
     /**
      * @return void

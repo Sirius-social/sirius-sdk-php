@@ -12,7 +12,7 @@ use Siruis\Encryption\P2PConnection;
 use Siruis\Hub\Core\Hub;
 use Siruis\Hub\Init;
 use Siruis\Tests\Helpers\Conftest;
-use Siruis\Tests\Test0160ConnProtocol;
+use Siruis\Tests\ConnProtocol1060Test;
 
 class RunInvitee extends \Threaded
 {
@@ -87,15 +87,15 @@ class RunInvitee extends \Threaded
         $my_endpoint = Conftest::get_endpoints($endpoints_)[0];
         $phpunit_configs = Conftest::phpunit_configs();
         if ($this->replace_endpoints) {
-            $new_address = Test0160ConnProtocol::replace_url_components($my_endpoint->address, $phpunit_configs['test_suite_overlay_address']);
+            $new_address = ConnProtocol1060Test::replace_url_components($my_endpoint->address, $phpunit_configs['test_suite_overlay_address']);
             $my_endpoint = new Endpoint($new_address, $my_endpoint->routingKeys, $my_endpoint->isDefault);
-            $new_address = Test0160ConnProtocol::replace_url_components($this->invitation->payload['serviceEndpoint'], $phpunit_configs['old_agent_overlay_address']);
+            $new_address = ConnProtocol1060Test::replace_url_components($this->invitation->payload['serviceEndpoint'], $phpunit_configs['old_agent_overlay_address']);
             $this->invitation->payload['serviceEndpoint'] = $new_address;
         }
         // Create and start machine
         $machine = new Invitee($this->me, $my_endpoint);
         list($ok, $pairwise) = $machine->create_connection($this->invitation, $this->my_label, $this->did_doc_extra);
-        Test0160ConnProtocol::assertTrue($ok);
+        ConnProtocol1060Test::assertTrue($ok);
         Init::PairwiseList()->ensure_exists($pairwise);
     }
 }

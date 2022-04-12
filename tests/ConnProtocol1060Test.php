@@ -17,7 +17,7 @@ use Siruis\Tests\Threads\feature_0160_conn_protocol\ReadEvents;
 use Siruis\Tests\Threads\feature_0160_conn_protocol\RunInvitee;
 use Siruis\Tests\Threads\feature_0160_conn_protocol\RunInviter;
 
-class Test0160ConnProtocol extends TestCase
+class ConnProtocol1060Test extends TestCase
 {
     public static function replace_url_components(string $url, string $base = null): string
     {

@@ -9,7 +9,7 @@ use Siruis\Agent\Pairwise\Pairwise;
 use Siruis\Agent\Pairwise\Their;
 use Siruis\Tests\Helpers\Conftest;
 
-class Test0048TrustPing extends TestCase
+class TrustPing0048Test extends TestCase
 {
     /**
      * @return void
