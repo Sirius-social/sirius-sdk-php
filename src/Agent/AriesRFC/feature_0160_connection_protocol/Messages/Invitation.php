@@ -16,6 +16,8 @@ class Invitation extends ConnProtocolMessage
 {
     public $NAME = 'invitation';
 
+    public const NAME = 'invitation';
+
     public function __construct(array $payload,
                                 string $label = null,
                                 array $recipient_keys = null,

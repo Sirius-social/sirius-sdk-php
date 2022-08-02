@@ -10,14 +10,14 @@ class InitResponseLedgerMessage extends InitRequestLedgerMessage
 
     public function assign_from(BaseInitLedgerMessage $source)
     {
-        $sourceArray = json_decode($source->serialize());
+        $sourceArray = json_decode($source->serialize(), true);
         $partial = [];
         foreach ($sourceArray as $key => $value) {
             if (!in_array($key, ['@id', '@type', self::THREAD_DECORATOR])) {
-                array_push($partial, [$key => $value]);
+                $partial[$key] = $value;
             }
         }
-        array_push($this->payload, $partial);
+        $this->payload = $partial;
     }
 
     public function signature(string $did): ?array

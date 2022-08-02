@@ -62,7 +62,7 @@ class BaseConnectionStateMachine extends AbstractStateMachine
         $co = $this->coprotocol ?? new CoProtocolP2PAnon(
             $this->me->verkey,
             $endpoint,
-            [ConnProtocolMessage::PROTOCOL, Ack::PROTOCOL, Ping::$PROTOCOL]
+            [ConnProtocolMessage::PROTOCOL, Ack::PROTOCOL, Ping::PROTOCOL]
             );
         $this->_register_for_aborting($co);
         try {

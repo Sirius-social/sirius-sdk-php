@@ -26,8 +26,7 @@ class SecondTask extends Threaded
             '@type' => CoprotocolsTest::$TEST_MSG_TYPES[1],
             'content' => 'Response1'
         ]));
-        CoprotocolsTest::assertTrue($ok);
-        array_push(CoprotocolsTest::$MSG_LOG, $resp1);
+        CoprotocolsTest::$MSG_LOG[] = $resp1;
         $protocol->send(new Message([
             '@type' => CoprotocolsTest::$TEST_MSG_TYPES[3],
             'content' => 'End'

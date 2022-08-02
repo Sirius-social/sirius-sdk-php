@@ -6,16 +6,19 @@ namespace Siruis\Base;
 
 use Siruis\Errors\Exceptions\SiriusConnectionClosed;
 use Siruis\Errors\Exceptions\SiriusIOError;
+use Siruis\Errors\Exceptions\SiriusTimeoutIO;
 use Siruis\Messaging\Message;
 use Throwable;
 use WebSocket\Client;
+use WebSocket\TimeoutException;
 
 
 class WebSocketConnector extends BaseConnector
 {
+    public const DEF_TIMEOUT = 60.0;
+    public const ENC = 'utf-8';
 
-    public $defTimeout = 120;
-    public $enc = 'utf-8';
+    public $timeout;
     public $server_address;
     public $path;
     public $credentials;
@@ -23,7 +26,7 @@ class WebSocketConnector extends BaseConnector
     private $url;
     private $options;
 
-    public function __construct($server_address, $path, $credentials, $defTimeout = null, $enc = null)
+    public function __construct($server_address, $path, $credentials, $timeout = self::DEF_TIMEOUT, $enc = null)
     {
         $this->server_address = $server_address;
         $parsed = parse_url($server_address);
@@ -33,9 +36,7 @@ class WebSocketConnector extends BaseConnector
         }
         $this->path = $path;
         $this->credentials = $credentials;
-        if ($defTimeout) {
-            $this->defTimeout = $defTimeout;
-        }
+        $this->timeout = $timeout;
         if ($enc) {
             $this->enc = $enc;
         }
@@ -46,7 +47,7 @@ class WebSocketConnector extends BaseConnector
                 'origin' => $this->server_address,
                 'mode' => 'text'
             ],
-            'timeout' => $this->defTimeout,
+            'timeout' => $this->timeout,
             'filter' => ['text', 'binary', 'ping', 'pong', 'close']
         ];
         $this->session = new Client($this->url, $this->options);
@@ -97,21 +98,25 @@ class WebSocketConnector extends BaseConnector
      * @return string
      * @throws SiriusConnectionClosed
      * @throws SiriusIOError
+     * @throws SiriusTimeoutIO
      */
     public function read($timeout = null): string
     {
-        if ($timeout) {
-            $this->session->setTimeout($timeout);
+        try {
+            $this->session->setTimeout($timeout ?? $this->timeout);
+            $msg = $this->session->receive();
+        } catch (TimeoutException $e) {
+            throw new SiriusTimeoutIO();
         }
-        $msg = $this->session->receive();
 
         $lastOpcode = $this->session->getLastOpcode();
+
         if ($lastOpcode === 'close') {
             throw new SiriusConnectionClosed();
         }
 
         if ($lastOpcode === 'text') {
-            return mb_convert_encoding($msg, $this->enc);
+            return mb_convert_encoding($msg, self::ENC);
         }
 
         if ($lastOpcode === 'binary') {

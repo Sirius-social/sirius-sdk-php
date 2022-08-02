@@ -46,13 +46,11 @@ class FirstTask extends Threaded
         ]);
         CoprotocolsTest::$MSG_LOG[] = $first_req;
         [$ok, $resp1] = $protocol->switch($first_req);
-        assertTrue($ok);
         CoprotocolsTest::$MSG_LOG[] = $resp1;
         [$ok, $resp2] = $protocol->switch(new Message([
             '@type' => CoprotocolsTest::$TEST_MSG_TYPES[2],
             'content' => 'Request2'
         ]));
-        assertTrue($ok);
         CoprotocolsTest::$MSG_LOG[] = $resp2;
     }
 

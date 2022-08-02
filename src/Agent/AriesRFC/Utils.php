@@ -104,7 +104,7 @@ class Utils
         $sig_verified = $crypto->crypto_verify($signed['signer'], $sig_data_bytes, $signature_bytes);
         $field_json = substr($sig_data_bytes, 8);
         return [
-            json_decode($field_json, false, 512, JSON_THROW_ON_ERROR),
+            json_decode($field_json, true, 512, JSON_THROW_ON_ERROR),
             $sig_verified
         ];
     }

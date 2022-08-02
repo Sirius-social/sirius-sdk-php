@@ -149,7 +149,7 @@ abstract class AbstractCoProtocolTransport
                 $recipient_verkey = $event['recipient_verkey'] ?: null;
                 $sender_verkey = $event['sender_verkey'];
                 if ($recipient_verkey !== $this->my_vk) {
-                    throw new SiriusInvalidPayloadStructure('Unexpected recipient_vekrey: ' . $recipient_verkey);
+                    throw new SiriusInvalidPayloadStructure('Unexpected recipient_verkey: ' . $recipient_verkey);
                 }
                 if ($sender_verkey !== $this->their_vk) {
                     throw new SiriusInvalidPayloadStructure('Unexpected sender_verkey: ' . $sender_verkey);

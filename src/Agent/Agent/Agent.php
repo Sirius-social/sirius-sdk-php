@@ -322,6 +322,21 @@ class Agent extends TransportLayers
         );
     }
 
+    public function echo($message, $data = null)
+    {
+        $this->__check_is_open();
+        $params = [
+            'message' => $message
+        ];
+        if ($data) {
+            $params['data'] = $data;
+        }
+        return $this->rpc->remoteCall(
+            'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin/1.0/echo',
+            $params
+        );
+    }
+
     public function reopen(bool $kill_tasks = false)
     {
         $this->__check_is_open();

@@ -63,13 +63,14 @@ class AgentEvents extends BaseAgentConnection
                 break;
             } catch (SiriusConnectionClosed | SiriusIOError | SiriusTimeoutIO $exception) {
                 $this->reopen();
+                continue;
             }
         }
         if (!$data) {
             throw new SiriusConnectionClosed('agent unreachable');
         }
         try {
-            $payload = json_decode(mb_convert_encoding($data, $this->connector->enc), true, 512, JSON_THROW_ON_ERROR);
+            $payload = json_decode(mb_convert_encoding($data, $this->connector::ENC), true, 512, JSON_THROW_ON_ERROR);
         } catch (JsonException $exception) {
             throw new SiriusInvalidPayloadStructure();
         }
@@ -100,17 +101,9 @@ class AgentEvents extends BaseAgentConnection
     protected function reopen(): void
     {
         $this->connector->reconnect();
-        try {
-            $payload = $this->connector->read(1);
-        } catch (SiriusConnectionClosed | SiriusIOError | SiriusTimeoutIO $e) {
-            throw $e;
-        }
+        $payload = $this->connector->read(1);
         $context = Message::deserialize($payload);
-        if ($context !== null) {
-            $this->setup($context);
-        }
-
-        throw new SiriusContextError();
+        $this->setup($context);
     }
 
     /**

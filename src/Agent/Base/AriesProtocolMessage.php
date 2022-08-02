@@ -78,7 +78,7 @@ class AriesProtocolMessage extends Message
         if ($this->id_) {
             $payload['@id'] = $this->id_;
         }
-        if ($this->doc_uri && !in_array($this->doc_uri, $this->VALID_DOC_URI)) {
+        if ($this->doc_uri && !in_array($this->doc_uri, self::VALID_DOC_URI)) {
             throw new SiriusValidationError('Unexpected doc_uri "'.$this->doc_uri.'"');
         }
         if ($this->protocol && $this->protocol != $this->PROTOCOL) {

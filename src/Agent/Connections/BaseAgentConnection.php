@@ -5,6 +5,7 @@ namespace Siruis\Agent\Connections;
 
 
 use RuntimeException;
+use Siruis\Agent\Wallet\Abstracts\AbstractCrypto;
 use Siruis\Base\WebSocketConnector;
 use Siruis\Encryption\P2PConnection;
 use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
@@ -30,18 +31,25 @@ abstract class BaseAgentConnection
      * @var
      */
     protected $loop;
+    /**
+     * @var AbstractCrypto|null
+     */
+    private $external_crypto;
 
     public function __construct(
         string $server_address,
         $credentials,
         P2PConnection $p2p,
         int $timeout = self::IO_TIMEOUT,
-        $loop = null
+        $loop = null,
+        AbstractCrypto $external_crypto = null,
+        array $extra = null
     )
     {
         $this->connector = new WebSocketConnector($server_address, $this->path(), $credentials, $timeout);
         $this->p2p = $p2p;
         $this->timeout = $timeout;
+        $this->external_crypto = $external_crypto;
     }
 
     abstract public function path();

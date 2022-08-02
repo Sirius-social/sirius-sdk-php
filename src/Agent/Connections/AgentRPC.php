@@ -7,6 +7,7 @@ use DateTime;
 use Exception;
 use RuntimeException;
 use Siruis\Agent\Transport;
+use Siruis\Agent\Wallet\Abstracts\AbstractCrypto;
 use Siruis\Encryption\P2PConnection;
 use Siruis\Errors\Exceptions\SiriusConnectionClosed;
 use Siruis\Errors\Exceptions\SiriusRPCError;
@@ -47,6 +48,10 @@ class AgentRPC extends BaseAgentConnection
      * @var bool
      */
     public $preferAgentSide;
+    /**
+     * @var AbstractCrypto|null
+     */
+    private $external_crypto;
 
     /**
      * AgentRPC constructor.
@@ -56,15 +61,16 @@ class AgentRPC extends BaseAgentConnection
      * @param int $timeout
      * @param null $loop
      */
-    public function __construct(string $server_address, $credentials, P2PConnection $p2p, int $timeout = self::IO_TIMEOUT, $loop = null)
+    public function __construct(string $server_address, $credentials, P2PConnection $p2p, int $timeout = self::IO_TIMEOUT, $loop = null, AbstractCrypto $external_crypto = null)
     {
-        parent::__construct($server_address, $credentials, $p2p, $timeout, $loop);
+        parent::__construct($server_address, $credentials, $p2p, $timeout, $loop, $external_crypto);
         $this->tunnel_rpc = null;
         $this->tunnel_coprotocols = null;
         $this->endpoints = [];
         $this->networks = [];
         $this->websockets = [];
         $this->preferAgentSide = true;
+        $this->external_crypto = $external_crypto;
     }
 
     /**
@@ -158,34 +164,67 @@ class AgentRPC extends BaseAgentConnection
         if (!$this->connector->isOpen()) {
             throw new SiriusConnectionClosed('Open agent connection at first');
         }
+
         if (is_string($their_vk)) {
             $recipient_verkeys = [$their_vk];
         } else {
             $recipient_verkeys = $their_vk;
         }
-        $params = [
-            'message' => $message->payload,
-            'routing_keys' => $routing_keys ?: [],
-            'recipient_verkeys' => $recipient_verkeys,
-            'sender_verkey' => $my_vk
-        ];
-        if ($this->preferAgentSide) {
-            $params = array_merge($params, ['timeout' => $this->timeout, 'endpoint_address' => $endpoint]);
-            [$ok, $body] = $this->remoteCall('did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/send_message', $params);
-        } else {
-            $wired = $this->remoteCall(
-                'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/prepare_message_for_send',
-                $params
+
+        if ($this->external_crypto) {
+            $wired = $this->external_crypto->pack_message(
+                $message, $recipient_verkeys, $my_vk
             );
-            if (StringHelper::startsWith($endpoint, 'ws://') || StringHelper::startsWith($endpoint, 'wss://')) {
-                $ws = $this->getWebsocket($endpoint);
-                $ws->binary($wired);
-                $ok = true;
-                $body = b'';
+
+            if ($this->preferAgentSide) {
+                $params = [
+                    'message' => $wired,
+                    'timeout' => $this->timeout,
+                    'endpoint_address' => $endpoint
+                ];
+                [$ok, $body] = $this->remoteCall(
+                    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/admin/1.0/send_enc_message',
+                    $params
+                );
             } else {
-                [$ok, $body] = Transport::http_send($wired, $endpoint, $this->timeout);
+                if (StringHelper::startsWith($endpoint, 'ws://') || StringHelper::startsWith($endpoint, 'wss://')) {
+                    $ws = $this->getWebsocket($endpoint);
+                    $ws->binary($wired);
+                    [$ok, $body] = [true, b''];
+                } else {
+                    [$ok, $body] = Transport::http_send($wired, $endpoint, $this->timeout);
+                }
+            }
+        } else {
+            $params = [
+                'message' => $message->payload,
+                'routing_keys' => $routing_keys ?? [],
+                'recipient_verkeys' => $recipient_verkeys,
+                'sender_verkey' => $my_vk
+            ];
+
+            if ($this->preferAgentSide) {
+                $params['timeout'] = $this->timeout;
+                $params['endpoint_address'] = $endpoint;
+                [$ok, $body] = $this->remoteCall(
+                    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/send_message',
+                    $params
+                );
+            } else {
+                $wired = $this->remoteCall(
+                    'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/sirius_rpc/1.0/prepare_message_for_send',
+                    $params
+                );
+                if (StringHelper::startsWith($endpoint, 'ws://') || StringHelper::startsWith($endpoint, 'wss://')) {
+                    $ws = $this->getWebsocket($endpoint);
+                    $ws->binary($wired);
+                    [$ok, $body] = [true, b''];
+                } else {
+                    [$ok, $body] = Transport::http_send($wired, $endpoint, $this->timeout);
+                }
             }
         }
+
         if (!$ok) {
             if (!$ignore_errors) {
                 throw new SiriusRPCError($body);
