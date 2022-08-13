@@ -200,7 +200,7 @@ abstract class AbstractCoProtocolTransport
             }
             $payload = new Message($event->getAttribute('message') ?? []);
             if (!is_null($payload->payload)) {
-                [$ok, $message] = Message::restoreMessageInstance($payload->payload);
+                [$ok, $message] = restore_message_instance($payload->payload);
                 if (!$ok) {
                     $message = new Message($payload->payload);
                 }
@@ -233,7 +233,7 @@ abstract class AbstractCoProtocolTransport
         $this->rpc->setTimeout($timeout);
         $event = $this->rpc->read_protocol_message();
         if (in_array('message', $event->payload)) {
-            [$ok, $message] = Message::restoreMessageInstance($event->payload);
+            [$ok, $message] = restore_message_instance($event->payload);
             if (!$ok) {
                 $message = new Message($event->payload['message']);
             }
