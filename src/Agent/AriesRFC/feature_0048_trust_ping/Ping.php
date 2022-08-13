@@ -8,7 +8,6 @@ use Siruis\Agent\Base\AriesProtocolMessage;
 use Siruis\Errors\Exceptions\SiriusInvalidMessageClass;
 use Siruis\Errors\Exceptions\SiriusInvalidType;
 use Siruis\Errors\Exceptions\SiriusValidationError;
-use Siruis\Messaging\Message;
 
 class Ping extends AriesProtocolMessage
 {
@@ -55,7 +54,7 @@ class Ping extends AriesProtocolMessage
         } elseif ($response_requested) {
             $this->response_requested = $response_requested;
         }
-        Message::registerMessageClass(Ping::class, $this->PROTOCOL, $this->NAME);
+        register_message_class(Ping::class, $this->PROTOCOL, $this->NAME);
     }
 
     /**

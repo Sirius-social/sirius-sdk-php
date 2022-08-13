@@ -4,7 +4,6 @@
 namespace Siruis\Hub\Coprotocols;
 
 
-use Siruis\Agent\Coprotocols\TheirEndpointCoProtocolTransport;
 use Siruis\Agent\Pairwise\Pairwise;
 use Siruis\Helpers\ArrayHelper;
 use Siruis\Hub\Core\Hub;
@@ -12,18 +11,7 @@ use Siruis\Messaging\Message;
 
 class CoProtocolP2P extends AbstractP2PCoProtocol
 {
-    /**
-     * @var Pairwise
-     */
-    protected $pairwise;
-    /**
-     * @var array
-     */
-    public $protocols;
-    /**
-     * @var string|null
-     */
-    protected $thread_id;
+    private $pairwise, $protocols, $thread_id;
 
     public function __construct(Pairwise $pairwise, array $protocols, int $time_to_live = null)
     {
@@ -33,11 +21,18 @@ class CoProtocolP2P extends AbstractP2PCoProtocol
         $this->thread_id = null;
     }
 
+    public function getProtocols(): array
+    {
+        return $this->protocols;
+    }
+
     /**
      * @param \Siruis\Messaging\Message $message
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function send(Message $message): void
     {
@@ -47,7 +42,13 @@ class CoProtocolP2P extends AbstractP2PCoProtocol
     }
 
     /**
-     * @inheritDoc
+     * @return \Siruis\Messaging\Message|string|null
+     *
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function get_one()
     {
@@ -108,7 +109,7 @@ class CoProtocolP2P extends AbstractP2PCoProtocol
             $this->hub = Hub::current_hub();
             $agent = $this->hub->get_agent_connection_lazy();
             $this->transport = $agent->spawnPairwise($this->pairwise);
-            $this->transport->start($this->protocols, $this->time_to_live);
+            $this->transport->start($this->protocols, $this->getTTL());
             $this->is_start = true;
         }
         return $this->transport;

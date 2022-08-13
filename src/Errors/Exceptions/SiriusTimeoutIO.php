@@ -2,8 +2,7 @@
 
 namespace Siruis\Errors\Exceptions;
 
-use Exception;
 
-class SiriusTimeoutIO extends Exception
+class SiriusTimeoutIO extends BaseSiriusException
 {
 }

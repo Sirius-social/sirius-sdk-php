@@ -11,7 +11,6 @@ use Siruis\Agent\Microledgers\LedgerMeta;
 use Siruis\Agent\Microledgers\MerkleInfo;
 use Siruis\Agent\Microledgers\Microledger;
 use Siruis\Agent\Microledgers\Transaction;
-use Siruis\Encryption\Encryption;
 use Siruis\Errors\Exceptions\SiriusPromiseContextException;
 use Siruis\Tests\Helpers\Conftest;
 use stdClass;
@@ -415,7 +414,7 @@ class MicroledgersTest extends TestCase
             [, $txns] = $agent->microledgers->create($ledger_name, $genesis_txns);
             $txn = $txns[0];
             $leaf_hash = $agent->microledgers->leaf_hash($txn);
-            $leaf_hash_b58 = Encryption::bytes_to_b58($leaf_hash);
+            $leaf_hash_b58 = bytes_to_b58($leaf_hash);
             self::assertIsString($leaf_hash);
             $expected_b58 = '9Cekj2hzePVyyCMELL9WvSAccaShLK3QKfWMBHvy4WzT';
             self::assertEquals($expected_b58, $leaf_hash_b58);
@@ -563,7 +562,7 @@ class MicroledgersTest extends TestCase
     /**
      * @return void
      */
-    public function test_batched_ops_perfomance(): void
+    public function test_batched_ops_performance(): void
     {
         $agent = Conftest::agent4();
         $genesis_txns = [
@@ -626,18 +625,15 @@ class MicroledgersTest extends TestCase
             }
             $stamp2 = new DateTime();
             $seconds_for_100_non_parallel = date_diff($stamp2, $stamp1)->f;
-            printf('========== Timeout for 100 Ledgers Non-parallel mode =======');
-            printf("Seconds: $seconds_for_100_non_parallel");
-            printf('========================================');
-            self::assertGreaterThan($seconds_for_100, $seconds_for_100_non_parallel / 2);
+            printf('========== Timeout for 100 Ledgers Non-parallel mode =======\n');
+            printf("Seconds: $seconds_for_100_non_parallel\n");
+            printf('========================================\n');
+            self::assertGreaterThan($seconds_for_100_non_parallel / 2, $seconds_for_100);
         } finally {
             $agent->close();
         }
     }
 
-    /**
-     * @return void
-     */
     public function test_microledgers_in_same_context_space_1(): void
     {
         $agent = Conftest::agent4();
@@ -673,11 +669,10 @@ class MicroledgersTest extends TestCase
     }
 
     /**
-     * @return void
-     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
-     * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      */
     public function test_microledgers_in_same_context_space_2(): void
     {
@@ -721,9 +716,6 @@ class MicroledgersTest extends TestCase
         }
     }
 
-    /**
-     * @return void
-     */
     public function test_batched_ops_errors(): void
     {
         $agent = Conftest::agent4();

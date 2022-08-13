@@ -13,26 +13,16 @@ use Siruis\Messaging\Message;
 
 class CoProtocolThreadedTheirs extends AbstractCoProtocol
 {
-    /**
-     * @var string
-     */
-    private $thid;
-    /**
-     * @var array
-     */
-    public $theirs;
-    /**
-     * @var string|null
-     */
-    private $pthid;
-    protected $dids;
+    private $thid, $theirs, $pthid, $dids;
 
     /**
      * CoProtocolThreadedTheirs constructor.
+     *
      * @param string $thid
      * @param array $theirs
      * @param string|null $pthid
      * @param int|null $time_to_live
+     *
      * @throws \Siruis\Errors\Exceptions\SiriusContextError
      */
     public function __construct(string $thid, array $theirs, string $pthid = null, int $time_to_live = null)
@@ -52,17 +42,25 @@ class CoProtocolThreadedTheirs extends AbstractCoProtocol
     }
 
     /**
+     * Get private theirs attribute.
+     *
+     * @return \Siruis\Agent\Pairwise\Pairwise[]
+     */
+    public function getTheirs(): array
+    {
+        return $this->theirs;
+    }
+
+    /**
      * Send message to given participants
      *
      * @param \Siruis\Messaging\Message $message
      * @return array List[( str: participant-id, bool: message was successfully sent, str: endpoint response body )]
-     * @throws \JsonException
      * @throws \Siruis\Errors\Exceptions\OperationAbortedManually
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
@@ -89,13 +87,11 @@ class CoProtocolThreadedTheirs extends AbstractCoProtocol
      * Read event from any of participants at given timeout
      *
      * @return array|null[] (Pairwise: participant-id, Message: message from given participant)
-     * @throws \JsonException
      * @throws \Siruis\Errors\Exceptions\OperationAbortedManually
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function get_one(): array
@@ -112,7 +108,9 @@ class CoProtocolThreadedTheirs extends AbstractCoProtocol
 
     /**
      * Switch state while participants at given timeout give responses
+     *
      * @param \Siruis\Messaging\Message $message
+     *
      * @return array
      * {
      *      Pairwise: participant,
@@ -121,12 +119,10 @@ class CoProtocolThreadedTheirs extends AbstractCoProtocol
      *          Message: response message from participant or Null if request message was not successfully sent
      *      )
      * }
-     * @throws \JsonException
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      * @throws \Siruis\Errors\Exceptions\OperationAbortedManually
@@ -176,6 +172,7 @@ class CoProtocolThreadedTheirs extends AbstractCoProtocol
 
     /**
      * @return \Siruis\Agent\Coprotocols\ThreadBasedCoProtocolTransport|null
+     *
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
@@ -191,7 +188,7 @@ class CoProtocolThreadedTheirs extends AbstractCoProtocol
             } else {
                 $this->transport = $agent->spawnThidPthid($this->thid, $this->pthid);
             }
-            $this->transport->start(null, $this->time_to_live);
+            $this->transport->start(null, $this->getTTL());
             $this->is_start = true;
         }
         return $this->transport;

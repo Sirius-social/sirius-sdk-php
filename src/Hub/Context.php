@@ -5,7 +5,6 @@ namespace Siruis\Hub;
 
 
 use Siruis\Helpers\ArrayHelper;
-use Swoole\Lock;
 
 class Context
 {

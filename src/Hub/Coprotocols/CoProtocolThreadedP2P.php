@@ -12,18 +12,7 @@ use Siruis\Messaging\Message;
 
 class CoProtocolThreadedP2P extends AbstractP2PCoProtocol
 {
-    /**
-     * @var string
-     */
-    public $thid;
-    /**
-     * @var Pairwise
-     */
-    public $to;
-    /**
-     * @var string|null
-     */
-    public $pthid;
+    private $thid, $to, $pthid;
 
     public function __construct(
         string $thid, Pairwise $to, string $pthid = null, int $time_to_live = null
@@ -35,18 +24,32 @@ class CoProtocolThreadedP2P extends AbstractP2PCoProtocol
         $this->pthid = $pthid;
     }
 
+    public function getThid(): string
+    {
+        return $this->thid;
+    }
+
+    public function getTo(): Pairwise
+    {
+        return $this->to;
+    }
+
+    public function getPthid(): ?string
+    {
+        return $this->pthid;
+    }
+
     /**
      * @param \Siruis\Messaging\Message $message
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \JsonException
      * @throws \Siruis\Errors\Exceptions\OperationAbortedManually
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\SiriusRPCError
      */
     public function send(Message $message): void
     {
@@ -60,13 +63,11 @@ class CoProtocolThreadedP2P extends AbstractP2PCoProtocol
 
     /**
      * @return array|null
-     * @throws \JsonException
      * @throws \Siruis\Errors\Exceptions\OperationAbortedManually
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function get_one(): ?array
@@ -83,14 +84,17 @@ class CoProtocolThreadedP2P extends AbstractP2PCoProtocol
      * @param \Siruis\Messaging\Message $message
      * @return array
      * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\OperationAbortedManually
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessage
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
+     * @throws \Siruis\Errors\Exceptions\SiriusRPCError
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
-     * @throws \Siruis\Errors\Exceptions\OperationAbortedManually
      */
     public function switch(Message $message): array
     {
@@ -120,7 +124,7 @@ class CoProtocolThreadedP2P extends AbstractP2PCoProtocol
             } else {
                 $this->transport = $agent->spawnThidPairwisePthd($this->thid, $this->to, $this->pthid);
             }
-            $this->transport->start(null, $this->time_to_live);
+            $this->transport->start(null, $this->getTTL());
             $this->is_start = true;
         }
         return $this->transport;

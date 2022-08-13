@@ -8,6 +8,11 @@ use Siruis\Messaging\Message;
 
 abstract class AbstractP2PCoProtocol extends AbstractCoProtocol
 {
+    public function __construct(int $time_to_live = null)
+    {
+        parent::__construct($time_to_live);
+    }
+
     abstract public function send(Message $message);
 
     /**

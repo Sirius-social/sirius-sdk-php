@@ -16,13 +16,12 @@ use Siruis\Tests\Threads\test_0037_verify_proof\RunVerifier;
 class VerifyProof0037Test extends TestCase
 {
     /**
-     * @return void
-     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
-     * @throws \Siruis\Errors\Exceptions\SiriusIOError
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
-     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
      * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      */
     public function test_sane(): void
     {
@@ -139,13 +138,12 @@ class VerifyProof0037Test extends TestCase
     }
 
     /**
-     * @return void
-     * @throws \JsonException
-     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
-     * @throws \Siruis\Errors\Exceptions\SiriusIOError
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusValidationError
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      */
     public function test_multiple_provers(): void
     {
@@ -171,8 +169,8 @@ class VerifyProof0037Test extends TestCase
             $p2_to_v = Conftest::get_pairwise($prover2, $verifier);
 
             printf('Register schema');
-            [$did_issuer,] = [$i_to_p1->me->did, $i_to_p1->me->verkey];
-            $schema_name = 'schema_'.uniqid('', true);
+            $did_issuer = $i_to_p1->me->did;
+            $schema_name = 'schema_' . uniqid();
             [, $anoncred_schema] = $issuer->wallet->anoncreds->issuer_create_schema(
                 $did_issuer, $schema_name, '1.0', ['attr1', 'attr2', 'attr3']
             );

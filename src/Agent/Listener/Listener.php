@@ -48,7 +48,7 @@ class Listener
         $eventMessage = $this->source->pull($timeout);
         $event = json_decode($eventMessage->serialize(), true, 512, JSON_THROW_ON_ERROR);
         if (array_key_exists('message', $event)) {
-            [$ok, $message] = Message::restoreMessageInstance($event['message']);
+            [$ok, $message] = restore_message_instance($event['message']);
             if ($ok) {
                 $event['message'] = $message;
             } else {

@@ -65,12 +65,12 @@ class Parsing
         }
 
         if ($var instanceof RawBytes) {
-            return ['application/base64', Encryption::bytes_to_b64($var->toBytes())];
+            return ['application/base64', bytes_to_b64($var->toBytes())];
         }
 
         if (is_string($var)) {
             if (self::is_binary($var)) {
-                return ['application/base64', Encryption::bytes_to_b64($var)];
+                return ['application/base64', bytes_to_b64($var)];
             }
 
             return [null, $var];
@@ -80,7 +80,7 @@ class Parsing
     }
 
     /**
-     * Deserialize varaible.
+     * Deserialize variable.
      *
      * @param $payload
      * @param string|null $typ
@@ -94,7 +94,7 @@ class Parsing
         }
 
         if ($typ === 'application/base64') {
-            return Encryption::b64_to_bytes($payload);
+            return b64_to_bytes($payload);
         }
 
         if (array_key_exists($typ, self::CLS_MAP)) {
@@ -201,7 +201,7 @@ class Parsing
                     if ($packet['is_tuple']) {
                         $parsed['value'] = [$value];
                     } elseif ($packet['is_bytes']) {
-                        $parsed['value'] = Encryption::b64_to_bytes($value);
+                        $parsed['value'] = b64_to_bytes($value);
                     } else {
                         $parsed['value'] = $value;
                     }

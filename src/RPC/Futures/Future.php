@@ -134,7 +134,7 @@ class Future
                         if ($payload['is_tuple']) {
                             $this->value = (array)$value;
                         } elseif ($payload['is_bytes']) {
-                            $this->value = Encryption::b64_to_bytes($value);
+                            $this->value = b64_to_bytes($value);
                         } else {
                             $this->value = $value;
                         }

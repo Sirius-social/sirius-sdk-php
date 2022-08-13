@@ -1,44 +1,37 @@
 <?php
 
-
 namespace Siruis\Agent\Coprotocols;
-
 
 use Siruis\Agent\Connections\AgentRPC;
 use Siruis\Agent\Pairwise\Pairwise;
-use Siruis\Agent\Pairwise\Their;
 use Siruis\Messaging\Fields\DIDField;
 use Siruis\Messaging\Message;
 
+/**
+ * CoProtocol based on ~thread decorator
+ *
+ * See details:
+ *  - https://github.com/hyperledger/aries-rfcs/tree/master/concepts/0008-message-id-and-threading
+ */
 class ThreadBasedCoProtocolTransport extends AbstractCoProtocolTransport
 {
     /**
      * @var string
      */
-    public $thid;
+    private $thid;
     /**
-     * @var Pairwise|null
+     * @var \Siruis\Agent\Pairwise\Pairwise|null
      */
-    public $pairwise;
+    protected $pairwise;
     /**
      * @var string|null
      */
-    public $pthid;
-    /**
-     * @var int
-     */
-    public $sender_order;
-    /**
-     * @var array
-     */
-    public $received_orders;
-    /**
-     * @var Their|null
-     */
-    public $their;
+    private $pthid;
+    private $sender_order;
+    private $received_orders;
+    private $their;
 
     /**
-     * ThreadBasedCoProtocolTransport constructor.
      * @param string $thid
      * @param \Siruis\Agent\Pairwise\Pairwise|null $pairwise
      * @param \Siruis\Agent\Connections\AgentRPC $rpc
@@ -48,18 +41,23 @@ class ThreadBasedCoProtocolTransport extends AbstractCoProtocolTransport
     {
         parent::__construct($rpc);
         $this->thid = $thid;
-        $this->setPairwise($pairwise);
+        $this->pairwise = $pairwise;
         $this->pthid = $pthid;
         $this->sender_order = 0;
         $this->received_orders = [];
     }
 
-    public function setPairwise(?Pairwise $value): void
+    public function getPairwise(): Pairwise
+    {
+        return $this->pairwise;
+    }
+
+    public function setPairwise(?Pairwise $value)
     {
         $this->pairwise = $value;
         if ($value) {
             $this->their = $value->their;
-            $this->setup(
+            $this->_setup(
                 $value->their->verkey,
                 $value->their->endpoint,
                 $value->me->verkey,
@@ -67,36 +65,29 @@ class ThreadBasedCoProtocolTransport extends AbstractCoProtocolTransport
             );
         } else {
             $this->their = null;
-            $this->setup('', '');
+            $this->_setup('', '');
         }
     }
 
     /**
      * @param array|null $protocols
      * @param int|null $time_to_live
-     * @return void
+     *
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public function start(array $protocols = null, int $time_to_live = null): void
+    public function start(array $protocols = null, int $time_to_live = null)
     {
-        if (!$protocols) {
+        if (is_null($protocols)) {
             $this->check_protocols = false;
         }
         parent::start($protocols, $time_to_live);
         $this->rpc->start_protocol_with_threading($this->thid, $time_to_live);
     }
 
-    /**
-     * @return void
-     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
-     * @throws \Siruis\Errors\Exceptions\SiriusIOError
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
-     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
-     */
-    public function stop(): void
+    public function stop()
     {
         parent::stop();
         $this->rpc->stop_protocol_with_threading($this->thid, true);
@@ -104,74 +95,72 @@ class ThreadBasedCoProtocolTransport extends AbstractCoProtocolTransport
 
     /**
      * @param \Siruis\Messaging\Message $message
+     *
      * @return array
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessage
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
-     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
+     * @throws \Siruis\Errors\Exceptions\SiriusRPCError
      */
     public function switch(Message $message): array
     {
-        $message = $this->prepare_message($message);
-        $switchArr = parent::switch($message);
-        if ($switchArr[0]) {
-            $thread = $switchArr[1]['~thread'] ?: [];
-            $respond_sender_order = $thread['sender_order'] ?: null;
-            if ($respond_sender_order) {
+        $message = $this->prepare_message($message) ?? $message;
+        [$ok, $response] = parent::switch($message);
+        if ($ok) {
+            $thread = $response->payload[self::THREAD_DECORATOR] ?? [];
+            $respond_sender_order = $thread['sender_order'] ?? null;
+            if (!is_null($respond_sender_order) && !is_null($this->their)) {
                 $recipient = $this->their->did;
-                $didField = new DIDField();
-                $err = $didField->validate($recipient);
-                if (!$err) {
-                    $order = $this->received_orders[$recipient] ?: 0;
+                $err = (new DIDField())->validate($recipient);
+                if (is_null($err)) {
+                    $order = $this->received_orders[$recipient] ?? 0;
                     $this->received_orders[$recipient] = max($order, $respond_sender_order);
                 }
             }
         }
-        return [$switchArr[0], $switchArr[1]];
+        return [$ok, $response];
     }
 
     /**
-     * @param \Siruis\Messaging\Message &$message
-     * @return void
+     * @param \Siruis\Messaging\Message $message
+     *
      * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
-     * @throws \JsonException
+     * @throws \Siruis\Errors\Exceptions\SiriusRPCError
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public function send(Message $message): void
+    public function send(Message $message)
     {
-        $message = $this->prepare_message($message);
+        $message = $this->prepare_message($message) ?? $message;
         parent::send($message);
     }
 
     /**
      * @param \Siruis\Messaging\Message $message
      * @param array $to
+     *
      * @return array
-     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     *
      * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
-     * @throws \JsonException
      */
     public function send_many(Message $message, array $to): array
     {
-        $message = $this->prepare_message($message);
+        $message = $this->prepare_message($message) ?? $message;
         return parent::send_many($message, $to);
     }
 
-    /**
-     * @param \Siruis\Messaging\Message $message
-     * @return \Siruis\Messaging\Message
-     * @throws \JsonException
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
-     */
-    protected function prepare_message(Message $message): Message
+    private function prepare_message(Message $message)
     {
-        $context = json_decode($message->serialize(), true, 512, JSON_THROW_ON_ERROR);
-        if (!array_key_exists(self::THREAD_DECORATOR, $context)) {
+        if (!in_array(self::THREAD_DECORATOR, $message->payload)) {
             $thread_decorator = [
                 'thid' => $this->thid,
                 'sender_order' => $this->sender_order
@@ -182,9 +171,12 @@ class ThreadBasedCoProtocolTransport extends AbstractCoProtocolTransport
             if ($this->received_orders) {
                 $thread_decorator['received_orders'] = $this->received_orders;
             }
-            ++$this->sender_order;
-            $context[self::THREAD_DECORATOR] = $thread_decorator;
-            return new Message($context);
+            $this->sender_order += 1;
+            $message->payload[self::THREAD_DECORATOR] = $thread_decorator;
+
+            return $message;
         }
+
+        return false;
     }
 }

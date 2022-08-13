@@ -36,20 +36,26 @@ class CoprotocolsTest extends TestCase
     /**
      * @var Message[]
      */
-    public static $MSG_LOG = [];
+    public $MSG_LOG = [];
 
     protected function check_msg_log(): void
     {
-        self::assertCount(count(self::$TEST_MSG_TYPES), self::$MSG_LOG);
+        self::assertCount(count(self::$TEST_MSG_TYPES), $this->MSG_LOG);
         foreach (self::$TEST_MSG_TYPES as $i => $item) {
-            self::assertEquals(self::$TEST_MSG_TYPES[$i], self::$MSG_LOG[$i]->type);
+            self::assertEquals(self::$TEST_MSG_TYPES[$i], $this->MSG_LOG[$i]->type);
         }
-        self::assertEquals('Request1', self::$MSG_LOG[0]['content']);
-        self::assertEquals('Response1', self::$MSG_LOG[1]['content']);
-        self::assertEquals('Request2', self::$MSG_LOG[2]['content']);
-        self::assertEquals('End', self::$MSG_LOG[3]['content']);
+        self::assertEquals('Request1', $this->MSG_LOG[0]['content']);
+        self::assertEquals('Response1', $this->MSG_LOG[1]['content']);
+        self::assertEquals('Request2', $this->MSG_LOG[2]['content']);
+        self::assertEquals('End', $this->MSG_LOG[3]['content']);
     }
 
+    /**
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
+     */
     public function test__their_endpoint_protocol(): void
     {
         $test_suite = Conftest::test_suite();
@@ -85,8 +91,15 @@ class CoprotocolsTest extends TestCase
             $agent1_protocol->start(['test-protocol']);
             $agent2_protocol->start(['test-protocol']);
             try {
-                self::$MSG_LOG = [];
-                Threads::run_threads([new FirstTask($agent1_protocol), new SecondTask($agent2_protocol)]);
+                $this->MSG_LOG = [];
+                $first_task = new FirstTask($agent1_protocol);
+                $second_task = new SecondTask($agent2_protocol);
+                Threads::run_threads([$first_task, $second_task]);
+                $results = $first_task->results;
+                $results[] = $second_task->resp1;
+                foreach ($results as $result) {
+                    $this->MSG_LOG = $result;
+                }
                 $this->check_msg_log();
             } finally {
                 $agent1_protocol->stop();

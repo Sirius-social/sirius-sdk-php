@@ -7,7 +7,6 @@ use Exception;
 use RuntimeException;
 use Siruis\Errors\Exceptions\SiriusCryptoError;
 use TypeError;
-use const Sodium\CRYPTO_BOX_NONCEBYTES;
 
 class Ed25519
 {
@@ -18,7 +17,7 @@ class Ed25519
     public static function ensure_is_bytes($b58_or_bytes): string
     {
         if (is_string($b58_or_bytes)) {
-            return Encryption::b58_to_bytes($b58_or_bytes);
+            return b58_to_bytes($b58_or_bytes);
         }
 
         return $b58_or_bytes;
@@ -50,7 +49,7 @@ class Ed25519
             $target_pk = sodium_crypto_sign_ed25519_pk_to_curve25519($target_vk);
 
             if ($from_verkey) {
-                $b58_from_verkey = Encryption::bytes_to_b58($from_verkey);
+                $b58_from_verkey = bytes_to_b58($from_verkey);
                 $sender_vk = mb_convert_encoding($b58_from_verkey, 'ASCII');
                 $enc_sender = sodium_crypto_box_seal($sender_vk, $target_pk);
                 $sk = sodium_crypto_sign_ed25519_sk_to_curve25519($from_sigkey);
@@ -65,20 +64,20 @@ class Ed25519
             }
 
             if ($enc_sender) {
-                $ar_sender = Encryption::bytes_to_b64($enc_sender, true);
+                $ar_sender = bytes_to_b64($enc_sender, true);
             } else {
                 $ar_sender = null;
             }
             if ($nonce) {
-                $iv = Encryption::bytes_to_b64($nonce, true);
+                $iv = bytes_to_b64($nonce, true);
             } else {
                 $iv = null;
             }
 
             $recips[] = [
-                'encrypted_key' => Encryption::bytes_to_b64($enc_cek, true),
+                'encrypted_key' => bytes_to_b64($enc_cek, true),
                 'header' => [
-                    'kid' => Encryption::bytes_to_b58($target_vk),
+                    'kid' => bytes_to_b58($target_vk),
                     'sender' => $ar_sender,
                     'iv' => $iv
                 ]
@@ -114,18 +113,18 @@ class Ed25519
 
             $recipient_vk_b58 = $recipient->header->kid;
 
-            if (Encryption::bytes_to_b58($my_verKey) !== $recipient_vk_b58) {
+            if (bytes_to_b58($my_verKey) !== $recipient_vk_b58) {
                 $not_found[] = $recipient_vk_b58;
                 continue;
             }
 
             $pk = sodium_crypto_sign_ed25519_pk_to_curve25519($my_verKey);
             $sk = sodium_crypto_sign_ed25519_sk_to_curve25519($my_sigKey);
-            $encrypted_key = Encryption::b64_to_bytes($recipient->encrypted_key, true);
+            $encrypted_key = b64_to_bytes($recipient->encrypted_key, true);
             if (isset($recipient->header->iv, $recipient->header->sender) && $recipient->header->iv && $recipient->header->sender)
             {
-                $nonce = Encryption::b64_to_bytes($recipient->header->iv, true);
-                $enc_sender = Encryption::b64_to_bytes($recipient->header->sender, true);
+                $nonce = b64_to_bytes($recipient->header->iv, true);
+                $enc_sender = b64_to_bytes($recipient->header->sender, true);
             } else {
                 $nonce = null;
                 $enc_sender = null;
@@ -134,7 +133,7 @@ class Ed25519
             if ($nonce && $enc_sender) {
                 $sender_keys = sodium_crypto_box_keypair_from_secretkey_and_publickey($sk, $pk);
                 $sender_vk = mb_convert_encoding(sodium_crypto_box_seal_open($enc_sender, $sender_keys), 'ascii');
-                $sender_pk = sodium_crypto_sign_ed25519_pk_to_curve25519(Encryption::b58_to_bytes($sender_vk));
+                $sender_pk = sodium_crypto_sign_ed25519_pk_to_curve25519(b58_to_bytes($sender_vk));
                 $cek_keys = sodium_crypto_box_keypair_from_secretkey_and_publickey($sk, $sender_pk);
                 $cek = sodium_crypto_box_open($encrypted_key, $nonce, $cek_keys);
             } else {
@@ -211,13 +210,13 @@ class Ed25519
         $from_ver_key = self::ensure_is_bytes($from_ver_key);
         $from_sig_key = self::ensure_is_bytes($from_sig_key);
         [$recips_json, $cek] = self::prepare_pack_recipient_keys($tvk, $from_ver_key, $from_sig_key);
-        $recips_b64 = Encryption::bytes_to_b64(mb_convert_encoding($recips_json, 'ASCII'), true);
+        $recips_b64 = bytes_to_b64(mb_convert_encoding($recips_json, 'ASCII'), true);
         [$cipher_text, $nonce, $tag] = self::encrypt_plaintext($message, mb_convert_encoding($recips_b64, 'ASCII'), $cek);
         $data =  [
             'protected' => $recips_b64,
-            'iv' => Encryption::bytes_to_b64($nonce, true),
-            'ciphertext' => Encryption::bytes_to_b64($cipher_text, true),
-            'tag' => Encryption::bytes_to_b64($tag, true)
+            'iv' => bytes_to_b64($nonce, true),
+            'ciphertext' => bytes_to_b64($cipher_text, true),
+            'tag' => bytes_to_b64($tag, true)
         ];
         return mb_convert_encoding(json_encode($data, JSON_THROW_ON_ERROR), 'ASCII');
     }
@@ -226,7 +225,7 @@ class Ed25519
      *
      * Decode a packed message.
      *
-     * Disassemble and unencrypt a packed message, returning the message content,
+     * Disassemble and decrypt a packed message, returning the message content,
      * verification key of the sender (if available), and verification key of the
      * recipient.
      *
@@ -250,7 +249,7 @@ class Ed25519
 
         $enc_message = json_decode($enc_message, false, 512, JSON_THROW_ON_ERROR);
         $protected_bin = mb_convert_encoding($enc_message->protected, 'ASCII');
-        $recips_json = Encryption::b64_to_bytes($enc_message->protected, true);
+        $recips_json = b64_to_bytes($enc_message->protected, true);
         try {
             $recips_outer = json_decode($recips_json, false, 512, JSON_THROW_ON_ERROR);
         } catch (Exception $exception) {
@@ -266,9 +265,9 @@ class Ed25519
             throw new RuntimeException('Sender public key not provided for Authcrypt message');
         }
 
-        $ciphertext = Encryption::b64_to_bytes($enc_message->ciphertext, true);
-        $nonce = Encryption::b64_to_bytes($enc_message->iv, true);
-        $tag = Encryption::b64_to_bytes($enc_message->tag, true);
+        $ciphertext = b64_to_bytes($enc_message->ciphertext, true);
+        $nonce = b64_to_bytes($enc_message->iv, true);
+        $tag = b64_to_bytes($enc_message->tag, true);
 
         $payload_bin = $ciphertext . $tag;
         $message = self::decrypt_plaintext($payload_bin, $protected_bin, $nonce, $cek);

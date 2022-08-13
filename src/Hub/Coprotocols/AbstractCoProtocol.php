@@ -6,26 +6,8 @@ namespace Siruis\Hub\Coprotocols;
 
 abstract class AbstractCoProtocol
 {
-    /**
-     * @var int|null
-     */
-    public $time_to_live;
-    /**
-     * @var bool
-     */
-    public $is_aborted;
-    /**
-     * @var null
-     */
-    public $hub;
-    /**
-     * @var bool
-     */
-    public $is_start;
-    /**
-     * @var null
-     */
-    public $transport;
+    private $time_to_live, $is_aborted;
+    protected $hub, $is_start, $transport;
 
     /**
      * AbstractCoProtocol constructor.
@@ -38,6 +20,16 @@ abstract class AbstractCoProtocol
         $this->hub = null;
         $this->is_start = false;
         $this->transport = null;
+    }
+
+    public function getTTL(): ?int
+    {
+        return $this->time_to_live;
+    }
+
+    public function getIsAborted(): bool
+    {
+        return $this->is_aborted;
     }
 
     /**

@@ -11,21 +11,6 @@ use Siruis\Tests\Helpers\Conftest;
 
 class TrustPing0048Test extends TestCase
 {
-    /**
-     * @return void
-     * @throws \GuzzleHttp\Exception\GuzzleException
-     * @throws \JsonException
-     * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
-     * @throws \Siruis\Errors\Exceptions\SiriusContextError
-     * @throws \Siruis\Errors\Exceptions\SiriusCryptoError
-     * @throws \Siruis\Errors\Exceptions\SiriusIOError
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
-     * @throws \Siruis\Errors\Exceptions\SiriusRPCError
-     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
-     * @throws \Siruis\Errors\Exceptions\SiriusValidationError
-     */
     public function test_establish_connection(): void
     {
         $agent1 = Conftest::agent1();

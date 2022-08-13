@@ -19,10 +19,10 @@ abstract class FieldBase implements FieldValidator
     /**
      * @inheritDoc
      */
-    public function validate($value): string
+    public function validate($value): ?string
     {
         if ($this->nullable && !$value) {
-            return;
+            return null;
         }
         $type_err = $this->__type_check($value);
         $spec_err = $this->_specific_validation($value);
@@ -32,7 +32,7 @@ abstract class FieldBase implements FieldValidator
         if ($spec_err) {
             return $spec_err;
         }
-        return;
+        return null;
     }
 
 

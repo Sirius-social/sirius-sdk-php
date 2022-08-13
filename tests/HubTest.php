@@ -4,7 +4,6 @@ namespace Siruis\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Siruis\Hub\Core\Hub;
-use Siruis\Hub\Init;
 use Siruis\Tests\Helpers\Conftest;
 
 class HubTest extends TestCase
@@ -33,14 +32,14 @@ class HubTest extends TestCase
         $params2 = $test_suite->get_agent_params('agent2');
 
         Hub::alloc_context($params1['server_address'], $params1['credentials'], $params1['p2p']);
-        $ping1 = Init::ping();
-        $endpoints1 = Init::endpoints();
-        $my_did_list1 = Init::DID()->list_my_dids_with_meta();
+        $ping1 = ping();
+        $endpoints1 = endpoints();
+        $my_did_list1 = DID()->list_my_dids_with_meta();
 
         Hub::alloc_context($params2['server_address'], $params2['credentials'], $params2['p2p']);
-        $ping2 = Init::ping();
-        $endpoints2 = Init::endpoints();
-        $my_did_list2 = Init::DID()->list_my_dids_with_meta();
+        $ping2 = ping();
+        $endpoints2 = endpoints();
+        $my_did_list2 = DID()->list_my_dids_with_meta();
 
         $new_endpoints1 = [];
         foreach ($endpoints1 as $e) {

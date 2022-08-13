@@ -13,19 +13,7 @@ use Siruis\Messaging\Message;
 
 class CoProtocolP2PAnon extends AbstractP2PCoProtocol
 {
-    /**
-     * @var string
-     */
-    public $my_verkey;
-    /**
-     * @var TheirEndpoint
-     */
-    public $endpoint;
-    /**
-     * @var array
-     */
-    public $protocols;
-    public $thread_id;
+    private $my_verkey, $endpoint, $protocols, $thread_id;
 
 
     /**
@@ -47,6 +35,11 @@ class CoProtocolP2PAnon extends AbstractP2PCoProtocol
         $this->thread_id = null;
     }
 
+    public function getProtocols(): array
+    {
+        return $this->protocols;
+    }
+
     /**
      * @param \Siruis\Messaging\Message $message
      * @return void
@@ -59,6 +52,7 @@ class CoProtocolP2PAnon extends AbstractP2PCoProtocol
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\SiriusRPCError
      */
     public function send(Message $message): void
     {
@@ -73,12 +67,10 @@ class CoProtocolP2PAnon extends AbstractP2PCoProtocol
 
     /**
      * @return array|false|null
-     * @throws \JsonException
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function get_one()
@@ -99,7 +91,12 @@ class CoProtocolP2PAnon extends AbstractP2PCoProtocol
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInitializationError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessage
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
+     * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
+     * @throws \Siruis\Errors\Exceptions\SiriusRPCError
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function switch(Message $message): array
@@ -152,7 +149,7 @@ class CoProtocolP2PAnon extends AbstractP2PCoProtocol
             $this->hub = Hub::current_hub();
             $agent = $this->hub->get_agent_connection_lazy();
             $this->transport = $agent->spawnTheirEndpoint($this->my_verkey, $this->endpoint);
-            $this->transport->start($this->protocols, $this->time_to_live);
+            $this->transport->start($this->protocols, $this->getTTL());
             $this->is_start = true;
         }
         return $this->transport;

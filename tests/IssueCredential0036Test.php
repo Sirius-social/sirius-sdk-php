@@ -67,7 +67,7 @@ class IssueCredential0036Test extends TestCase
 
         $cred_id = 'cred-id-' . uniqid('', true);
         $coro_issuer = new RunIssuer(
-            $issuer['server_addres'], $issuer['credentials'], $issuer['p2p'],
+            $issuer['server_address'], $issuer['credentials'], $issuer['p2p'],
             $i2h,
             ['attr1' => 'Value-1', 'attr2' => 567, 'attr3' => 5.7, 'attr4' => 'base64'],
             $schema, $cred_def,

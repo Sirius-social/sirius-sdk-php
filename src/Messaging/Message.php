@@ -33,11 +33,6 @@ class Message extends ArrayObject
     public $payload;
 
     /**
-     * @var array
-     */
-    public static $msgRegistry = [];
-
-    /**
      * Message constructor.
      * @param array $payload
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
@@ -50,7 +45,7 @@ class Message extends ArrayObject
             throw new SiriusInvalidMessageClass('No @type in message');
         }
         if (!array_key_exists('@id', $payload)) {
-            $payload['@id'] = self::generate_id();
+            $payload['@id'] = generate_id();
             $this->id = $payload['@id'];
         } elseif (!is_string($payload['@id'])) {
             throw new SiriusInvalidMessageClass('Message @id is invalid; must be str');
@@ -106,16 +101,6 @@ class Message extends ArrayObject
         } catch (Exception $exception) {
             throw new SiriusInvalidMessageClass('Could not serialize message'. $exception);
         }
-    }
-
-    /**
-     * Generate a message id.
-     *
-     * @return string
-     */
-    public static function generate_id(): string
-    {
-        return uniqid('', true);
     }
 
     /**
@@ -209,61 +194,6 @@ class Message extends ArrayObject
     {
         $version_info = $this->_type->version_info;
         return (string)$version_info;
-    }
-
-    /**
-     * @param $class
-     * @param $protocol
-     * @param null $name
-     * @return void
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
-     */
-    public static function registerMessageClass($class, $protocol, $name = null): void
-    {
-        if (is_subclass_of($class, self::class)) {
-            $descriptor = self::$msgRegistry[$protocol] ?? [];
-            if ($name) {
-                $descriptor[$name] = $class;
-            } else {
-                $descriptor['*'] = $class;
-            }
-            self::$msgRegistry[$protocol] = $descriptor;
-        } else {
-            throw new SiriusInvalidMessageClass();
-        }
-    }
-
-    /**
-     * @param array $payload
-     * @return array
-     * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
-     */
-    public static function restoreMessageInstance(array $payload): array
-    {
-        if (array_key_exists('@type', $payload)) {
-            $typ = Type::fromString($payload['@type']);
-            $descriptor = self::$msgRegistry[$typ->protocol] ?? null;
-
-            if ($descriptor) {
-                if (array_key_exists($typ->name, $descriptor)) {
-                    $cls = $descriptor[$typ->name];
-                } elseif (array_key_exists('*', $descriptor)) {
-                    $cls = $descriptor['*'];
-                } else {
-                    $cls = null;
-                }
-            } else {
-                $cls = null;
-            }
-
-            if ($cls) {
-                return [true, new $cls($payload)];
-            }
-
-            return [false, null];
-        }
-
-        return [false, null];
     }
 
     /**

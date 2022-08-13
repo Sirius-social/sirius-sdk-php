@@ -16,6 +16,10 @@ class FirstTask extends Threaded
      * @var \Siruis\Agent\Coprotocols\AbstractCoProtocolTransport
      */
     protected $protocol;
+    /**
+     * @var array
+     */
+    public $results;
 
     /**
      * FirstTask constructor.
@@ -29,13 +33,15 @@ class FirstTask extends Threaded
     /**
      * Fire.
      *
-     * @return void
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessage
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
+     * @throws \Siruis\Errors\Exceptions\SiriusInvalidPayloadStructure
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidType
-     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
+     * @throws \Siruis\Errors\Exceptions\SiriusPendingOperation
+     * @throws \Siruis\Errors\Exceptions\SiriusRPCError
      */
     public function work(): void
     {
@@ -44,14 +50,12 @@ class FirstTask extends Threaded
             '@type' => CoprotocolsTest::$TEST_MSG_TYPES[0],
             'content' => 'Request1'
         ]);
-        CoprotocolsTest::$MSG_LOG[] = $first_req;
         [$ok, $resp1] = $protocol->switch($first_req);
-        CoprotocolsTest::$MSG_LOG[] = $resp1;
         [$ok, $resp2] = $protocol->switch(new Message([
             '@type' => CoprotocolsTest::$TEST_MSG_TYPES[2],
             'content' => 'Request2'
         ]));
-        CoprotocolsTest::$MSG_LOG[] = $resp2;
+        $this->results = [$first_req, $resp1, $resp2];
     }
 
 
@@ -62,13 +66,12 @@ class FirstTask extends Threaded
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
-     * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
     public function reopenProtocol(): AbstractCoProtocolTransport
     {
         $protocol = $this->protocol;
-        if (!$protocol->rpc->isOpen()) {
-            $protocol->rpc->reopen();
+        if (!$protocol->getRPC()->isOpen()) {
+            $protocol->getRPC()->reopen();
         }
         return $protocol;
     }

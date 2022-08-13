@@ -4,7 +4,6 @@ namespace Siruis\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Siruis\Agent\Agent\Agent;
-use Siruis\Encryption\Encryption;
 use Siruis\Messaging\Message;
 use Siruis\Tests\Helpers\Conftest;
 use Siruis\Tests\Helpers\TrustPingMessageUnderTest;
@@ -348,7 +347,7 @@ class AgentTest extends TestCase
             // 1. Check sign
             $expected_signature = 'QRHbNQxHLEhBuYKbe3ReTUCNRDnGDYMJvABJFEuUSFU8EzS6orRzWjMf3fR4PSgM2Z5gqfsc1kg6vYpQCCb4bjB';
             $signature = $agent1->wallet->crypto->crypto_sign($verkey_signer, $msg);
-            self::assertEquals($expected_signature, Encryption::bytes_to_b58($signature));
+            self::assertEquals($expected_signature, bytes_to_b58($signature));
             // 2. Check verify
             $success = $agent2->wallet->crypto->crypto_verify($verkey_signer, $msg, $signature);
             self::assertTrue($success);

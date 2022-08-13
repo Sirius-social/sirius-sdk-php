@@ -99,7 +99,7 @@ class Agent extends TransportLayers
         int $spawnStrategy = null
     ) {
         $parsed = parse_url($server_address);
-        if (!in_array($parsed['scheme'], ['https'])) {
+        if ($parsed['scheme'] != 'https') {
             printf('Endpoints has non secure scheme, you will have issues for Android/iOS devices');
         }
         $this->server_address = $server_address;

@@ -55,8 +55,8 @@ class MessagesTest extends TestCase
      */
     public function test_register_protocol_message_success(): void
     {
-        Message::registerMessageClass(Test1Message::class, 'test-protocol');
-        [$ok, $message] = Message::restoreMessageInstance([
+        register_message_class(Test1Message::class, 'test-protocol');
+        [$ok, $message] = restore_message_instance([
             '@type' => 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/test-protocol/1.0/name'
         ]);
 
@@ -71,15 +71,15 @@ class MessagesTest extends TestCase
      */
     public function test_agnostic_doc_uri(): void
     {
-        Message::registerMessageClass(Test1Message::class, 'test-protocol');
-        $array = Message::restoreMessageInstance([
+        register_message_class(Test1Message::class, 'test-protocol');
+        $array = restore_message_instance([
             '@type' => 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/test-protocol/1.0/name'
         ]);
 
         self::assertTrue($array[0]);
         self::assertInstanceOf(Test1Message::class, $array[1]);
 
-        $arrayTwo = Message::restoreMessageInstance([
+        $arrayTwo = restore_message_instance([
             '@type' => 'https://didcomm.org/test-protocol/1.0/name'
         ]);
 
@@ -94,8 +94,8 @@ class MessagesTest extends TestCase
      */
     public function test_register_protocol_message_fail(): void
     {
-        Message::registerMessageClass(Test1Message::class, 'test-protocol');
-        $array = Message::restoreMessageInstance([
+        register_message_class(Test1Message::class, 'test-protocol');
+        $array = restore_message_instance([
             '@type' => 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/fake-protocol/1.0/name'
         ]);
 
@@ -110,17 +110,17 @@ class MessagesTest extends TestCase
      */
     public function test_register_protocol_message_multiple_name(): void
     {
-        Message::registerMessageClass(Test1Message::class, 'test-protocol');
-        Message::registerMessageClass(Test2Message::class, 'test-protocol', 'test-name');
+        register_message_class(Test1Message::class, 'test-protocol');
+        register_message_class(Test2Message::class, 'test-protocol', 'test-name');
 
-        $arrayOne = Message::restoreMessageInstance([
+        $arrayOne = restore_message_instance([
             '@type' => 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/test-protocol/1.0/name'
         ]);
 
         self::assertTrue($arrayOne[0]);
         self::assertInstanceOf(Test1Message::class, $arrayOne[1]);
 
-        $arrayTwo = Message::restoreMessageInstance([
+        $arrayTwo = restore_message_instance([
             '@type' => 'did:sov:BzCbsNYhMrjHiqZDTUASHg;spec/test-protocol/1.0/test-name'
         ]);
 
@@ -141,8 +141,8 @@ class MessagesTest extends TestCase
             "comment" => "Hi. Are you OK?",
             "response_requested" => True
         ];
-        Message::registerMessageClass(Ping::class, 'trust_ping');
-        $pingArray = Message::restoreMessageInstance($pingPayload);
+        register_message_class(Ping::class, 'trust_ping');
+        $pingArray = restore_message_instance($pingPayload);
         $ping = $pingArray[1];
         self::assertTrue($pingArray[0]);
         self::assertInstanceOf(Ping::class, $ping);
@@ -175,8 +175,8 @@ class MessagesTest extends TestCase
         self::assertEquals(Status::PENDING, $message->getStatus());
         $message->validate();
 
-        Message::registerMessageClass(Ack::class, 'notification');
-        $restored = Message::restoreMessageInstance($payload);
+        register_message_class(Ack::class, 'notification');
+        $restored = restore_message_instance($payload);
         $ack = $restored[1];
         self::assertTrue($restored[0]);
         self::assertInstanceOf(Ack::class, $ack);

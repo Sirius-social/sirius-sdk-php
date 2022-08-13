@@ -15,7 +15,7 @@ use WebSocket\TimeoutException;
 
 class WebSocketConnector extends BaseConnector
 {
-    public const DEF_TIMEOUT = 60.0;
+    public const DEF_TIMEOUT = 60;
     public const ENC = 'utf-8';
 
     public $timeout;
@@ -35,8 +35,8 @@ class WebSocketConnector extends BaseConnector
             $ws_address .= ':' . $parsed['port'];
         }
         $this->path = $path;
-        $this->credentials = $credentials;
         $this->timeout = $timeout;
+        $this->credentials = $credentials;
         if ($enc) {
             $this->enc = $enc;
         }
@@ -48,7 +48,7 @@ class WebSocketConnector extends BaseConnector
                 'mode' => 'text'
             ],
             'timeout' => $this->timeout,
-            'filter' => ['text', 'binary', 'ping', 'pong', 'close']
+            'filter' => ['text', 'binary', 'close']
         ];
         $this->session = new Client($this->url, $this->options);
     }
@@ -106,7 +106,7 @@ class WebSocketConnector extends BaseConnector
             $this->session->setTimeout($timeout ?? $this->timeout);
             $msg = $this->session->receive();
         } catch (TimeoutException $e) {
-            throw new SiriusTimeoutIO();
+            throw new SiriusTimeoutIO($e->getMessage(), $e->getCode(), $e->getPrevious());
         }
 
         $lastOpcode = $this->session->getLastOpcode();

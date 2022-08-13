@@ -1,8 +1,6 @@
 <?php
 
-
 namespace Siruis\Agent\Coprotocols;
-
 
 use Siruis\Agent\Connections\AgentRPC;
 use Siruis\Agent\Pairwise\Pairwise;
@@ -10,12 +8,13 @@ use Siruis\Agent\Pairwise\Pairwise;
 class PairwiseCoProtocolTransport extends AbstractCoProtocolTransport
 {
     /**
-     * @var Pairwise
+     * @var \Siruis\Agent\Pairwise\Pairwise
      */
-    public $pairwise;
+    private $pairwise;
 
     /**
      * PairwiseCoProtocolTransport constructor.
+     *
      * @param \Siruis\Agent\Pairwise\Pairwise $pairwise
      * @param \Siruis\Agent\Connections\AgentRPC $rpc
      */
@@ -23,7 +22,7 @@ class PairwiseCoProtocolTransport extends AbstractCoProtocolTransport
     {
         parent::__construct($rpc);
         $this->pairwise = $pairwise;
-        $this->setup(
+        $this->_setup(
             $pairwise->their->verkey,
             $pairwise->their->endpoint,
             $pairwise->me->verkey,
@@ -32,20 +31,21 @@ class PairwiseCoProtocolTransport extends AbstractCoProtocolTransport
     }
 
     /**
-     * @param array|null $protocols
+     * @param string[] $protocols
      * @param int|null $time_to_live
+     *
      * @throws \Siruis\Errors\Exceptions\SiriusConnectionClosed
      * @throws \Siruis\Errors\Exceptions\SiriusIOError
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public function start(array $protocols = null, int $time_to_live = null): void
+    public function start(array $protocols, int $time_to_live = null)
     {
         parent::start($protocols, $time_to_live);
         $this->rpc->start_protocol_for_p2p(
             $this->pairwise->me->verkey,
             $this->pairwise->their->verkey,
-            $this->protocols,
+            $this->getProtocols(),
             $time_to_live
         );
     }
@@ -56,13 +56,13 @@ class PairwiseCoProtocolTransport extends AbstractCoProtocolTransport
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public function stop(): void
+    public function stop()
     {
         parent::stop();
         $this->rpc->stop_protocol_for_p2p(
             $this->pairwise->me->verkey,
             $this->pairwise->their->verkey,
-            $this->protocols,
+            $this->getProtocols(),
             true
         );
     }

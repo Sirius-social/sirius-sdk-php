@@ -72,7 +72,7 @@ class Ack extends AriesProtocolMessage
             $payload[self::THREAD_DECORATOR] = $thread;
         }
         $this->payload = $payload;
-        Message::registerMessageClass(Ack::class, $this->PROTOCOL, $this->NAME);
+        register_message_class(Ack::class, $this->PROTOCOL, $this->NAME);
     }
 
     public function validate()

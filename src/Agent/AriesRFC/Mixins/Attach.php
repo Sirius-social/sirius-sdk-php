@@ -5,12 +5,14 @@ namespace Siruis\Agent\AriesRFC\Mixins;
 
 
 use ArrayObject;
-use Siruis\Encryption\Encryption;
 
 class Attach extends ArrayObject
 {
     public $payload;
 
+    /**
+     * @throws \SodiumException
+     */
     public function __construct(
         string $id = null,
         string $mime_type = null,
@@ -38,7 +40,7 @@ class Attach extends ArrayObject
         }
         if ($data) {
             $this->payload['data'] = [
-                'base64' => Encryption::bytes_to_b64($data)
+                'base64' => bytes_to_b64($data)
             ];
         }
     }
@@ -68,8 +70,11 @@ class Attach extends ArrayObject
         return $this->payload['description'];
     }
 
-    public function getData()
+    /**
+     * @throws \SodiumException
+     */
+    public function getData(): string
     {
-        return Encryption::b64_to_bytes($this->payload['data']['base64']);
+        return b64_to_bytes($this->payload['data']['base64']);
     }
 }
