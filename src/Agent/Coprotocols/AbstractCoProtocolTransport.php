@@ -64,12 +64,12 @@ abstract class AbstractCoProtocolTransport
         $this->is_started = false;
     }
 
-    public function getProtocols(): array
+    public function getProtocols(): ?array
     {
         return $this->protocols;
     }
 
-    public function getTimeToLive(): int
+    public function getTimeToLive(): ?int
     {
         return $this->time_to_live;
     }
@@ -120,18 +120,18 @@ abstract class AbstractCoProtocolTransport
         $this->their_vk = $their_verkey;
         $this->my_vk = $my_verkey;
         $this->endpoint = $endpoint;
-        $this->routing_keys = $routing_keys ?? [];
+        $this->routing_keys = $routing_keys ?: [];
         $this->is_setup = true;
     }
 
-    public function start(array $protocols, int $time_to_live = null)
+    public function start(array $protocols = null, int $time_to_live = null)
     {
         $this->protocols = $protocols;
         $this->time_to_live = $time_to_live;
         if (is_null($time_to_live)) {
             $this->die_timestamp = null;
         } else {
-            $this->die_timestamp = idate('Y-m-d h:i:s', time() + $time_to_live);
+            $this->die_timestamp = time() + $time_to_live;
         }
         $this->is_started = true;
     }
@@ -189,7 +189,7 @@ abstract class AbstractCoProtocolTransport
             }
             if ($this->check_verkeys) {
                 $payload = $event->payload;
-                $recipient_verkey = $payload['recipient_verkey'] ?? null;
+                $recipient_verkey = $payload['recipient_verkey'] ?: null;
                 $sender_verkey = $payload['sender_verkey'];
                 if ($recipient_verkey != $this->my_vk) {
                     throw new SiriusInvalidPayloadStructure("Unexpected recipient_verkey: $recipient_verkey");
@@ -198,7 +198,7 @@ abstract class AbstractCoProtocolTransport
                     throw new SiriusInvalidPayloadStructure("Unexpected sender_verkey: $sender_verkey");
                 }
             }
-            $payload = new Message($event->getAttribute('message') ?? []);
+            $payload = new Message($event->getAttribute('message') ?: []);
             if (!is_null($payload->payload)) {
                 [$ok, $message] = restore_message_instance($payload->payload);
                 if (!$ok) {
@@ -240,8 +240,8 @@ abstract class AbstractCoProtocolTransport
         } else {
             $message = null;
         }
-        $sender_verkey = $event->getAttribute('sender_verkey') ?? null;
-        $recipient_verkey = $event->getAttribute('recipient_verkey') ?? null;
+        $sender_verkey = $event->getAttribute('sender_verkey') ?: null;
+        $recipient_verkey = $event->getAttribute('recipient_verkey') ?: null;
 
         return [$message, $sender_verkey, $recipient_verkey];
     }
@@ -315,8 +315,8 @@ abstract class AbstractCoProtocolTransport
         $payload = $message->payload;
         if (in_array(self::PLEASE_ACK_DECORATOR, $payload)) {
             $decorator = ArrayHelper::getValueWithKeyFromArray(self::PLEASE_ACK_DECORATOR, $payload, []);
-            $ack_message_id = ArrayHelper::getValueWithKeyFromArray('message_id', $decorator) ?? $message->getId();
-            $ttl = $this->get_io_timeout() ?? 3600;
+            $ack_message_id = ArrayHelper::getValueWithKeyFromArray('message_id', $decorator) ?: $message->getId();
+            $ttl = $this->get_io_timeout() ?: 3600;
             $this->rpc->start_protocol_with_threads([$ack_message_id], $ttl);
             $this->please_ack_ids[] = $ack_message_id;
         }
@@ -336,7 +336,7 @@ abstract class AbstractCoProtocolTransport
             $payload = $message->payload;
             if (in_array(self::PLEASE_ACK_DECORATOR, $payload)) {
                 $decorator = ArrayHelper::getValueWithKeyFromArray(self::PLEASE_ACK_DECORATOR, $payload, []);
-                $ack_message_id = ArrayHelper::getValueWithKeyFromArray('message_id', $decorator) ?? $message->getId();
+                $ack_message_id = ArrayHelper::getValueWithKeyFromArray('message_id', $decorator) ?: $message->getId();
                 $this->rpc->stop_protocol_with_threads([$ack_message_id], true);
                 foreach ($this->please_ack_ids as $please_ack_id) {
                     if ($please_ack_id !== $ack_message_id) {

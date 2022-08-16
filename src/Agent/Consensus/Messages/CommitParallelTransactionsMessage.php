@@ -19,7 +19,7 @@ class CommitParallelTransactionsMessage extends BaseParallelTransactionsMessage
 
     public function getPreCommits()
     {
-        return $this->payload['pre_commits'] ?? [];
+        return $this->payload['pre_commits'] ?: [];
     }
 
     public function setPreCommits($value)

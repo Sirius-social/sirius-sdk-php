@@ -81,7 +81,7 @@ class SelfIdentity
             $restrictions = $data['restrictions'];
             if (!$restrictions && array_key_exists('name', $data)) {
                 $attr_name = $data['name'];
-                $attr_value = $self_attested_identity[$attr_name] ?? $default_value;
+                $attr_value = $self_attested_identity[$attr_name] ?: $default_value;
                 $this->self_attested_attributes[$referent_id] = new SelfAttestedAttribute(
                     $referent_id, $attr_name, $attr_value
                 );
@@ -133,7 +133,7 @@ class SelfIdentity
         $this->__mute = true;
         try {
             [$referent_id] = explode(':', $emitter->uid);
-            $neighbours = $this->requested_attributes[$referent_id] ?? $this->requested_predicates[$referent_id];
+            $neighbours = $this->requested_attributes[$referent_id] ?: $this->requested_predicates[$referent_id];
             foreach ($neighbours as $neighbour) {
                 if ($neighbour->uid !== $emitter->uid && $neighbour->is_selected()) {
                     $neighbour->setSelected(false);

@@ -29,7 +29,7 @@ function register_message_class($class, string $protocol, string $name = null): 
 {
     global $msgRegistry;
     if (is_subclass_of($class, Message::class)) {
-        $descriptor = $msgRegistry[$protocol] ?? [];
+        $descriptor = $msgRegistry[$protocol] ?: [];
         if ($name) {
             $descriptor[$name] = $class;
         } else {
@@ -53,7 +53,7 @@ function restore_message_instance(array $payload): array
     global $msgRegistry;
     if (array_key_exists('@type', $payload)) {
         $typ = Type::fromString($payload['@type']);
-        $descriptor = $msgRegistry[$typ->protocol] ?? null;
+        $descriptor = $msgRegistry[$typ->protocol] ?: null;
 
         if ($descriptor) {
             if (array_key_exists($typ->name, $descriptor)) {

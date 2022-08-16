@@ -73,6 +73,7 @@ class FirstTask extends Threaded
         if (!$protocol->getRPC()->isOpen()) {
             $protocol->getRPC()->reopen();
         }
+        $protocol->restart();
         return $protocol;
     }
 }

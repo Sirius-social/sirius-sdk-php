@@ -22,7 +22,7 @@ class SimpleConsensusMessage extends AriesProtocolMessage
 
     public function getParticipants()
     {
-        return $this->payload['participants'] ?? [];
+        return $this->payload['participants'] ?: [];
     }
 
     public function setParticipants($value)

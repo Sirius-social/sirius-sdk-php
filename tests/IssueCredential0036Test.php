@@ -11,7 +11,6 @@ use Siruis\Agent\Pairwise\Pairwise;
 use Siruis\Agent\Pairwise\Their;
 use Siruis\Agent\Wallet\Abstracts\Ledger\NYMRole;
 use Siruis\Hub\Core\Hub;
-use Siruis\Hub\Init;
 use Siruis\Tests\Helpers\Conftest;
 use Siruis\Tests\Helpers\Threads;
 use Siruis\Tests\Threads\test_0036_issue_credential\RunHolder;
@@ -97,7 +96,7 @@ class IssueCredential0036Test extends TestCase
 
         self::assertNotNull($cred_id);
         Hub::alloc_context($holder['server_address'], $holder['credentials'], $holder['p2p']);
-        $cred = Init::AnonCreds()->prover_get_credential($cred_id);
+        $cred = AnonCreds()->prover_get_credential($cred_id);
         self::assertNotNull($cred);
         $mime_types = Holder::get_mime_types($cred_id);
         self::assertCount(2, $mime_types);

@@ -21,7 +21,7 @@ class ConnProtocolMessage extends AriesProtocolMessage
     public function __construct(array $payload, ...$args)
     {
         parent::__construct($payload, ...$args);
-        Message::registerMessageClass(ConnProtocolMessage::class, $this->PROTOCOL, $this->NAME);
+        register_message_class(ConnProtocolMessage::class, $this->PROTOCOL, $this->NAME);
     }
 
     /**

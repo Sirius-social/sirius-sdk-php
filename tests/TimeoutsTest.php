@@ -11,7 +11,6 @@ use Siruis\Agent\Coprotocols\ThreadBasedCoProtocolTransport;
 use Siruis\Base\WebSocketConnector;
 use Siruis\Errors\Exceptions\SiriusTimeoutIO;
 use Siruis\Hub\Core\Hub;
-use Siruis\Hub\Init;
 use Siruis\Messaging\Message;
 use Siruis\Tests\Helpers\Conftest;
 
@@ -159,7 +158,7 @@ class TimeoutsTest extends TestCase
 
         $stamp1 = new DateTime();
         Hub::alloc_context($params_me['server_address'], $params_me['credentials'], $params_me['p2p']);
-        $endpoints = Init::endpoints();
+        $endpoints = endpoints();
         $endpoint = Conftest::get_endpoints($endpoints)[0];
         $rfc_0160 = new Invitee($p2p->me, $endpoint, null, $timeout);
         [$success, $p2p] = $rfc_0160->create_connection(

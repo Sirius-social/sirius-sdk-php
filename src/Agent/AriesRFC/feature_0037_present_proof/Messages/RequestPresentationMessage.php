@@ -76,7 +76,7 @@ class RequestPresentationMessage extends BasePresentProofMessage
 
     public function getProofRequest()
     {
-        $attaches = $this->payload['request_presentations~attach'] ?? null;
+        $attaches = $this->payload['request_presentations~attach'] ?: null;
         if (!$attaches) {
             return null;
         }
@@ -93,7 +93,7 @@ class RequestPresentationMessage extends BasePresentProofMessage
 
     public function getComment()
     {
-        return $this->payload['comment'] ?? null;
+        return $this->payload['comment'] ?: null;
     }
 
     public function getTranslation()

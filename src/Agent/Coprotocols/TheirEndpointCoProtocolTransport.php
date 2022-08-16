@@ -39,7 +39,7 @@ class TheirEndpointCoProtocolTransport extends AbstractCoProtocolTransport
      * @throws \Siruis\Errors\Exceptions\SiriusInvalidMessageClass
      * @throws \Siruis\Errors\Exceptions\SiriusTimeoutIO
      */
-    public function start(array $protocols, int $time_to_live = null)
+    public function start(array $protocols = null, int $time_to_live = null)
     {
         parent::start($protocols, $time_to_live);
         $this->rpc->start_protocol_for_p2p(
@@ -47,6 +47,16 @@ class TheirEndpointCoProtocolTransport extends AbstractCoProtocolTransport
             $this->endpoint->verkey,
             $this->getProtocols(),
             $time_to_live
+        );
+    }
+
+    public function restart()
+    {
+        $this->rpc->start_protocol_for_p2p(
+            $this->my_verkey,
+            $this->endpoint->verkey,
+            $this->getProtocols(),
+            $this->getTimeToLive()
         );
     }
 

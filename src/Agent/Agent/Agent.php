@@ -157,40 +157,43 @@ class Agent extends TransportLayers
 
     public function spawnThidPairwise(string $thid, Pairwise $pairwise): ThreadBasedCoProtocolTransport
     {
-        return new ThreadBasedCoProtocolTransport(
+        ($transport = new ThreadBasedCoProtocolTransport(
             $thid,
             $pairwise,
             $this->__get_RPC()
-        );
+        ))->setPairwise($pairwise);
+        return $transport;
     }
 
     public function spawnThid(string $thid): ThreadBasedCoProtocolTransport
     {
-        return new ThreadBasedCoProtocolTransport(
+        ($transport = new ThreadBasedCoProtocolTransport(
             $thid,
             null,
             $this->__get_RPC()
-        );
+        ))->setPairwise(null);
+        return $transport;
     }
 
     public function spawnThidPairwisePthd(string $thid, Pairwise $pairwise, string $pthid): ThreadBasedCoProtocolTransport
     {
-        return new ThreadBasedCoProtocolTransport(
+        ($transport = new ThreadBasedCoProtocolTransport(
             $thid,
             $pairwise,
             $this->__get_RPC(),
             $pthid
-        );
+        ))->setPairwise($pairwise);
+        return $transport;
     }
 
     public function spawnThidPthid(string $thid, string $pthid): ThreadBasedCoProtocolTransport
     {
-        return new ThreadBasedCoProtocolTransport(
+        ($transport = new ThreadBasedCoProtocolTransport(
             $thid,
             null,
             $this->__get_RPC(),
             $pthid
-        );
+        ))->setPairwise(null);
     }
 
     public function open()

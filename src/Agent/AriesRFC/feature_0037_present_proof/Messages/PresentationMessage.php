@@ -40,7 +40,7 @@ class PresentationMessage extends BasePresentProofMessage
 
     public function getProof()
     {
-        $attaches = $this->payload['presentations~attach'] ?? null;
+        $attaches = $this->payload['presentations~attach'] ?: null;
         if (!$attaches) {
             return null;
         }

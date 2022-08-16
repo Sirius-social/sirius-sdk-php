@@ -118,7 +118,7 @@ class Hub
         $this->non_secrets = $non_secrets;
         $this->cache = $cache;
         $this->__create_agent_instance();
-        self::$context = $context ?? Context::getInstance();
+        self::$context = $context ?: Context::getInstance();
     }
 
     public function copy(): Hub
@@ -237,7 +237,7 @@ class Hub
     {
         if ($this->allocate_agent) {
             $agent = $this->get_agent_connection_lazy();
-            return $this->non_secrets ?? $agent->wallet->non_secrets;
+            return $this->non_secrets ?: $agent->wallet->non_secrets;
         } else {
             return $this->non_secrets;
         }

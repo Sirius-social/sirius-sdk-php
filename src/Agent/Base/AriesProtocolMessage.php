@@ -64,9 +64,9 @@ class AriesProtocolMessage extends Message
     {
         if ($this->NAME && !key_exists('@type', $payload)) {
             $payload['@type'] = (string) new Type(
-                $doc_uri ?? $this->DOC_URI,
+                $doc_uri ?: $this->DOC_URI,
                 $this->PROTOCOL,
-                $version ?? $this->DEF_VERSION,
+                $version ?: $this->DEF_VERSION,
                 $this->NAME
             );
         }

@@ -96,7 +96,7 @@ class CredAttribute
     {
         return
             $this->cred_info['attrs'] ?
-                $this->cred_info['attrs'][$this->attr_name] ?? null : [];
+                $this->cred_info['attrs'][$this->attr_name] ?: null : [];
     }
 
     /**

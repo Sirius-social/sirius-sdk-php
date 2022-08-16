@@ -4,12 +4,13 @@ namespace Siruis\Tests;
 
 use DateTime;
 use PHPUnit\Framework\TestCase;
+use Siruis\Agent\Coprotocols\AbstractCoProtocolTransport;
 use Siruis\Messaging\Message;
 use Siruis\Tests\Helpers\Conftest;
 
 class PerformanceTest extends TestCase
 {
-    public const TEST_ITERATIONS = 100;
+    public const TEST_ITERATIONS = 5;
 
     /**
      * @return void

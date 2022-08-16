@@ -54,7 +54,7 @@ class IssueCredentialMessage extends BaseIssueCredentialMessage
             }
             if (!ArrayHelper::is_assoc($attaches)) {
                 $attach = $attaches[0];
-                return $attach['@id'] ?? null;
+                return $attach['@id'] ?: null;
             } else {
                 return null;
             }

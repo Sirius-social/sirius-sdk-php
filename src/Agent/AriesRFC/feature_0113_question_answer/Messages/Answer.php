@@ -60,9 +60,9 @@ class Answer extends AriesProtocolMessage
 
     public function sign(AbstractCrypto $crypto, Question $question, string $verkey)
     {
-        $q_text = $question->getQuestionText() ?? '';
-        $response = $this->getResponse() ?? '';
-        $nonce = $question->getNonce() ?? '';
+        $q_text = $question->getQuestionText() ?: '';
+        $response = $this->getResponse() ?: '';
+        $nonce = $question->getNonce() ?: '';
         $data = $q_text . $response . $nonce;
         $hasher = hash_init('sha256');
         hash_update($hasher, utf8_encode($data));

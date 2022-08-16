@@ -29,7 +29,7 @@ class BaseIssueCredentialMessage extends AriesProtocolMessage
         string $doc_uri = null
     )
     {
-        $version = $version ?? '1.1';
+        $version = $version ?: '1.1';
         parent::__construct($payload, $id_, $version, $doc_uri);
         $this->payload['~l10n'] = ['locale' => $locale];
         self::registerMessageClass(BaseIssueCredentialMessage::class, $this->PROTOCOL, $this->NAME);
@@ -45,7 +45,7 @@ class BaseIssueCredentialMessage extends AriesProtocolMessage
     {
         $please_ack = ArrayHelper::getValueWithKeyFromArray('~please_ack', $this->payload, []);
         $message_id = ArrayHelper::getValueWithKeyFromArray('message_id', $please_ack);
-        return $message_id ?? $this->getId();
+        return $message_id ?: $this->getId();
     }
 
     public function getPleaseAck()

@@ -50,7 +50,7 @@ class Transaction extends ArrayObject
      */
     public function setTime(string $value): void
     {
-        $metadata = $this->payload[Microledgers::METADATA_ATTR] ?? [];
+        $metadata = $this->payload[Microledgers::METADATA_ATTR] ?: [];
         $metadata->{Microledgers::ATTR_TIME} = $value;
         $this->payload[Microledgers::METADATA_ATTR] = $metadata;
     }

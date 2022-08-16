@@ -97,7 +97,7 @@ class Verifier extends BaseVerifyStateMachine
             $this->log(['progress' => 60, 'message' => 'Presentation received']);
 
             // Step-2 Verify
-            $identifiers = $presentation->getProof()['identifiers'] ?? [];
+            $identifiers = $presentation->getProof()['identifiers'] ?: [];
             $schemas = [];
             $credential_defs = [];
             $rev_reg_defs = [];

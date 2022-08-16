@@ -103,7 +103,7 @@ class WebSocketConnector extends BaseConnector
     public function read($timeout = null): string
     {
         try {
-            $this->session->setTimeout($timeout ?? $this->timeout);
+            $this->session->setTimeout($timeout ?: $this->timeout);
             $msg = $this->session->receive();
         } catch (TimeoutException $e) {
             throw new SiriusTimeoutIO($e->getMessage(), $e->getCode(), $e->getPrevious());

@@ -379,7 +379,7 @@ class MicroLedgerSimpleConsensus extends AbstractStateMachine
 
     public function accept_commit_parallel(Pairwise $leader, ProposeParallelTransactionsMessage $propose)
     {
-        $time_to_live = $propose->getTimeoutSec() ?? $this->time_to_live;
+        $time_to_live = $propose->getTimeoutSec() ?: $this->time_to_live;
         $co = $this->leader($leader, $propose->getThreadId(), $time_to_live);
         $batching_api = Init::Microledgers()->batched();
         /** @var AbstractMicroledger[] $ledgers_for_commit */

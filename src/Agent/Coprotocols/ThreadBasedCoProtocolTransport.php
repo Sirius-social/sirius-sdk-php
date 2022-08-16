@@ -110,16 +110,16 @@ class ThreadBasedCoProtocolTransport extends AbstractCoProtocolTransport
      */
     public function switch(Message $message): array
     {
-        $message = $this->prepare_message($message) ?? $message;
+        $message = $this->prepare_message($message) ?: $message;
         [$ok, $response] = parent::switch($message);
         if ($ok) {
-            $thread = $response->payload[self::THREAD_DECORATOR] ?? [];
-            $respond_sender_order = $thread['sender_order'] ?? null;
+            $thread = $response->payload[self::THREAD_DECORATOR] ?: [];
+            $respond_sender_order = $thread['sender_order'] ?: null;
             if (!is_null($respond_sender_order) && !is_null($this->their)) {
                 $recipient = $this->their->did;
                 $err = (new DIDField())->validate($recipient);
                 if (is_null($err)) {
-                    $order = $this->received_orders[$recipient] ?? 0;
+                    $order = $this->received_orders[$recipient] ?: 0;
                     $this->received_orders[$recipient] = max($order, $respond_sender_order);
                 }
             }
@@ -140,7 +140,7 @@ class ThreadBasedCoProtocolTransport extends AbstractCoProtocolTransport
      */
     public function send(Message $message)
     {
-        $message = $this->prepare_message($message) ?? $message;
+        $message = $this->prepare_message($message) ?: $message;
         parent::send($message);
     }
 
@@ -154,7 +154,7 @@ class ThreadBasedCoProtocolTransport extends AbstractCoProtocolTransport
      */
     public function send_many(Message $message, array $to): array
     {
-        $message = $this->prepare_message($message) ?? $message;
+        $message = $this->prepare_message($message) ?: $message;
         return parent::send_many($message, $to);
     }
 

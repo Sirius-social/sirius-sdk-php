@@ -118,7 +118,7 @@ class OfferCredentialMessage extends BaseIssueCredentialMessage
     {
         $preview = ArrayHelper::getValueWithKeyFromArray('credential_preview', $this->payload);
         if (is_array($preview) && $preview['@type'] == self::CREDENTIAL_PREVIEW_TYPE) {
-            $attribs = $preview['attributes'] ?? [];
+            $attribs = $preview['attributes'] ?: [];
             $attributes = [];
             foreach ($attribs as $item) {
                 array_push($attributes, new ProposedAttrib($item['name'], $item['value'], $item['mime-type']));

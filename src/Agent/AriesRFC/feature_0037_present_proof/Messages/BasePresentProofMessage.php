@@ -24,7 +24,7 @@ class BasePresentProofMessage extends AriesProtocolMessage
                                 string $version = null,
                                 string $doc_uri = null)
     {
-        $version = $version ?? '1.1';
+        $version = $version ?: '1.1';
         parent::__construct($payload, $id_, $version, $doc_uri);
         $this->payload['~l10n'] = ['locale' => $locale];
     }
@@ -38,7 +38,7 @@ class BasePresentProofMessage extends AriesProtocolMessage
     public function getAckMessageId()
     {
         $please_ack = ArrayHelper::getValueWithKeyFromArray('~please_ack', $this->payload, []);
-        return ArrayHelper::getValueWithKeyFromArray('message_id', $please_ack) ?? $this->id;
+        return ArrayHelper::getValueWithKeyFromArray('message_id', $please_ack) ?: $this->id;
     }
 
     public function getPleaseAck()

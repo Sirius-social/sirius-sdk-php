@@ -32,7 +32,7 @@ class ConnRequest extends ConnProtocolMessage
                 'DIDDoc' => self::build_did_doc($did, $verkey, $endpoint, $extra),
             ];
         }
-        Message::registerMessageClass(ConnRequest::class, $this->PROTOCOL, $this->NAME);
+        register_message_class(ConnRequest::class, $this->PROTOCOL, $this->NAME);
     }
 
     public function getLabel()

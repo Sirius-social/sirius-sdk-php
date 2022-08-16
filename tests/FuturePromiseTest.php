@@ -4,7 +4,6 @@ namespace Siruis\Tests;
 
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
-use Siruis\Encryption\Encryption;
 use Siruis\Errors\Exceptions\SiriusPromiseContextException;
 use Siruis\Errors\IndyExceptions\ErrorCode;
 use Siruis\Errors\IndyExceptions\WalletItemAlreadyExists;
@@ -210,7 +209,7 @@ class FuturePromiseTest extends TestCase
             '@id' => 'promise-message-id',
             'is_tuple' => false,
             'is_bytes' => true,
-            'value' => Encryption::bytes_to_b64($expected),
+            'value' => bytes_to_b64($expected),
             'exception' => null,
             '~thread' => [
                 'thid' => $future->getPromise()['id']

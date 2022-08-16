@@ -59,7 +59,7 @@ class BaseConnectionStateMachine extends AbstractStateMachine
      */
     public function coprotocol(TheirEndpoint $endpoint)
     {
-        $co = $this->coprotocol ?? new CoProtocolP2PAnon(
+        $co = $this->coprotocol ?: new CoProtocolP2PAnon(
             $this->me->verkey,
             $endpoint,
             [ConnProtocolMessage::PROTOCOL, Ack::PROTOCOL, Ping::PROTOCOL]

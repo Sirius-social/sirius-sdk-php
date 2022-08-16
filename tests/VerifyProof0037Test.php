@@ -7,7 +7,6 @@ use Siruis\Agent\Agent\Agent;
 use Siruis\Agent\Codec;
 use Siruis\Agent\Ledgers\CredentialDefinition;
 use Siruis\Hub\Core\Hub;
-use Siruis\Hub\Init;
 use Siruis\Tests\Helpers\Conftest;
 use Siruis\Tests\Helpers\Threads;
 use Siruis\Tests\Threads\test_0037_verify_proof\RunProver;

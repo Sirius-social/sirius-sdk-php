@@ -44,7 +44,7 @@ class Invitation extends ConnProtocolMessage
         if ($did) {
             $this->payload['did'] = $did;
         }
-        Message::registerMessageClass(Invitation::class, $this->PROTOCOL, $this->NAME);
+        register_message_class(Invitation::class, $this->PROTOCOL, $this->NAME);
     }
 
     public function validate()
