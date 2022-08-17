@@ -67,13 +67,13 @@ class CoprotocolsTest extends TestCase
             $agent1_params['server_address'],
             $agent1_params['credentials'],
             $agent1_params['p2p'],
-            10
+            5
         );
         $agent2 = new Agent(
             $agent2_params['server_address'],
             $agent2_params['credentials'],
             $agent2_params['p2p'],
-            10
+            5
         );
         $agent1->open();
         $agent2->open();
